@@ -15,4 +15,7 @@ RUN npm install --production
 
 COPY . .
 
-CMD [ "ts-node", "index.ts" ]
+# For development
+# CMD [ "ts-node-dev --respawn --pretty --transpile-only src/index.ts"]
+# For production
+CMD [ "ts-node", "./src/index.ts" ]
