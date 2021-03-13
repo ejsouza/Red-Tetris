@@ -53,3 +53,7 @@ You can now view client in the browser.
   Local:            http://localhost:3000
   On Your Network:  http://192.168.1.12:3000
 ```
+
+### A MVC app
+This app is build with React on the front and node js on the back.
+For this project I will be using typescript in both client and server side.
