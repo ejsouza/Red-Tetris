@@ -73,8 +73,8 @@ mongoose.connect(url, options).then(() => {
    console.log(`MangoDB ERROR >>> ${error}`)
  });
 
-app.get('/', (req, res) => res.send('Express + typescript server'));
-app.get('/api/v2/rooms', (req, res) => {res.send('testing api version')})
+// app.get('/', (req, res) => res.send('Express + typescript server'));
+// app.get('/api/v2/rooms', (req, res) => {res.send('testing api version')})
 
 // app.listen(PORT, () => {
 //   console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
