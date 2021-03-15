@@ -1,8 +1,6 @@
 FROM node:15-alpine3.10
 
-RUN npm --version
-
-ENV NODE_ENV=production
+# ENV NODE_ENV=production
 
 WORKDIR /app
 
@@ -17,7 +15,7 @@ RUN npm install -g ts-node
 
 # RUN npm install --production
 
-COPY . /app
+COPY . .
 
 # For development
 # CMD [ "ts-node-dev --respawn --pretty --transpile-only src/index.ts"]

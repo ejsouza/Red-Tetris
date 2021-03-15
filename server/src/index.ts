@@ -24,12 +24,6 @@ dotenv.config();
 	MONGO_DB,
 } = process.env;
 
-// const options = {
-// 	useNewUrlParser: true,
-// 	reconnectTries: Number.MAX_VALUE,
-// 	reconnectInterval: 500,
-// 	connectTimeoutMS: 10000,
-// };
 
 const options = {
 	useNewUrlParser: true,
