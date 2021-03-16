@@ -3,7 +3,8 @@
  */
 
 import * as dotenv from 'dotenv';
-import express from 'express';
+import express, { Application } from 'express';
+import http, {Server} from 'http';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -37,7 +38,8 @@ if (!process.env.PORT) {
 const PORT: number = parseInt(process.env.PORT as string, 10);
 
 
-const app = express();
+const app: Application = express();
+const server: Server = http.createServer(app);
 
 /**
  *  App Configuration
@@ -45,6 +47,7 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
 app.use(api);
 
@@ -60,17 +63,13 @@ app.use(api);
 //  mongoose.connect(url, options).then(() => {
 mongoose.connect(url, options).then(() => {
    console.log(`MangoDB is connected`);
-   app.listen(PORT, () => {
+   server.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
+		console.log("  Press CTRL-C to stop\n");
   });
  }).catch((error: any) => {
    console.log(`MangoDB ERROR >>> ${error}`)
  });
 
-// app.get('/', (req, res) => res.send('Express + typescript server'));
-// app.get('/api/v2/rooms', (req, res) => {res.send('testing api version')})
 
-// app.listen(PORT, () => {
-//   console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
-// });
 
