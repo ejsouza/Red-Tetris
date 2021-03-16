@@ -12,12 +12,8 @@ RUN npm install -g typescript
 
 RUN npm install -g ts-node
 
-
-# RUN npm install --production
-
 COPY . .
 
-# For development
-# CMD [ "ts-node-dev --respawn --pretty --transpile-only src/index.ts"]
-# For production
-CMD [ "ts-node", "./src/index.ts" ]
+# CMD [ "ts-node", "./src/index.ts" ]
+
+CMD [ "npm", "start" ]
