@@ -10,10 +10,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    # volumes:
-    #   - ./:/app
-    depends_on:
-      - db
+    networks:
+      - rt-network
+    volumes:
+      - ./:/api
+   
 
   client:
     container_name: client
@@ -23,11 +24,18 @@ services:
     ports:
       - "3000:3000"
   
-  db:
+  mongo:
     container_name: db-rt
     image: mongo
-    # volumes:
-    #   - ./data:data/db
+    restart: unless-stopped
+    volumes:
+      - ./data:/data/redtetrisdb
     ports:
       - "27017:27017"
+    networks:
+      - rt-network
+
+networks:
+  rt-network:
+    driver: bridge
 
