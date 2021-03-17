@@ -15,5 +15,7 @@ RUN npm install -g ts-node
 COPY . .
 
 # CMD [ "ts-node", "./src/index.ts" ]
+# For production
+# CMD [ "npm", "start" ]
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "dev" ]
