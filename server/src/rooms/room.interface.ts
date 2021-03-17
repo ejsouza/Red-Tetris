@@ -7,6 +7,7 @@ export interface IBaseRoom extends Document {
 	open: boolean;
 	close: boolean;
 	numberPeopleInRoom: number;
+	players: Array <string>;
 }
 
 export interface IRoom extends IBaseRoom {

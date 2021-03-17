@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { getRooms } from '../controllers/rooms';
-import { baseURL } from '../config/const'
+import { getRooms, createRoom } from '../controllers/rooms/rooms';
 
 const router: Router = Router();
 
-router.get(`${baseURL}/rooms`, getRooms);
+router.get(`/rooms`, getRooms);
+
+router.post(`/rooms`, createRoom);
 
 export default router;
