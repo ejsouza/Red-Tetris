@@ -2,23 +2,24 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index",
-  "typings": "src/index",
+  "main": "src/app",
+  "typings": "src/app",
   "scripts": {
     "tsc": "tsc",
-    "start": "tsc && node ./dist/index.js",
-    "dev": "ts-node-dev --respawn --pretty --transpile-only src/index.ts",
+    "start": "tsc -w && nodemon ./dist/app.js",
+    "dev": "ts-node-dev --respawn  --transpile-only src/*.ts",
     "build": "tsc --project ./"
   },
   "keywords": [],
-  "author": "esouza",
-  "license": "ISC",
+  "author": "Eder Junior DE SOUZA",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "helmet": "^4.4.1",
     "mongoose": "^5.11.19",
+    "morgan": "^1.10.0",
     "nodemon": "^2.0.7"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@types/express": "^4.17.11",
     "@types/helmet": "^4.0.0",
     "@types/mongoose": "^5.10.3",
+    "@types/morgan": "^1.9.2",
     "@types/node": "^14.14.32",
     "@types/typescript": "^2.0.0",
     "ts-node": "^9.1.1",
