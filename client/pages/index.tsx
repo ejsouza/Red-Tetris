@@ -1,15 +1,14 @@
-import Link from 'next/link'
-import Layout from '../components/Layout'
+import React from 'react';
+import Layout from '../components/Layout';
+import HeadLanding from '../components/HeadLanding';
+import Menu from '../components/Menu';
 
 const IndexPage = () => (
   <Layout title="Home | Next.js + TypeScript Example">
-    <h1>Hello Next.js 👋</h1>
-    <p>
-      <Link href="/about">
-        <a>About</a>
-      </Link>
-    </p>
+    <HeadLanding />
+    {/* Here the idea is to have a menu with some animated tetris */}
+    <Menu />
   </Layout>
-)
+);
 
-export default IndexPage
+export default IndexPage;
