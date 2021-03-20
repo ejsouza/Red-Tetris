@@ -10,19 +10,19 @@ const Menu = () => {
     <>
       <Container fluid>
         <Row>
-          <Col>
+          <Col xs={12} md={6} className="mt-4">
             <Button variant="secondary" size="lg" block>
               Sigin
             </Button>
           </Col>
-          <Col>
+
+          <Col xs={12} md={6} className="mt-4">
             <Button variant="secondary" size="lg" block>
               Sign-up
             </Button>
           </Col>
         </Row>
-        <br />
-        <Row>
+        <Row className="mt-4">
           <Col>
             <NewGame />
           </Col>
