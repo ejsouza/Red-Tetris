@@ -3,7 +3,17 @@ import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
-import createGame from '../core/createGame';
+import { getRooms, createGame } from '../core/createGame';
+
+interface IRoom {
+  id: string;
+  name: string;
+  open: boolean;
+  close: boolean;
+  numberPeopleInRoom: number;
+  players: Array<string>;
+}
+
 const IndexPage = () => {
   const [hideMenu, setHideMenu] = useState(false);
   const router = useRouter();
@@ -28,7 +38,16 @@ const IndexPage = () => {
     };
   }, [url])
   
-   
+ getRooms().then((res: IRoom) => {
+   console.log(typeof res);
+   console.log(res);
+
+   const {rooms} = res;
+   rooms.map((room: IRoom) => {
+     console.log(room)
+   })
+ 
+ });
   return (
 
   <Layout title="Home | RedTetris">
