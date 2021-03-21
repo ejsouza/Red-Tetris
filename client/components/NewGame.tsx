@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+
 // import ModalHeader from 'react-bootstrap/ModalHeader';
 
 const NewGame = () => {
@@ -25,8 +26,7 @@ const NewGame = () => {
     // setUserName('');
     setShow(false);
 		// if all goes well redirect user to localhost:300/#<roomName>[<userName>]
-		router.push(`/about`, `/#${roomName}[${userName}]`);
-		// window.location.href = `/#${roomName}/${userName}`
+		router.push(`/`, `/#${roomName}[${userName}]`);
   };
   return (
     <>
@@ -103,7 +103,4 @@ const NewGame = () => {
 };
 
 export default NewGame;
-function as ( arg0: string, as: any, arg2: string ) {
-	throw new Error( 'Function not implemented.' );
-}
 
