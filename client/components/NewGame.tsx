@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import {useRouter} from 'next/router';
+import { useRouter } from 'next/router';
 import Button from 'react-bootstrap/Button';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+import { getRoomByName } from '../core/rooms';
 
-// import ModalHeader from 'react-bootstrap/ModalHeader';
+interface IRoom {
+  id: string;
+  name: string;
+  open: boolean;
+  close: boolean;
+  numberPeopleInRoom: number;
+  players: Array<string>;
+}
+
 
 const NewGame = () => {
   const [show, setShow] = useState<boolean>(false);
@@ -20,13 +27,24 @@ const NewGame = () => {
     setShow(false);
   };
 
-  const handSubmit = (): void => {
+  const handSubmit = (): Promise<void> => {
     console.log(roomName);
-    // setRoomName('');
-    // setUserName('');
+    setRoomName('');
+    setUserName('');
     setShow(false);
-		// if all goes well redirect user to localhost:300/#<roomName>[<userName>]
-		router.push(`/`, `/#${roomName}[${userName}]`);
+
+    getRoomByName(roomName).then((res: IRoom) => {
+      if (res.name === null ) {
+        console.log('Preeced room is available')
+      }
+        console.log(res);
+    })
+
+
+
+    
+    // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
+    // router.push(`/`, `/#${roomName}[${userName}]`);
   };
   return (
     <>
