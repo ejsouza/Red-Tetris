@@ -2,14 +2,16 @@ import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import NavigationBar from './NavigationBar';
+import Footer from './Footer';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 type Props = {
   children?: ReactNode;
   title?: string;
+  showNavBar: boolean;
 };
 
-const Layout = ({ children, title = 'This is the default title' }: Props) => (
+const Layout = ({ children, showNavBar, title = 'This is the default title' }: Props) => (
   <div>
     <Head>
       <title>{title}</title>
@@ -17,13 +19,10 @@ const Layout = ({ children, title = 'This is the default title' }: Props) => (
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
     <header>
-      <NavigationBar />
+      {!showNavBar && <NavigationBar />}
     </header>
     {children}
-    <footer>
-      <hr />
-      <span>I'm here to stay (Footer)</span>
-    </footer>
+    {!showNavBar && <Footer />}
   </div>
 );
 
