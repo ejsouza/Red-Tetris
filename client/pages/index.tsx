@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
-import { getRooms, createGame } from '../core/createGame';
+import { getRooms, createGame } from '../core/rooms';
 
 interface IRoom {
   id: string;
