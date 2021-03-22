@@ -36,25 +36,24 @@ const IndexPage = () => {
       console.log(`hash ? ${url}`);
       setHideMenu(true);
     };
-  }, [url])
-  
- getRooms().then((res: IRoom) => {
-   console.log(typeof res);
-   console.log(res);
+  }, [url]);
 
-   const {rooms} = res;
-   rooms.map((room: IRoom) => {
-     console.log(room)
-   })
- 
- });
+  getRooms().then((res: IRoom) => {
+    console.log(typeof res);
+    console.log(res);
+
+    const { rooms } = res;
+    rooms.map((room: IRoom) => {
+      console.log(room);
+    });
+  });
   return (
-
-  <Layout title="Home | RedTetris">
-    <HeadLanding />
-    {/* Here the idea is to have a menu with some animated tetris */}
-    {!hideMenu && <Menu />}
-  </Layout>
-)};
+    <Layout title="Home | RedTetris" showNavBar={hideMenu}>
+      {!hideMenu && <HeadLanding />}
+      {/* Here the idea is to have a menu with some animated tetris */}
+      {!hideMenu && <Menu />}
+    </Layout>
+  );
+};
 
 export default IndexPage;
