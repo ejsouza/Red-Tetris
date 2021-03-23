@@ -27,22 +27,21 @@ const NewGame = () => {
     setShow(false);
   };
 
-  const handSubmit = (): Promise<void> => {
+  const handSubmit = () => {
     console.log(roomName);
     setRoomName('');
     setUserName('');
     setShow(false);
 
-    getRoomByName(roomName).then((res: IRoom) => {
-      if (res.name === null ) {
-        console.log('Preeced room is available')
+    getRoomByName(roomName).then((res) => {
+      const room = res as IRoom;
+      if (Object.entries(room)[1][1] === null) {
+        console.log(`Room is free preceede`);
+      } else {
+        console.log(Object.entries(room)[1][1]);
       }
-        console.log(res);
-    })
+    });
 
-
-
-    
     // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
     // router.push(`/`, `/#${roomName}[${userName}]`);
   };
