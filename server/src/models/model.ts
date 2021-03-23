@@ -11,10 +11,6 @@ const roomSchema: Schema = new Schema(
       type: Boolean,
       required: true,
     },
-    close: {
-      type: Boolean,
-      required: true,
-    },
     numberPeopleInRoom: {
       type: Number,
       required: true,
