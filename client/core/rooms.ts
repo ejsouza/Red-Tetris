@@ -20,7 +20,7 @@ export const getRooms = async (): Promise<IRoom[]> => {
   return res.json();
 };
 
-export const getRoomByName = async (roomName: string): Promise<IRoom[]> => {
+export const getRoomByName = async (roomName: string): Promise<IRoom> => {
   const res = await fetch(`${APIurl}/rooms/${roomName}`, {
     method: 'Get',
     mode: 'cors',
