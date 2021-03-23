@@ -37,13 +37,14 @@ const NewGame = () => {
       const room = res as IRoom;
       if (Object.entries(room)[1][1] === null) {
         console.log(`Room is free preceede`);
+        router.push(`/`, `/#${roomName}[${userName}]`);
       } else {
         console.log(Object.entries(room)[1][1]);
+        console.log(`UserName -:${userName}`);
       }
     });
 
     // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
-    // router.push(`/`, `/#${roomName}[${userName}]`);
   };
   return (
     <>
