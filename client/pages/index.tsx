@@ -27,9 +27,18 @@ const IndexPage = () => {
        *    NO  -: show message to user and tell s/he to choose another room
        *
        * */
-      createGame(url);
+      const startSeparator = url.indexOf('[');
+      const endSeparator = url.indexOf(']');
+      const roomName = url.slice(2, startSeparator);
+      const userName = url.slice(startSeparator + 1, endSeparator);
+      const room = createGame(roomName, userName);
+
+      console.log(`room was created ? ${room}`);
       setHideMenu(true);
-      console.log(`Home page -: ${url}`);
+      console.log(`Home page -: ${url} `);
+      console.log(`roomName(${roomName}):userName(${userName})`);
+      // /#roomName[userName]
+      // let path = url.split('')
     }
     // Detect hash entered on url bar
     window.onhashchange = () => {
@@ -38,15 +47,7 @@ const IndexPage = () => {
     };
   }, [url]);
 
-  getRooms().then((res: IRoom) => {
-    console.log(typeof res);
-    console.log(res);
 
-    const { rooms } = res;
-    rooms.map((room: IRoom) => {
-      console.log(room);
-    });
-  });
   return (
     <Layout title="Home | RedTetris" showNavBar={hideMenu}>
       {!hideMenu && <HeadLanding />}
