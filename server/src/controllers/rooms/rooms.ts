@@ -39,21 +39,8 @@ const createRoom = async (req: Request, res: Response, next: NextFunction): Prom
 		res.status(200).json({success: true})
 
 	} catch (error) {
-		console.log(`Error creating room -: ${error}`);
-		// throw error;
-		res.status(500).json({success: false, msg: error})
-	}
-	// masterRoom.save(function(err, room) {
-	// 	if (err) {
-	// 	} else {
-	// 		console.log(`request ${request.params}--${masterRoom}`);
-	// 	}
-	// })
-
-	// try {
-	// 	await Roomy.
-	// } catch (error) {
-	// 	throw error;
-	// }
+    console.log(`Error creating room -: ${error}`);
+    res.status(500).json({ success: false, msg: error });
+  }
 } 
 export { getRooms, getRoomsByName, createRoom };
