@@ -31,7 +31,26 @@ export const getRoomByName = async (roomName: string): Promise<IRoom> => {
   return res.json();
 };
 
-export const createGame = (url: string): string => {
-  console.log(`createGame -: ${url}`);
-  return 'promise';
+export const createGame: (roomName: string, userName: string) => void = (
+  roomName: string,
+  userName: string
+) => {
+  console.log(`createGame -: ${roomName}-${userName}`);
+  fetch(`${APIurl}/rooms`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: roomName,
+      players: userName,
+      open: true,
+      numberPeopleInRoom: 1,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      return data;
+    });
 };
