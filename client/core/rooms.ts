@@ -35,7 +35,6 @@ export const createGame: (roomName: string, userName: string) => void = (
   roomName: string,
   userName: string
 ) => {
-  console.log(`createGame -: ${roomName}-${userName}`);
   fetch(`${APIurl}/rooms`, {
     method: 'POST',
     mode: 'cors',
