@@ -5,7 +5,7 @@ import { User } from '../interfaces'
 type ListDetailProps = {
   item: User
 }
-
+// keep it for example ****
 const ListDetail = ({ item: user }: ListDetailProps) => (
   <div>
     <h1>Detail for {user.name}</h1>
