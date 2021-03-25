@@ -1,4 +1,4 @@
-import { IBaseRoom, IRoom } from '../rooms/room.interface';
+import { IBaseRoom } from '../rooms/room.interface';
 import { model, Schema } from 'mongoose';
 
 const roomSchema: Schema = new Schema(
