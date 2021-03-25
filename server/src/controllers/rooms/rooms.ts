@@ -1,7 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
-import { Model } from 'mongoose';
 import { IBaseRoom } from '../../rooms/room.interface';
-// import Room from '../../models/model';
 import Room from '../../models/Room';
 
 const getRooms = async (req: Request, res: Response): Promise<void> => {
@@ -28,19 +26,20 @@ const getRoomsByName = async (req: Request, res: Response): Promise<void> => {
   });
 };
 
-const createRoom = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const createRoom = (req: Request, res: Response, next: NextFunction) => {
 	console.log(`createRoom: ${req.body.name}`);
 	const room: IBaseRoom = req.body;
 	console.log(`test -: ${room.players}`);
 	const request: Request = req;
 	const newRoom = new Room(room);
-	try {
-		const room = await newRoom.save();
-		res.status(200).json({success: true})
-
-	} catch (error) {
-    console.log(`Error creating room -: ${error}`);
-    res.status(500).json({ success: false, msg: error });
-  }
+	
+		try {
+			const response = newRoom.save();
+		 res.status(201).json({success: true, room: response})
+		} catch (error) {
+			console.log(`Error saving Room >>> ${error}`)
+		 res.status(500).json({success: false, error: error});		
+		}
+	
 } 
 export { getRooms, getRoomsByName, createRoom };
