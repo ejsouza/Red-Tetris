@@ -35,6 +35,7 @@ const createRoom = (req: Request, res: Response, next: NextFunction) => {
 	
 		try {
 			const response = newRoom.save();
+			console.log(`API:createRoom => ${response}`);
 		 res.status(201).json({success: true, room: response})
 		} catch (error) {
 			console.log(`Error saving Room >>> ${error}`)
