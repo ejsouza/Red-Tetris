@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
 import { getRooms, createGame } from '../core/rooms';
+import parseUrlWithHash from '../utils/parseUrlWithHash';
 
 interface IRoom {
   id: string;
@@ -27,10 +28,8 @@ const IndexPage = () => {
        *    NO  -: show message to user and tell s/he to choose another room
        *
        * */
-      const startSeparator = url.indexOf('[');
-      const endSeparator = url.indexOf(']');
-      const roomName = url.slice(2, startSeparator);
-      const userName = url.slice(startSeparator + 1, endSeparator);
+    
+      const [roomName, userName] = parseUrlWithHash(url);
       const room = createGame(roomName, userName);
 
       console.log(`room was created ? ${room}`);
@@ -42,7 +41,12 @@ const IndexPage = () => {
     }
     // Detect hash entered on url bar
     window.onhashchange = () => {
-      console.log(`hash ? ${url}`);
+      const urlEnteredManually = window.location.hash;
+      console.log(`hash ? ${urlEnteredManually}`);
+
+      console.log(
+        `urlEnteredManually: ${parseUrlWithHash(urlEnteredManually)}`
+      );
       setHideMenu(true);
     };
   }, [url]);
