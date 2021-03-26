@@ -14,7 +14,6 @@ const getRooms = async (req: Request, res: Response): Promise<void> => {
 }
 
 const getRoomsByName = async (req: Request, res: Response): Promise<void> => {
-  console.log(`API  getRoomsByName -: ${req.params}`);
   const name = req.params.name;
   await Room.findOne({ name: name }, function (err: any, room: IBaseRoom) {
     if (err) {
@@ -27,20 +26,17 @@ const getRoomsByName = async (req: Request, res: Response): Promise<void> => {
 };
 
 const createRoom = (req: Request, res: Response, next: NextFunction) => {
-	console.log(`createRoom: ${req.body.name}`);
-	const room: IBaseRoom = req.body;
-	console.log(`test -: ${room.players}`);
-	const request: Request = req;
-	const newRoom = new Room(room);
-	
-		try {
-			const response = newRoom.save();
-			console.log(`API:createRoom => ${response}`);
-		 res.status(201).json({success: true, room: response})
-		} catch (error) {
-			console.log(`Error saving Room >>> ${error}`)
-		 res.status(500).json({success: false, error: error});		
-		}
-	
-} 
+  const room: IBaseRoom = req.body;
+  const request: Request = req;
+  const newRoom = new Room(room);
+
+  try {
+    const response = newRoom.save();
+    console.log(`API:createRoom => ${response}`);
+    res.status(201).json({ success: true, room: response });
+  } catch (error) {
+    console.log(`Error saving Room >>> ${error}`);
+    res.status(500).json({ success: false, error: error });
+  }
+}; 
 export { getRooms, getRoomsByName, createRoom };
