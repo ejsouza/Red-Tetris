@@ -32,12 +32,8 @@ const IndexPage = () => {
       const [roomName, userName] = parseUrlWithHash(url);
       const room = createGame(roomName, userName);
 
-      console.log(`room was created ? ${room}`);
       setHideMenu(true);
-      console.log(`Home page -: ${url} `);
-      console.log(`roomName(${roomName}):userName(${userName})`);
       // /#roomName[userName]
-      // let path = url.split('')
     }
     // Detect hash entered on url bar
     window.onhashchange = () => {
