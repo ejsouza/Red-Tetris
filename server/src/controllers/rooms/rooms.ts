@@ -38,5 +38,17 @@ const createRoom = (req: Request, res: Response, next: NextFunction) => {
     console.log(`Error saving Room >>> ${error}`);
     res.status(500).json({ success: false, error: error });
   }
-}; 
-export { getRooms, getRoomsByName, createRoom };
+};
+
+const deleteRoom = (req: Request, res: Response) => {
+  const name = req.params.name;
+  try {
+    const response = Room.remove({ name: name });
+    console.log(`API remove room >>> ${response}`);
+    res.status(200).json({ success: true, msg: response });
+  } catch (error) {
+    console.log(`API remove room ERROR >>> ${error}`);
+    res.status(500).json({ success: false, error: error });
+  }
+};
+export { getRooms, getRoomsByName, createRoom, deleteRoom };
