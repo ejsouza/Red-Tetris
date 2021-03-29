@@ -40,10 +40,12 @@ const createRoom = (req: Request, res: Response, next: NextFunction) => {
 
 const deleteRoom = (req: Request, res: Response) => {
   const name = req.params.name;
+  console.log(`name to delete >>> ${name}`);
   try {
-    const response = Room.remove({ name: name });
+    const response = Room.findOne({ name: name });
     res.status(200).json({ success: true, msg: response });
   } catch (error) {
+    console.log(`Error Deleating >>> ${error}`);
     res.status(500).json({ success: false, error: error });
   }
 };
