@@ -27,13 +27,14 @@ const NewGame = () => {
     setShow(false);
   };
 
-  const handSubmit = () => {
+  const handleSubmit = () => {
     console.log(roomName);
     setRoomName('');
     setUserName('');
     setShow(false);
 
     getRoomByName(roomName).then((res) => {
+      console.log('RESPONSE =: ',  res.room);
       const room = res as IRoom;
       if (Object.entries(room)[1][1] === null) {
         console.log(`Room is free preceede`);
@@ -60,8 +61,8 @@ const NewGame = () => {
       >
         <Modal.Header closeButton>
           <h3 className="font-weight-light">
-            Enter a <span className="font-weight-normal">room</span> and{" "}
-            <span className="font-weight-normal">user</span>{" "}name
+            Enter a <span className="font-weight-normal">room</span> and{' '}
+            <span className="font-weight-normal">user</span> name
           </h3>
         </Modal.Header>
         <Modal.Body>
@@ -105,7 +106,7 @@ const NewGame = () => {
           </Button>
           <Button
             variant="primary"
-            onClick={handSubmit}
+            onClick={handleSubmit}
             disabled={roomName.length < 4 || userName.length < 4 ? true : false}
           >
             Start &#8594;
