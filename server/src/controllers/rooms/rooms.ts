@@ -38,15 +38,19 @@ const createRoom = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const deleteRoom = (req: Request, res: Response) => {
+const deleteRoom = async (req: Request, res: Response) => {
   const name = req.params.name;
-  console.log(`name to delete >>> ${name}`);
-  try {
-    const response = Room.findOne({ name: name });
-    res.status(200).json({ success: true, msg: response });
-  } catch (error) {
-    console.log(`Error Deleating >>> ${error}`);
-    res.status(500).json({ success: false, error: error });
-  }
+  Room.findOneAndDelete({  name: name  })
+  .exec()
+  .then(response => {
+    if (response === null) {
+      return res.status(400).json({success: false, message: `room with name '${name}' doesn't exist`});
+    }
+    console.log('response from removing =: ', response);
+    res.status(201).json({success: true, room: response})
+  }).catch(err => {
+    console.log('something when wrong while deleting room ', err);
+    res.status(500).json({success: false, message: 'something went wrong while deleting room'});
+  });
 };
 export { getRooms, getRoomsByName, createRoom, deleteRoom };
