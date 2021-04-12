@@ -15,7 +15,7 @@ interface IRoom {
   players: Array<string>;
 }
 
-const IndexPage = () => {
+const Index = () => {
   const [hideMenu, setHideMenu] = useState(false);
   const router = useRouter();
   const url = router.asPath;
@@ -28,7 +28,7 @@ const IndexPage = () => {
        *    NO  -: show message to user and tell s/he to choose another room
        *
        * */
-    
+
       const [roomName, userName] = parseUrlWithHash(url);
       const room = createGame(roomName, userName);
 
@@ -47,7 +47,6 @@ const IndexPage = () => {
     };
   }, [url]);
 
-
   return (
     <Layout title="Home | RedTetris" showNavBar={hideMenu}>
       {!hideMenu && <HeadLanding />}
@@ -57,4 +56,4 @@ const IndexPage = () => {
   );
 };
 
-export default IndexPage;
+export default Index;
