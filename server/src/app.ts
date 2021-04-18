@@ -4,7 +4,8 @@
 
 import * as dotenv from 'dotenv';
 import express, { Application } from 'express';
-import http, {Server} from 'http';
+import * as http from 'http';
+import * as socketio from 'socket.io';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -44,7 +45,19 @@ const PORT: number = parseInt(process.env.PORT as string, 10);
 
 
 const app: Application = express();
-const server: Server = http.createServer(app);
+const server: http.Server = http.createServer(app);
+
+/**
+ * socket.io
+ */
+
+const io: socketio.Server = new socketio.Server({
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+});
+io.attach(server);
 
 /**
  * Middleware
@@ -69,6 +82,16 @@ app.use(express.urlencoded({extended: true}));
 app.use('/api/v1', api);
 
 
+io.on('connection', (socket: socketio.Socket) => {
+  console.log('connection');
+  socket.emit('status', 'Hello from Socket.io');
+
+  console.log(socket.handshake.query);
+
+  socket.on('disconnect', () => {
+    console.log('client disconnected');
+  });
+});
 
 /**
  * Mongo
