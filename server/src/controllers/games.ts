@@ -3,7 +3,11 @@ import GameSchema from '../schemas/GameSchema';
 import { Game } from '../models/Game';
 import { IGame } from '../interfaces/game.interface';
 
-export const getGames = async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Use “verb” to denote controller archetype.
+ */
+
+export const get = async (req: Request, res: Response, next: NextFunction) => {
   GameSchema.find()
     .exec()
     .then((games) => {
@@ -14,7 +18,7 @@ export const getGames = async (req: Request, res: Response, next: NextFunction) 
     });
 };
 
-export const createGame = async (
+export const create = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,6 +29,22 @@ export const createGame = async (
     .save()
     .then((game) => {
       res.status(201).json({ success: true, game });
+    })
+    .catch((err) => {
+      res.status(400).json({ success: false, msg: err.message });
+    });
+};
+
+export const close = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { game } = req.body;
+  GameSchema.findOneAndUpdate({ name: game }, { open: false }, { new: true })
+    .then((response) => {
+      console.log(`Updated ${response}`);
+      res.status(201).json({ success: true, response });
     })
     .catch((err) => {
       res.status(400).json({ success: false, msg: err.message });
