@@ -41,7 +41,9 @@ export const close = async (
   next: NextFunction
 ) => {
   const { game } = req.body;
+	console.log(`gameName =: ${game}`);
   GameSchema.findOneAndUpdate({ name: game }, { open: false }, { new: true })
+    .exec()
     .then((response) => {
       console.log(`Updated ${response}`);
       res.status(201).json({ success: true, response });
