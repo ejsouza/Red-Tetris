@@ -52,3 +52,14 @@ export const close = async (
       res.status(400).json({ success: false, msg: err.message });
     });
 };
+
+export const remove = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const params = req.params;
+  console.log(`params := ${params}`);
+  res.status(201).json({ success: true, params });
+  // GameSchema.findOneAndDelete()
+};
