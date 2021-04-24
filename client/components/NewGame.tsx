@@ -109,7 +109,7 @@ const NewGame = () => {
             onClick={handleSubmit}
             disabled={roomName.length < 4 || userName.length < 4 ? true : false}
           >
-            Start &#8594;
+            Create &#8594;
           </Button>
         </Modal.Footer>
       </Modal>
