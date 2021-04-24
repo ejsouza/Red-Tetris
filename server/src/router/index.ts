@@ -7,7 +7,7 @@ import {
   deleteById,
 } from '../controllers/rooms/rooms';
 
-import { get, create, close, remove } from '../controllers/games';
+import { get, create, close, remove, getByName } from '../controllers/games';
 
 const router: Router = Router();
 
@@ -29,6 +29,8 @@ router.delete(`/rooms/:name`, deleteRoomByName);
  */
 
 router.get('/games', get);
+
+router.get('/games/:name', getByName);
 
 router.post('/games', create);
 
