@@ -18,6 +18,26 @@ export const get = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
+export const getByName = async (req: Request, res: Response): Promise<void> => {
+  const { name } = req.params;
+
+  GameSchema.findOne({ name: name })
+    .exec()
+    .then((game) => {
+      if (!game) {
+        return res
+          .status(200)
+          .json({ success: false, ok: true, msg: `Game not found` });
+      }
+      res.status(200).json({ success: true, game });
+    })
+    .catch((err) => {
+      res
+        .status(404)
+        .json({ success: false, msg: `Game '${name}' doesn't exist` });
+    });
+};
+
 export const create = async (
   req: Request,
   res: Response,
@@ -58,8 +78,32 @@ export const remove = async (
   res: Response,
   next: NextFunction
 ) => {
-  const params = req.params;
-  console.log(`params := ${params}`);
-  res.status(201).json({ success: true, params });
-  // GameSchema.findOneAndDelete()
+  const { name } = req.body;
+  console.log(`params := ${name}`);
+  GameSchema.findOneAndDelete({ name: name })
+    .exec()
+    .then((response) => {
+      console.log(`Game '${name}' was removed successfull `, response);
+      if (!response) {
+        return res
+          .status(400)
+          .json({ success: false, msg: `Game '${name}' doesn't exist` });
+      }
+      return res.status(200).json({
+        success: true,
+        msg: `Game '${name}' was removed successfull `,
+        game: response,
+      });
+    })
+    .catch((err) => {
+      console.log(
+        `Something went wrong when trying to remove game '${name} '`,
+        err
+      );
+      res.status(500).json({
+        success: false,
+        msg: `Something went wrong when trying to remove game '${name}'`,
+        err,
+      });
+    });
 };
