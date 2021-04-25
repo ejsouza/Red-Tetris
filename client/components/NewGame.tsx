@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { getRoomByName } from '../core/rooms';
+import { creatNewGame } from '../core/games';
 
 interface IRoom {
   id: string;
@@ -27,23 +28,25 @@ const NewGame = () => {
     setShow(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log(roomName);
     setRoomName('');
     setUserName('');
     setShow(false);
 
-    getRoomByName(roomName).then((res) => {
-      console.log('RESPONSE =: ',  res.room);
-      const room = res as IRoom;
-      if (Object.entries(room)[1][1] === null) {
-        console.log(`Room is free preceede`);
-        router.push(`/`, `/#${roomName}[${userName}]`);
-      } else {
-        console.log(Object.entries(room)[1][1]);
-        console.log(`UserName -:${userName}`);
-      }
-    });
+    // getRoomByName(roomName).then((res) => {
+    //   console.log('RESPONSE =: ',  res.room);
+    //   const room = res as IRoom;
+    //   if (Object.entries(room)[1][1] === null) {
+    //     console.log(`Room is free preceede`);
+    //     router.push(`/`, `/#${roomName}[${userName}]`);
+    //   } else {
+    //     console.log(Object.entries(room)[1][1]);
+    //     console.log(`UserName -:${userName}`);
+    //   }
+    // });
+    const res = await creatNewGame(roomName, userName);
+    console.log(`Game created ? `, res);
 
     // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
   };
