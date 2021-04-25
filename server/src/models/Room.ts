@@ -5,9 +5,9 @@ const RoomScheme = new Schema ({
 	name: {
 		type: String,
 		required: true,
-		unique: [true, 'Room name already in use'],
+		unique: [true, "Room name already in use"],
 		trim: true,
-		maxlength: [10, 'Room name can not be more than 10 characters']
+		maxlength: [10, "Room name can not be more than 10 characters"]
 	},
 	players: [String],
 	numberOfPlayers: Number,
