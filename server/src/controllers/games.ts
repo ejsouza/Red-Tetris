@@ -44,6 +44,9 @@ export const create = async (
   next: NextFunction
 ) => {
   const gameProps = req.body as IGame;
+  console.log(
+    `onCreate := ${gameProps.numberOfPlayers} - ${gameProps.name} - ${gameProps.players}`
+  );
   const game = new Game(gameProps);
   game
     .save()
