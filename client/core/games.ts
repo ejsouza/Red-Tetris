@@ -16,13 +16,12 @@ export const getGameByName = async (name: string): Promise<Response> => {
       'Content-Type': 'application/json',
     },
   });
-  // return games.json();
 };
 
 export const creatNewGame: (
   name: string,
   player: string
-) => Promise<void> = async (name: string, player: string) => {
+) => Promise<Response> = async (name: string, player: string) => {
   const game = await getGameByName(name);
   const result = await game.json();
   if (!result.success) {
@@ -42,23 +41,39 @@ export const creatNewGame: (
       .then((res) => res.json())
       .then((json) => json);
   }
-  if (result.success) {
+  if (result.success && result.game.open) {
     // Game exist, check if is open
-    if (result.game.open) {
-      console.log('Players ?', result.game.players);
-      const userNameTaken = result.game.players.find(
-        (p: string) => p === player
-      );
-      if (!userNameTaken) {
-        // Add user to the game
-      } else {
-        // return message saying username already in use in this room
-      }
-      console.log(`User name already taken ? ${userNameTaken}`);
+    console.log('Players ?', result.game.players);
+    const userNameTaken = result.game.players.find(
+      (p: string) => p === player
+    );
+    if (!userNameTaken) {
+      // Add user to the game
+		const res = await addUserToGame(name, player);
+		const game = await res.json();
+		console.log(`User added to game ? ${game.msg}`);
     } else {
-      // return message tell user to choose another game name
+      // return message saying username already in use in this room
+			return {success: false, msg: `Username '${player}' already in use`}
     }
-    console.log(`game := ${result.game.open}`);
+    console.log(`User name already taken ? ${userNameTaken}`);
+  } else {
+      // return message tell user to choose another game name
+			return { success: false, msg: `Game '${name}' is not available, please choose another one` };
   }
-  // return gameAlreadyExist;
 };
+
+export const addUserToGame = async (game: string, player: string): Promise<Response> => {
+	console.log(`addUserToGame game := ${game} user :=  ${player}`);
+	return await fetch(`${APIurl}/games`, {
+		method: 'PATCH',
+		mode: 'cors',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			game,
+			player,
+		}),
+	})
+}
