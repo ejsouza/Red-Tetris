@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import GameSchema from '../schemas/GameSchema';
 import { Game } from '../models/Game';
 import { IGame } from '../interfaces/game.interface';
+import { MAX_NUMBER_OF_PLAYERS } from '../config/const';
 
 /**
  * Use “verb” to denote controller archetype.
@@ -56,6 +57,32 @@ export const create = async (
     .catch((err) => {
       res.status(400).json({ success: false, msg: err.message });
     });
+};
+
+export const addUserToGame = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { game, player } = req.body;
+
+  console.log(`addUserToGame ${game} - ${player}`);
+
+  const toUpdate: IGame = await GameSchema.findOne({ name: game });
+  const numberOfPlayers = toUpdate.numberOfPlayers;
+  toUpdate.players.push(player);
+  toUpdate.numberOfPlayers = numberOfPlayers + 1;
+  toUpdate.open = numberOfPlayers + 1 <= MAX_NUMBER_OF_PLAYERS;
+  await toUpdate.save();
+  console.log(`findOne: ${toUpdate.open} - ${numberOfPlayers}`);
+
+  // toUpdate.addPlayer()
+
+  res.status(201).json({
+    success: true,
+    msg: `Added player '${player}' to game '${game}'`,
+    game: toUpdate,
+  });
 };
 
 export const close = async (
