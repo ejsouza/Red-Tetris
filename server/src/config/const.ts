@@ -1,3 +1,3 @@
- const baseURL = '/api/v1';
+export const baseURL = '/api/v1';
 
- export default  { baseURL };
+export const MAX_NUMBER_OF_PLAYERS = 3;
