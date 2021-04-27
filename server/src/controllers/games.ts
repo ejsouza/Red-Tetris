@@ -69,20 +69,29 @@ export const addUserToGame = async (
   console.log(`addUserToGame ${game} - ${player}`);
 
   const toUpdate: IGame = await GameSchema.findOne({ name: game });
-  const numberOfPlayers = toUpdate.numberOfPlayers;
-  toUpdate.players.push(player);
-  toUpdate.numberOfPlayers = numberOfPlayers + 1;
-  toUpdate.open = numberOfPlayers + 1 <= MAX_NUMBER_OF_PLAYERS;
-  await toUpdate.save();
-  console.log(`findOne: ${toUpdate.open} - ${numberOfPlayers}`);
+  const numberOfPlayers = toUpdate.numberOfPlayers + 1;
+  const open = numberOfPlayers < MAX_NUMBER_OF_PLAYERS;
 
-  // toUpdate.addPlayer()
-
-  res.status(201).json({
-    success: true,
-    msg: `Added player '${player}' to game '${game}'`,
-    game: toUpdate,
-  });
+  const result = await GameSchema.findOneAndUpdate(
+    { name: game },
+    {
+      $push: { players: player },
+      numberOfPlayers: numberOfPlayers,
+      open: open,
+    },
+    { new: true },
+    (err, doc ) => {
+      if (err) {
+        return res.status(400).json({success: false, msg: `something went wrong`, err})
+      }
+       res.status(201).json({
+         success: true,
+         msg: `Added player '${player}' to game '${game}'`,
+         game: doc,
+       });
+    }
+  );
+  console.log(`RESULT ? ${result}`);
 };
 
 export const close = async (
