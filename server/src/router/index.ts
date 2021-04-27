@@ -7,7 +7,14 @@ import {
   deleteById,
 } from '../controllers/rooms/rooms';
 
-import { get, create, close, remove, getByName } from '../controllers/games';
+import {
+  get,
+  create,
+  close,
+  remove,
+  getByName,
+  addUserToGame,
+} from '../controllers/games';
 
 const router: Router = Router();
 
@@ -33,6 +40,8 @@ router.get('/games', get);
 router.get('/games/:name', getByName);
 
 router.post('/games', create);
+
+router.patch('/games', addUserToGame);
 
 router.put('/games', close);
 
