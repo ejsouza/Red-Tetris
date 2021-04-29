@@ -6,7 +6,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
-import {BaseURL} from './config/const';
+import { BaseURL } from './config/const';
+import connectDB from './db';
 
 interface IController {
 	path: string;
@@ -14,34 +15,41 @@ interface IController {
 }
 
 export class App {
-	public app: express.Application;
-	public port: number;
+  public app: express.Application;
 
-	constructor(controllers: IController [], port: number) {
-		this.app = express.default();
-		this.port = port;
-	
-		this.initializeMiddlewares();
-		this.initializeControllers(controllers);
+  constructor(controllers: IController[]) {
+    this.app = express.default();
+
+		this.connectToDatabase();
+    this.initializeMiddlewares();
+    this.initializeControllers(controllers);
+  }
+
+  private initializeMiddlewares() {
+    this.app.use(express.json());
+    this.app.use(cors());
+    this.app.use(helmet());
+    this.app.use(express.urlencoded({ extended: true }));
+  }
+
+  private initializeControllers(controllers: IController[]) {
+    controllers.forEach((controller) => {
+      this.app.use(`${BaseURL}`, controller.router);
+    });
+  }
+
+	private connectToDatabase() {
+		const db = connectDB();
+
+		db.then(() => {
+			console.log(`💾 Connection to database successfull`);
+      console.log('🛑 [stop] Press CTRL-C\n');
+		})
 	}
 
-	private initializeMiddlewares() {
-		this.app.use(express.json());
-		this.app.use(cors());
-		this.app.use(helmet());
-		this.app.use(express.urlencoded({extended: true}));
-	}
-
-	private initializeControllers(controllers: IController[]) {
-		controllers.forEach((controller) => {
-			this.app.use(`${BaseURL}`, controller.router);
-		});
-	}
-
-	public listen() {
-		this.app.listen(this.port, () => {
-			console.log(`⚡️ [server]: App listening on port ${this.port}`);
-			console.log('🛑 [stop] Press CTRL-C\n');
-		});
-	}
+  public listen() {
+    this.app.listen(process.env.PORT, () => {
+      console.log(`\n⚡️ [server]: App listening on port ${process.env.PORT}`);
+    });
+  }
 }
