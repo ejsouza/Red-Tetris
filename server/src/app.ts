@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import { BaseURL } from './config/const';
-import connectDB from './db';
+import { DB } from './db';
 
 interface IController {
 	path: string;
@@ -16,13 +16,25 @@ interface IController {
 
 export class App {
   public app: express.Application;
+	public server: http.Server;
+	public io: socketio.Server;
 
   constructor(controllers: IController[]) {
     this.app = express.default();
+		this.server = http.createServer(this.app);
+		this.io = new socketio.Server({
+      cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+      },
+    });
 
-		this.connectToDatabase();
+		this.io.attach(this.server);
+
+    this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
+    this.initializeIO();
   }
 
   private initializeMiddlewares() {
@@ -38,18 +50,26 @@ export class App {
     });
   }
 
-	private connectToDatabase() {
-		const db = connectDB();
+  private initializeIO() {
+    this.io.on('connection', (socket: socketio.Socket) => {
+      console.log('connection');
+      socket.emit('status', 'Hello from Socket.io');
 
-		db.then(() => {
-			console.log(`💾 Connection to database successfull`);
-      console.log('🛑 [stop] Press CTRL-C\n');
-		})
-	}
+      console.log(socket.handshake.query);
+
+      socket.on('disconnect', () => {
+        console.log('client disconnected');
+      });
+    });
+  }
+
+  private connectToDatabase() {
+    new DB();
+  }
 
   public listen() {
     this.app.listen(process.env.PORT, () => {
-      console.log(`\n⚡️ [server]: App listening on port ${process.env.PORT}`);
+      console.log(`\n ⚡️ [server]: App listening on port ${process.env.PORT}`);
     });
   }
 }
