@@ -1,5 +1,6 @@
 .vscode/
 server/dist/
 rtAPI/.env
+rtAPI/node_modules
 data/
 front/
