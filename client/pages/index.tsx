@@ -7,7 +7,7 @@ import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
 import { getRooms, createGame } from '../core/rooms';
 import parseUrlWithHash from '../utils/parseUrlWithHash';
-import { APIurl, BASEurl } from '../utils/const';
+import { RT_API } from '../utils/const';
 
 interface IRoom {
   id: string;
@@ -22,21 +22,29 @@ let socket;
 
 const Index = () => {
   const [hideMenu, setHideMenu] = useState(false);
+  const [gameName, setGameName] = useState('');
+  const [playerName, setPlayerName] = useState('');
   const router = useRouter();
   const url = router.asPath;
   const reg = /^#+[a-z]+[a-z0-9]{3,}\[[a-z]+[a-z0-9]{4,}\]/gi;
 
   useEffect(() => {
-    socket = io(BASEurl, {
-      query: {
-        x: 42,
-      },
-    });
-    socket.emit('join', { name: 'username', room: 'roomname' });
+    socket = io(RT_API);
+    if (gameName && playerName) {
+      socket.emit('join', { name: playerName, game: gameName });
+    }
     console.log(socket);
-  }, []);
+  }, [gameName, playerName]);
   useEffect(() => {
-    if (url.includes('#')) {
+    if (url?.includes('#')) {
+      const [player, game] = parseUrlWithHash(url);
+      if (gameName.length === 0) {
+        setGameName(game);
+      }
+      if (playerName.length === 0) {
+        setPlayerName(player);
+      }
+
       /**
        * Check if room is available
        *    YES -: preceed to hide menu
@@ -64,7 +72,19 @@ const Index = () => {
     }
     // Detect hash entered on url bar
     window.onhashchange = () => {
-      const urlEnteredManually = window.location.hash;
+      /**
+       * Add '/' to the beginnig of the url because when it is entered
+       * manually it is not sent like when entering the  form
+       */
+      const urlEnteredManually = '/' + window.location.hash;
+      const [player, game] = parseUrlWithHash(urlEnteredManually);
+
+      if (game && player) {
+        setGameName(game);
+        setPlayerName(player);
+      }
+
+      console.log(`GOT IT ? ${game} - ${player}`);
       if (reg.test(urlEnteredManually)) {
         alert(`YOU MAY PASS \n ${urlEnteredManually}`);
       }
