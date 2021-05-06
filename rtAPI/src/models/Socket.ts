@@ -37,7 +37,7 @@ export class Socket {
       console.log(`SOCKETIO running... ${socket}`);
 
       socket.on('join', (arg) => {
-        console.log(`got from client := ${arg.name}`);
+        console.log(`got from client := ${arg.name} <--> ${arg.game}`);
       });
 
       socket.on('joinDetails', (arg: {name: string, room: string}) => {
