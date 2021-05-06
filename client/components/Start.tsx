@@ -1,9 +1,14 @@
 import React, { FC, ReactElement, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Loading from './Loading';
 import { getGameByName } from '../core/games';
 
 interface IStartProps {
   gameName: string;
+	playerName?: string;
 }
 
 interface IGame {
@@ -14,18 +19,39 @@ interface IGame {
   players: string[];
 }
 
-const Start = ({ gameName }: IStartProps): JSX.Element => {
+const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
   const [game, setGame] = useState<IGame>();
+	 const router = useRouter();
+   const url = router.asPath;
 
-  getGameByName(gameName).then((res) => {
-    console.log(`GAME := ${res.game}`);
-  });
+   console.log(`in Start route is := ${url}`);
+
+	 useEffect(() => {
+		getGameByName(gameName).then((res) => {
+  		res.json().then((res) => {
+    	setGame(res.game);
+  	});
+		});
+	 }, [])
+
+  
 
   return !game ? (
     <Loading />
   ) : (
     <>
-      <div>Start {gameName}</div>
+      <Container>
+        <Row>
+          <Col>GAME</Col>
+          <Col>{game.name}</Col>
+        </Row>
+        <Row>
+          <Col>PLAYERS</Col>
+          {game.players.map((player) => (
+            <Col style={{color: player === playerName ? 'pink' : 'read'}} key={player}>{player}</Col>
+          ))}
+        </Row>
+      </Container>
     </>
   );
 };
