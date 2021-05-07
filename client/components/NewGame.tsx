@@ -5,6 +5,8 @@ import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { getRoomByName } from '../core/rooms';
 import { creatNewGame } from '../core/games';
+import io from 'socket.io-client';
+import { RT_API } from '../utils/const';
 
 interface IRoom {
   id: string;
@@ -27,12 +29,12 @@ const NewGame = () => {
     setUserName('');
     setShow(false);
   };
-
   const handleSubmit = async () => {
     console.log(roomName);
     setRoomName('');
     setUserName('');
     setShow(false);
+    // let socket;
 
     // getRoomByName(roomName).then((res) => {
     //   console.log('RESPONSE =: ',  res.room);
@@ -45,8 +47,29 @@ const NewGame = () => {
     //     console.log(`UserName -:${userName}`);
     //   }
     // });
+
+
     const res = await creatNewGame(roomName, userName);
-    console.log(`Game created ? `, res);
+    console.log(`Game created ? ${res.ok}`, res);
+    if (res.ok) {
+          router.push(`/`, `/#${roomName}[${userName}]`);
+    } else {
+      console.log(`already in use := ${res.success}`);
+      router.push(`/`, `/#${roomName}[${userName}]`);
+    }
+
+
+
+
+    
+    // socket = io(RT_API);
+    // socket.emit('joinDetails', { name: userName, room: roomName });
+    // socket.on('joinDetails', (arg: { success: boolean }) => {
+    //   console.log(`FRONT IO := ${arg.success}`);
+    //   if (arg.success) {
+    //     router.push(`/`, `/#${roomName}[${userName}]`);
+    //   }
+    // });
 
     // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
   };
