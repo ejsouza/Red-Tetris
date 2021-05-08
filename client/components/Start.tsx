@@ -1,14 +1,17 @@
-import React, { FC, ReactElement, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
 import Loading from './Loading';
 import { getGameByName } from '../core/games';
+import {  RT_API  } from '../utils/const';
+import { start } from 'node:repl';
 
 interface IStartProps {
   gameName: string;
-	playerName?: string;
+  playerName?: string;
 }
 
 interface IGame {
@@ -21,20 +24,18 @@ interface IGame {
 
 const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
   const [game, setGame] = useState<IGame>();
-	 const router = useRouter();
-   const url = router.asPath;
+  let socket = io(RT_API);
 
-   console.log(`in Start route is := ${url}`);
-
-	 useEffect(() => {
-		getGameByName(gameName).then((res) => {
-  		res.json().then((res) => {
-    	setGame(res.game);
-  	});
-		});
-	 }, [])
-
-  
+	const startGame = () => {
+		socket.emit('start');
+	}
+  useEffect(() => {
+    getGameByName(gameName).then((res) => {
+      res.json().then((res) => {
+        setGame(res.game);
+      });
+    });
+  }, []);
 
   return !game ? (
     <Loading />
@@ -48,9 +49,26 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
         <Row>
           <Col>PLAYERS</Col>
           {game.players.map((player) => (
-            <Col style={{color: player === playerName ? 'pink' : 'read'}} key={player}>{player}</Col>
+            <Col
+              style={{ color: player === playerName ? 'pink' : '' }}
+              key={player}
+            >
+              {player}
+            </Col>
           ))}
         </Row>
+      </Container>
+      {console.log(game)}
+			{/* This button shall be visible only for the host of the game */}
+      <Container>
+        <Button
+					variant="secondary"
+					size="lg"
+					block
+					onClick={ () => startGame()}
+				>
+          Start Game
+        </Button>
       </Container>
     </>
   );
