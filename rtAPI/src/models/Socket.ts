@@ -1,6 +1,7 @@
 import * as htpp from 'http';
 import * as socketIO from 'socket.io';
 import * as dotenv from 'dotenv';
+import { Game } from './Game';
 
 dotenv.config();
 
@@ -25,7 +26,6 @@ export class Socket {
   }
 
   private initializeSocketIO(): void {
-
     this._io = new socketIO.Server(this._httpServer, {
       cors: {
         origin: this._CLIENT_URL,
@@ -40,22 +40,28 @@ export class Socket {
         console.log(`got from client := ${arg.name} <--> ${arg.game}`);
       });
 
-      socket.on('joinDetails', (arg: {name: string, room: string}) => {
-
+      socket.on('start', () => {
+        this._io.emit('closeStartComponent');
+        const  game = new  Game(this._io, socket);
+        game.start();
+        game.on();
+      });
+      socket.on('joinDetails', (arg: { name: string; room: string }) => {
         const simple = {
           game: arg.room,
-          players: [arg.name]
+          players: [arg.name],
         };
         console.log(`new user ${arg.name} in  room ${arg.room}`);
         this._data.push(simple);
         console.log(`added? ${this._data}`);
         console.log(`obje len := ${this._data.length}`);
-        for(let d of this._data) {
-          console.log(`d := ${d} -- d.game := ${d.game} -- d.players := ${d.players}`);
+        for (let d of this._data) {
+          console.log(
+            `d := ${d} -- d.game := ${d.game} -- d.players := ${d.players}`
+          );
         }
-        socket.emit('joinDetails', {success: true})
-
-      })
+        socket.emit('joinDetails', { success: true });
+      });
     });
   }
 
