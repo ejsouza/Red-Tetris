@@ -14,119 +14,28 @@ const Grid = styled.div`
   line-height: 1;
 `;
 
-const GritItem = styled.div`
+const GridItem = styled.div`
   background-color: rgba(255, 255, 255, 0.8);
   border-top: 1px solid rgba(255, 255, 255, 1);
   border-right: 1px solid rgba(255, 255, 255, 1);
   padding: 10px;
   text-align: center;
+  span {
+    color: pink;
+  }
 `;
 
-const BoardGame = () => {
-  return (
-    <Grid>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-      <GritItem>&nbsp;</GritItem>
-    </Grid>
-  );
+const BoardGame = (props: number[][]) => {
+  const colors = ['', 'pink'];
+  const board = Object.entries(props).map((row) => {
+    return row[1].map((cell) => (
+      <GridItem style={{ background: colors[cell] }}>
+        <span>&nbsp;</span>
+      </GridItem>
+    ));
+  });
+
+  return <Grid>{board}</Grid>;
 };
 
 export default BoardGame;
