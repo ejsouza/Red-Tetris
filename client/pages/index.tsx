@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import io from 'socket.io-client';
 import Layout from '../components/Layout';
-
+import Start from '../components/Start';
 import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
+import Game from '../components/Game';
 import { getRooms, createGame } from '../core/rooms';
 import parseUrlWithHash from '../utils/parseUrlWithHash';
-import { RT_API } from '../utils/const';
+import socket from '../utils/socket';
 
 interface IRoom {
   id: string;
@@ -18,31 +19,43 @@ interface IRoom {
   players: Array<string>;
 }
 
-let socket;
+
 
 const Index = () => {
+
+  const [startGame, setStartGame] = useState(false);
   const [hideMenu, setHideMenu] = useState(false);
+  const [hideStart, setHideStart] = useState(true);
   const [gameName, setGameName] = useState('');
   const [playerName, setPlayerName] = useState('');
   const router = useRouter();
   const url = router.asPath;
   const reg = /^#+[a-z]+[a-z0-9]{3,}\[[a-z]+[a-z0-9]{4,}\]/gi;
 
-  useEffect(() => {
-    socket = io(RT_API);
+  const infoGame = (socket: SocketIOClient.Socket) => {
     if (gameName && playerName) {
       socket.emit('join', { name: playerName, game: gameName });
     }
-    console.log(socket);
+  };
+
+  socket.on('closeStartComponent', () => {
+    setHideStart(true);
+  })
+
+  socket.on('setGame', () => {
+    setStartGame(true);
+  })
+  useEffect(() => {
+    infoGame(socket);   
   }, [gameName, playerName]);
   useEffect(() => {
     if (url?.includes('#')) {
-      const [player, game] = parseUrlWithHash(url);
-      if (gameName.length === 0) {
+      const [game, player] = parseUrlWithHash(url);
+      if (game && player) {
+        console.log(`Toggle`);
         setGameName(game);
-      }
-      if (playerName.length === 0) {
         setPlayerName(player);
+        setHideStart(false);;
       }
 
       /**
@@ -82,6 +95,7 @@ const Index = () => {
       if (game && player) {
         setGameName(game);
         setPlayerName(player);
+        setHideStart(false);
       }
 
       console.log(`GOT IT ? ${game} - ${player}`);
@@ -104,6 +118,8 @@ const Index = () => {
       {!hideMenu && <HeadLanding />}
       {/* Here the idea is to have a menu with some animated tetris */}
       {!hideMenu && <Menu />}
+      {!hideStart && <Start gameName={gameName} playerName={playerName} />}
+      {startGame && <Game />}
     </Layout>
   );
 };
