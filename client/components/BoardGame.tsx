@@ -21,16 +21,27 @@ const GridItem = styled.div`
   padding: 10px;
   text-align: center;
   span {
-    color: pink;
+    opacity: 0.1;
   }
 `;
 
 const BoardGame = (props: number[][]) => {
-  const colors = ['', 'pink'];
+  let index = 0;
+  const colors = [
+    '',
+    '#ECF00B',
+    '#8C00EC',
+    '#1100EC',
+    '#EB8E08',
+    '#45F304',
+    '#E90005',
+    '#48EFEC',
+  ];
+  console.table(props);
   const board = Object.entries(props).map((row) => {
     return row[1].map((cell) => (
-      <GridItem style={{ background: colors[cell] }}>
-        <span>&nbsp;</span>
+      <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
+        <span>{cell}</span>
       </GridItem>
     ));
   });
