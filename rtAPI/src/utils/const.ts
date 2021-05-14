@@ -8,8 +8,10 @@ export const PIECES = [
       [1, 1, 0],
       [0, 0, 0],
     ],
-    x: 4,
-    y: 0,
+    x: 0,
+    y: 4,
+    width: 2,
+    height: 2,
   },
   {
     tetromino: [
@@ -17,8 +19,10 @@ export const PIECES = [
       [2, 2, 2],
       [0, 0, 0],
     ],
-    x: 3,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 2,
+    height: 2,
   },
   {
     tetromino: [
@@ -26,8 +30,10 @@ export const PIECES = [
       [3, 3, 3],
       [0, 0, 0],
     ],
-    x: 3,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 2,
+    height: 2,
   },
   {
     tetromino: [
@@ -35,8 +41,10 @@ export const PIECES = [
       [4, 4, 4],
       [0, 0, 0],
     ],
-    x: 3,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 2,
+    height: 2,
   },
   {
     tetromino: [
@@ -44,8 +52,10 @@ export const PIECES = [
       [5, 5, 0],
       [0, 0, 0],
     ],
-    x: 3,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 2,
+    height: 2,
   },
   {
     tetromino: [
@@ -53,17 +63,21 @@ export const PIECES = [
       [0, 6, 6],
       [0, 0, 0],
     ],
-    x: 3,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 3,
+    height: 2,
   },
   {
     tetromino: [
-      [7, 0, 0, 0],
-      [7, 0, 0, 0],
-      [7, 0, 0, 0],
-      [7, 0, 0, 0],
+      [0, 7, 0, 0],
+      [0, 7, 0, 0],
+      [0, 7, 0, 0],
+      [0, 7, 0, 0],
     ],
-    x: 4,
-    y: 0,
+    x: 0,
+    y: 3,
+    width: 1,
+    height: 4,
   },
 ];
