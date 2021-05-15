@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import { RT_API } from '../utils/const';
+import React, { useEffect, useState, KeyboardEventHandler } from 'react';
 import BoardGame from '../components/BoardGame';
 import styled, { createGlobalStyle, css } from 'styled-components';
 import socket from '../utils/socket';
 import Loading from '../components/Loading';
-import lookup from 'socket.io-client';
+import {BOARD_HEIGHT, BOARD_WIDTH} from '../utils/const';
+import {updateBoard} from '../core/gameEngine';
 
 const Container = styled.div`
   padding: 16px;
@@ -17,42 +16,87 @@ const Section = styled.div`
   margin: auto;
 `;
 
+
 interface Piece {
-  tetrominio: number[][];
-  x: number;
-  y: number;
+  pos: { x: number; y: number }[];
+  width: number;
+  height: number;
+  color: number;
 }
 
-// interface Piece {
-//   tetrominio: [number[][]];
-//   x: number;
-//   y: number;
-// }
 
 const Game = () => {
   const [map, setMap] = useState<number[][]>();
-  socket.on('setGame', (arg: boolean) => {
-    console.log(`In Front game resonse ${arg}`);
-  });
+  const [newMap, setNewMap] = useState(false);
+  const [piece, setPiece] = useState<Piece>();
 
-  const gameLoop = (map: number[][], piece: Piece) => {
-    setTimeout(() => {
-      socket.emit('updateMap', map, piece);
-    }, 2000);
-  };
-  socket.on('newMap', (map: number[][], piece: Piece) => {
-    console.log('reciving... ', Object.entries(map).values);
-    console.log('map ', map);
-    console.log('piece ', piece);
-    Object.values(map).forEach((val) => {
-      console.log(`what here ${val}`);
+   useEffect(() => {
+    socket.on('gameState', (board: number[][], piece: Piece) => {
+      setMap(board);
+      setPiece(piece);
     });
-    setMap(map);
-    gameLoop(map, piece);
-  });
-  useEffect(() => {
-    socket.emit('getGameMap', { requestmap: true });
   }, []);
+
+ useEffect(() => {
+   socket.on('newMap', (map: number[][], piece: Piece) => {
+     setMap(map);
+     setPiece(piece)
+   });
+ }, [newMap])
+  
+  useEffect(() => {
+    socket.emit('getGameMap');
+    setNewMap(true);
+  }, []);
+
+ 
+  const movePiece = (board: number [][], piece: Piece, direction: number):void => {
+    socket.emit('move', board, piece, direction)
+    return ;
+  }
+ 
+   const handleKeyDown = (e: any) => {
+     if (!piece || !map) {
+       console.log(`returning....`);
+       return;
+     }
+    
+     console.log(`key was pressed ${e.key} - ${e.keyCode}`);
+     if (e.key === 'ArrowLeft') {
+       updateBoard(map, piece, e.keyCode);
+     }
+     if (e.key === 'ArrowRight') {
+       updateBoard(map, piece, e.keyCode);
+     }
+     if (e.key === 'ArrowDown') {
+       updateBoard(map, piece, e.keyCode);
+     }
+     if (e.key === 'ArrowUp') {
+       console.log('UP UP UP');
+     }
+      piece.pos.forEach((pos) => {
+        console.log(`piece after := ${pos.x} -- ${pos.y}`);
+      });
+     socket.emit('keydown', {key: e.keyCode, board: map, piece: piece });
+   };
+
+  useEffect(() => {
+   
+  
+
+   window.addEventListener('keydown', handleKeyDown);
+    //clean event
+    return () => {window.removeEventListener('keydown', handleKeyDown);}
+  }, [piece]);
+
+  useEffect(() => {
+    socket.on('updateMove', (map: number[][], piece: Piece) => {
+      setMap(map);
+      setPiece(piece);
+    })
+  }, [])
+
+
   return !map ? (
     <Loading />
   ) : (
