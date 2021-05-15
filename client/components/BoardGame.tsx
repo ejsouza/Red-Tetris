@@ -37,7 +37,7 @@ const BoardGame = (props: number[][]) => {
     '#E90005',
     '#48EFEC',
   ];
-  console.table(props);
+  // console.table(props);
   const board = Object.entries(props).map((row) => {
     return row[1].map((cell) => (
       <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
