@@ -1,4 +1,4 @@
-import { APIurl } from '../utils/const';
+import { APIurl, BOARD_HEIGHT } from '../utils/const';
 
 interface IGame {
   name: string;
@@ -44,36 +44,40 @@ export const creatNewGame: (
   if (result.success && result.game.open) {
     // Game exist, check if is open
     console.log('Players ?', result.game.players);
-    const userNameTaken = result.game.players.find(
-      (p: string) => p === player
-    );
+    const userNameTaken = result.game.players.find((p: string) => p === player);
     if (!userNameTaken) {
       // Add user to the game
-		const res = await addUserToGame(name, player);
-		const game = await res.json();
-		console.log(`User added to game ? ${game.msg}`);
+      const res = await addUserToGame(name, player);
+      const game = await res.json();
+      console.log(`User added to game ? ${game.msg}`);
     } else {
       // return message saying username already in use in this room
-			return {success: false, msg: `Username '${player}' already in use`}
+      return { success: false, msg: `Username '${player}' already in use` };
     }
     console.log(`User name already taken ? ${userNameTaken}`);
   } else {
-      // return message tell user to choose another game name
-			return { success: false, msg: `Game '${name}' is not available, please choose another one` };
+    // return message tell user to choose another game name
+    return {
+      success: false,
+      msg: `Game '${name}' is not available, please choose another one`,
+    };
   }
 };
 
-export const addUserToGame = async (game: string, player: string): Promise<Response> => {
-	console.log(`addUserToGame game := ${game} user :=  ${player}`);
-	return await fetch(`${APIurl}/games`, {
-		method: 'PATCH',
-		mode: 'cors',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({
-			game,
-			player,
-		}),
-	})
-}
+export const addUserToGame = async (
+  game: string,
+  player: string
+): Promise<Response> => {
+  console.log(`addUserToGame game := ${game} user :=  ${player}`);
+  return await fetch(`${APIurl}/games`, {
+    method: 'PATCH',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      game,
+      player,
+    }),
+  });
+};
