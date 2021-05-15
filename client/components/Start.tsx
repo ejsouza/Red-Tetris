@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Loading from './Loading';
 import { getGameByName } from '../core/games';
-import {  RT_API  } from '../utils/const';
-import { start } from 'node:repl';
+import socket from '../utils/socket';
 
 interface IStartProps {
   gameName: string;
@@ -24,7 +22,7 @@ interface IGame {
 
 const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
   const [game, setGame] = useState<IGame>();
-  let socket = io(RT_API);
+
 
 	const startGame = () => {
 		socket.emit('start');
