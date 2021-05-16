@@ -1,7 +1,7 @@
 export const COLUMNS = 10;
 export const ROWS = 20;
 
-export const PIECES = [
+export const TETRIS = [
   {
     tetromino: [
       [1, 1, 0],
@@ -79,5 +79,19 @@ export const PIECES = [
     y: 3,
     width: 1,
     height: 4,
+  },
+];
+
+export const PIECES = [
+  {
+    pos: [
+      { x: 0, y: 4 },
+      { x: 0, y: 5 },
+      { x: 1, y: 4 },
+      { x: 1, y: 5 },
+    ],
+    width: 2,
+    height: 2,
+    color: 1,
   },
 ];
