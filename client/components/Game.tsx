@@ -81,12 +81,11 @@ const Game = () => {
    };
 
   useEffect(() => {
-   
-  
-
-   window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     //clean event
-    return () => {window.removeEventListener('keydown', handleKeyDown);}
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [piece]);
 
   useEffect(() => {
