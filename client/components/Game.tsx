@@ -30,55 +30,46 @@ const Game = () => {
   const [newMap, setNewMap] = useState(false);
   const [piece, setPiece] = useState<Piece>();
 
-   useEffect(() => {
+  useEffect(() => {
     socket.on('gameState', (board: number[][], piece: Piece) => {
       setMap(board);
       setPiece(piece);
     });
   }, []);
 
- useEffect(() => {
-   socket.on('newMap', (map: number[][], piece: Piece) => {
-     setMap(map);
-     setPiece(piece)
-   });
- }, [newMap])
-  
+  useEffect(() => {
+    socket.on('newMap', (map: number[][], piece: Piece) => {
+      setMap(map);
+      setPiece(piece);
+    });
+  }, [newMap]);
+
   useEffect(() => {
     socket.emit('getGameMap');
     setNewMap(true);
   }, []);
 
- 
-  const movePiece = (board: number [][], piece: Piece, direction: number):void => {
-    socket.emit('move', board, piece, direction)
-    return ;
-  }
- 
-   const handleKeyDown = (e: any) => {
-     if (!piece || !map) {
-       console.log(`returning....`);
-       return;
-     }
-    
-     console.log(`key was pressed ${e.key} - ${e.keyCode}`);
-     if (e.key === 'ArrowLeft') {
-       updateBoard(map, piece, e.keyCode);
-     }
-     if (e.key === 'ArrowRight') {
-       updateBoard(map, piece, e.keyCode);
-     }
-     if (e.key === 'ArrowDown') {
-       updateBoard(map, piece, e.keyCode);
-     }
-     if (e.key === 'ArrowUp') {
-       console.log('UP UP UP');
-     }
-      piece.pos.forEach((pos) => {
-        console.log(`piece after := ${pos.x} -- ${pos.y}`);
-      });
-     socket.emit('keydown', {key: e.keyCode, board: map, piece: piece });
-   };
+  const handleKeyDown = (e: any) => {
+    if (!piece || !map) {
+      console.log(`returning....`);
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      updateBoard(map, piece, e.keyCode);
+    }
+    if (e.key === 'ArrowRight') {
+      updateBoard(map, piece, e.keyCode);
+    }
+    if (e.key === 'ArrowDown') {
+      updateBoard(map, piece, e.keyCode);
+    }
+    if (e.key === 'ArrowUp') {
+      console.log('UP UP UP');
+    }
+   
+    socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
+  };
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -92,9 +83,8 @@ const Game = () => {
     socket.on('updateMove', (map: number[][], piece: Piece) => {
       setMap(map);
       setPiece(piece);
-    })
-  }, [])
-
+    });
+  }, []);
 
   return !map ? (
     <Loading />
