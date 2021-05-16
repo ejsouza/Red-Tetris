@@ -11,32 +11,23 @@ import { DB } from './db';
 
 interface IController {
 	path: string;
-	router: express.Router;
+	_router: express.Router;
 }
 
 export class App {
-  public app: express.Application;
-	public server: http.Server;
-	public io: socketio.Server;
+  private app: express.Application;
+	private server: http.Server;
 
   constructor(controllers: IController[]) {
     this.app = express.default();
 		this.server = http.createServer(this.app);
-		this.io = new socketio.Server({
-      cors: {
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-      },
-    });
-
-		this.io.attach(this.server);
 
     this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
-    this.initializeIO();
   }
 
+	
   private initializeMiddlewares() {
     this.app.use(express.json());
     this.app.use(cors());
@@ -46,20 +37,7 @@ export class App {
 
   private initializeControllers(controllers: IController[]) {
     controllers.forEach((controller) => {
-      this.app.use(`${BaseURL}`, controller.router);
-    });
-  }
-
-  private initializeIO() {
-    this.io.on('connection', (socket: socketio.Socket) => {
-      console.log('connection');
-      socket.emit('status', 'Hello from Socket.io');
-
-      console.log(socket.handshake.query);
-
-      socket.on('disconnect', () => {
-        console.log('client disconnected');
-      });
+      this.app.use(`${BaseURL}`, controller._router);
     });
   }
 
@@ -71,5 +49,6 @@ export class App {
     this.app.listen(process.env.PORT, () => {
       console.log(`\n ⚡️ [server]: App listening on port ${process.env.PORT}`);
     });
+
   }
 }
