@@ -94,4 +94,15 @@ export const PIECES = [
     height: 2,
     color: 1,
   },
+  {
+    pos: [
+      { x: 0, y: 4 },
+      { x: 1, y: 3 },
+      { x: 1, y: 4 },
+      { x: 1, y: 5 },
+    ],
+    width: 2,
+    height: 2,
+    color: 2,
+  },
 ];
