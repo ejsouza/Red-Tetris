@@ -48,12 +48,12 @@ const isXPlusOneFree = (board: number[][], piece: Piece): boolean => {
     }
   });
   console.log(`lastX := ${lastX}`);
-  if (
-    (lastX < BOARD_HEIGHT - 1 && board[lastX + 1][lastY - 1] !== 0) ||
-    board[lastX + 1][lastY] !== 0
-  ) {
+  if (lastX < BOARD_HEIGHT - 1) {
+	 if (board[lastX + 1][lastY - 1] !== 0 || board[lastX + 1][lastY] !== 0)
+   {
     isFree = false;
   }
+}
   return isFree;
 };
 
