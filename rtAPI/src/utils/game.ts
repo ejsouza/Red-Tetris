@@ -1,5 +1,5 @@
 import * as socketIO from 'socket.io';
-import { COLUMNS, ROWS, PIECES } from './const';
+import { COLUMNS, ROWS, PIECES, BOARD_HEIGHT, BOARD_WIDTH } from './const';
 
 interface Piece {
   pos: { x: number; y: number }[];
@@ -12,7 +12,7 @@ export const createBoard = (socket: socketIO.Socket): [number[][], Piece] => {
   const board: number[][] = Array.from({ length: ROWS }, () =>
     Array(COLUMNS).fill(0)
   );
-  const piece: Piece = PIECES[0];
+  const piece: Piece = PIECES[Math.floor(Math.random() * 4)];
 
   piece.pos.forEach((pos) => {
     board[pos.x][pos.y] = piece.color;
@@ -80,47 +80,83 @@ export const movePiece = (
 };
 
 export const removeOldPiece = (board: number[][], piece: Piece): void => {
-  console.log(`is new piece ? `);
-  console.log(piece);
   piece.pos.forEach((pos) => {
     board[pos.x][pos.y] = 0;
   });
 };
 
-export const draw = (
-  socket: socketIO.Socket,
+const nextCellIsFree = (
   board: number[][],
-  piece: Piece
+  lastX: number,
+  lastY: number
 ): boolean => {
+  return board[lastX][lastY] === 0;
+};
+
+export const draw = (board: number[][], piece: Piece): boolean => {
   let gameOver = false;
   piece.pos.forEach((pos) => {
     pos.x += 1;
-    if (pos.x >= ROWS /* or is overother block */) {
-      console.log('here ', pos.x);
-      if (pos.x === ROWS) {
-        console.log(`enters >>>`);
-        console.log('Before ', piece.pos);
-        piece = PIECES[0];
-        socket.emit('gameState', board, piece);
-        console.log('After ', piece.pos);
-        return;
-      } else {
-        gameOver = true;
-        return;
-      }
-    }
     board[pos.x][pos.y] = piece.color;
   });
   return gameOver;
 };
 
-const gameLoop = (
-  socket: socketIO.Socket,
-  board: number[][],
-  piece: Piece
-): boolean => {
+const isXWithinBound = (piece: Piece): boolean => {
+  return piece.pos[piece.height].x < BOARD_HEIGHT;
+};
+
+const isXPlusOneWithinBound = (piece: Piece): boolean => {
+  return piece.pos[piece.height].x + 1 < BOARD_HEIGHT;
+};
+
+const isNextXCellFree = (board: number[][], piece: Piece): boolean => {
+  let isFree = true;
+
+  if (!isXPlusOneWithinBound(piece)) {
+    return false;
+  }
+  piece.pos.forEach((pos) => {
+    if (
+      board[pos.x][pos.y] !== 0 &&
+      board[piece.pos[piece.height].x + 1][pos.y] !== 0
+    ) {
+      isFree = false;
+      return;
+    }
+  });
+  return isFree;
+};
+
+const isNYCellFree = (board: number[][], piece: Piece): boolean => {
+  let isFree = true;
+  piece.pos.forEach(pos => {
+    if (pos.y - 1 < 0 || pos.y + 1 > BOARD_WIDTH) {
+      isFree = false;
+      return;
+    }
+    if (board[pos.x][pos.y] !== 0 && board[pos.x][pos.y - 1] !== 0) {
+      isFree = false;
+      return;
+    }
+    if (board[pos.x][pos.y] !== 0 && board[pos.x][pos.y + 1] !== 0) {
+      isFree = false;
+      return;
+    }
+  })
+
+  return isFree;
+}
+
+const gameLoop = (board: number[][], piece: Piece): boolean => {
+  /**
+   * Check for next piece place
+   */
+  if (!isXPlusOneWithinBound(piece) || !isNextXCellFree(board, piece)) {
+    return true;
+  }
   removeOldPiece(board, piece);
-  return draw(socket, board, piece);
+  return draw(board, piece);
 };
 
 export const startGameInterval = (
@@ -153,15 +189,31 @@ export const startGameInterval = (
         break;
     }
   });
-
   const interval = setInterval(() => {
-    const winner = gameLoop(socket, board, piece);
+    const winner = gameLoop(board, piece);
 
     if (!winner) {
+      piece.pos.forEach((pos) =>
+        console.log(`gameState[emit] x: ${pos.x} y: ${pos.y}`)
+      );
       socket.emit('gameState', board, piece);
     } else {
-      socket.emit('gameOver');
-      clearInterval(interval);
+      // if (isGameOver()) {
+      if (0 > 1) {
+        socket.emit('gameOver');
+        clearInterval(interval);
+      } else {
+        const newPiece: Piece = PIECES[Math.floor(Math.random() * 4)];
+        newPiece.pos.forEach((pos, index) => {
+          board[pos.x][pos.y] = newPiece.color;
+          piece.pos[index].x = pos.x;
+          piece.pos[index].y = pos.y;
+        });;
+        piece.color = newPiece.color;
+        piece.height = newPiece.height;
+        piece.width = newPiece.width;
+        socket.emit('gameState', board, piece);
+      }
     }
   }, 1000);
 };
