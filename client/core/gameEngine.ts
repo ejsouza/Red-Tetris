@@ -75,6 +75,44 @@ const writeNewPieceToBoard = (board: number[][], piece: Piece): void => {
   });
 };
 
+const leftCellIsFree = (board: number[][], piece: Piece): boolean => {
+  let isFree = true;
+  piece.pos.forEach((pos) => {
+    if (
+      board[pos.x][pos.y - piece.width] !== 0 &&
+      board[pos.x][pos.y - piece.width - 1] !== 0
+    ) {
+      console.log(
+        `[${board[pos.x][pos.y - piece.width]}] - [${
+          board[pos.x][pos.y - piece.width - 1]
+        }]`
+      );
+      isFree = false;
+      return;
+    }
+  });
+  return isFree;
+};
+
+const rightCellIsFree = (board: number[][], piece: Piece): boolean => {
+  let isFree = true;
+  piece.pos.forEach((pos) => {
+    if (
+      board[pos.x][pos.y + piece.width] !== 0 &&
+      board[pos.x][pos.y + piece.width + 1] !== 0
+    ) {
+      console.log(
+        `[${board[pos.x][pos.y + piece.width]}] - [${
+          board[pos.x][pos.y + piece.width + 1]
+        }]`
+      );
+      isFree = false;
+      return;
+    }
+  });
+  return isFree;
+};
+
 export const updateBoard = (
   board: number[][],
   piece: Piece,
@@ -82,7 +120,7 @@ export const updateBoard = (
 ): void => {
   switch (key) {
     case 37: {
-      if (!isYLessThanZero(piece)) {
+      if (!isYLessThanZero(piece) && leftCellIsFree(board, piece)) {
         cleanPieceFromBoard(board, piece);
         updateHorizontalPosition(piece, -1);
         writeNewPieceToBoard(board, piece);
@@ -90,7 +128,7 @@ export const updateBoard = (
       break;
     }
     case 39: {
-      if (!isYGreaterThanWidth(piece)) {
+      if (!isYGreaterThanWidth(piece) && rightCellIsFree(board, piece)) {
         cleanPieceFromBoard(board, piece);
         updateHorizontalPosition(piece, 1);
         writeNewPieceToBoard(board, piece);
