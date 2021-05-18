@@ -1,5 +1,7 @@
 export const COLUMNS = 10;
 export const ROWS = 20;
+export const BOARD_HEIGHT = 20;
+export const BOARD_WIDTH = 10;
 
 export const TETRIS = [
   {
@@ -104,5 +106,27 @@ export const PIECES = [
     width: 2,
     height: 2,
     color: 2,
+  },
+  {
+    pos: [
+      { x: 0, y: 3 },
+      { x: 1, y: 3 },
+      { x: 1, y: 4 },
+      { x: 1, y: 5 },
+    ],
+    width: 2,
+    height: 2,
+    color: 3,
+  },
+  {
+    pos: [
+      { x: 0, y: 5 },
+      { x: 1, y: 5 },
+      { x: 1, y: 4 },
+      { x: 1, y: 3 },
+    ],
+    width: 2,
+    height: 2,
+    color: 4,
   },
 ];
