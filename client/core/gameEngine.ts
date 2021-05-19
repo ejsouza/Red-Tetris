@@ -18,8 +18,11 @@ const isYLessThanZero = (piece: Piece): boolean => {
   piece.pos.forEach((pos) => {
     if (pos.y - 1 < 0) {
       isLess = true;
+			console.log(`isYLessThanZero ? ${pos.y} pos.y - 1 ? ${pos.y - 1}  `);
+			return;
     }
   });
+	console.log(`isLess = false ${piece.pos[0].y}`);
   return isLess;
 };
 
@@ -28,6 +31,7 @@ const isYGreaterThanWidth = (piece: Piece): boolean => {
   piece.pos.forEach((pos) => {
     if (pos.y > BOARD_WIDTH - piece.width) {
       isGreater = true;
+			return;
     }
   });
   return isGreater;
@@ -77,22 +81,41 @@ const writeNewPieceToBoard = (board: number[][], piece: Piece): void => {
 
 const leftCellIsFree = (board: number[][], piece: Piece): boolean => {
   let isFree = true;
-  piece.pos.forEach((pos) => {
+  let i = 1;
+  for (let k = 0; k < piece.height; k++) {
+    console.log(`{{ ${board[piece.pos[k].x][piece.pos[k].y]} }}[${k}]`);
+		console.log(`{{ ${board[piece.pos[k].x][piece.pos[k].y - 1]} }}[${k}]`);
     if (
-      board[pos.x][pos.y - piece.width] !== 0 &&
-      board[pos.x][pos.y - piece.width - 1] !== 0
+      board[piece.pos[k].x][piece.pos[k].y] !== 0 &&
+      board[piece.pos[k].x][piece.pos[k].y - 1] !== 0
     ) {
-      console.log(
-        `[${board[pos.x][pos.y - piece.width]}] - [${
-          board[pos.x][pos.y - piece.width - 1]
-        }]`
-      );
       isFree = false;
-      return;
+			console.log(`what here ?? ${board[piece.pos[k].x][piece.pos[k].y]}`);
+			console.log(board[piece.pos[k].x][piece.pos[k].y - 1]);
+			console.log(piece.pos[k].y, piece.pos[k].y - 1);
+      return false;
     }
-  });
+  }
+
+  // piece.pos.forEach((pos) => {
+  // 	console.log(`board[${pos.x}][${pos.y}] >> ${i++}`);
+  //   console.log(`?? ${pos.x} == ${pos.y}`);
+  //   if (
+  //     board[pos.x][pos.y - piece.width] !== 0 &&
+  //     board[pos.x][pos.y - piece.width + 1] !== 0
+  //   ) {
+  //     console.log(
+  //       `[${board[pos.x][pos.y - piece.width]}] - [${
+  //         board[pos.x][pos.y - piece.width - 1]
+  //       }]`
+  //     );
+  //     isFree = false;
+  //     console.log(`here ${board[pos.x][pos.y - piece.width]} - ${pos.y}`);
+  //     return;
+  //   }
+  // });
   return isFree;
-};
+};;;;;
 
 const rightCellIsFree = (board: number[][], piece: Piece): boolean => {
   let isFree = true;
@@ -149,34 +172,3 @@ export const updateBoard = (
   }
 };
 
-export const gameLoo = (
-  board: number[][],
-  piece: Piece
-): [board: number[][], piece: Piece] => {
-  const ROWS = 20;
-  // const stopGame = (id: number) => clearInterval(id);
-
-  // const loop = (board: number[][], piece: Piece): void => {
-  //   console.log('[setInterval board] ', board);
-  // };
-
-  // const stopGameId = setInterval(loop, 1000, board, piece);
-  console.log('getting here? ', piece.x);
-  if (piece.x < ROWS - piece.height) {
-    for (let y = 0, by = piece.y; y < piece.tetromino.length; y++, by++) {
-      for (let x = 0, bx = piece.x; x < piece.tetromino.length; x++, bx++) {
-        if (board[bx][by] === piece.tetromino[x][y]) {
-          board[bx][by] = 0;
-        }
-      }
-    }
-    piece.x += 1;
-    console.log(`enters condition ? ${piece.x}`);
-    for (let y = 0, by = piece.y; y < piece.tetromino.length; y++, by++) {
-      for (let x = 0, bx = piece.x; x < piece.tetromino.length; x++, bx++) {
-        board[bx][by] = piece.tetromino[x][y];
-      }
-    }
-  }
-  return [board, piece];
-};
