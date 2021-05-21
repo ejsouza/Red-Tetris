@@ -60,10 +60,9 @@ export class Socket {
         this._io.emit('closeStartComponent');
         this._io.emit('setGame', { start: true });
         // [this._board, this._piece] = buildNewMap();
-     
-        [this._board, this._piece] = createBoard(socket);
-        startGameInterval(socket, this._board, this._piece);
-
+        const game = new Game(socket);
+        // [this._board, this._piece] = createBoard(socket);
+        // startGameInterval(socket, this._board, this._piece);
       });
 
       socket.on('updateMove', () => console.log(`update this`));
