@@ -39,6 +39,7 @@ const Game = () => {
 
   useEffect(() => {
     socket.on('newMap', (map: number[][], piece: Piece) => {
+      console.log('got newMap on front');
       setMap(map);
       setPiece(piece);
     });
@@ -65,7 +66,7 @@ const Game = () => {
       updateBoard(map, piece, e.keyCode);
     }
     if (e.key === 'ArrowUp') {
-      console.log('UP UP UP');
+      console.log('UP UP UP ', e.keyCode);
     }
    
     socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
