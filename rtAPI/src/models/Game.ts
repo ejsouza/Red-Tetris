@@ -2,7 +2,7 @@ import * as socketIO from 'socket.io';
 import { Board } from './Board';
 import { Piece } from './Piece';
 import { IPiece } from '../interfaces/piece.interface';
-import { BOARD_HEIGHT, BOARD_WIDTH } from '../utils/const';
+import { BOARD_HEIGHT, BOARD_WIDTH, PIECES } from '../utils/const';
 
 interface ClassIPiece {
   shape: number[][];
@@ -19,6 +19,8 @@ export class Game {
   constructor(socket: socketIO.Socket) {
     this.socket = socket;
     this.board = new Board();
+    this.piece = new Piece().shape;
+    this.nextPiece = new Piece().shape;
     this.start();
   }
 
@@ -28,11 +30,7 @@ export class Game {
   };
 
   initializeBoard = (): void => {
-    const piece = new Piece();
-    const nextPiece = new Piece();
-    this.piece = piece.shape;
-    this.nextPiece = nextPiece.shape;
-    this.board.drawPiece(piece.shape);
+    this.board.drawPiece(this.piece);
     this.socket.emit('newMap', this.board.shape, this.piece);
   };
 
@@ -42,18 +40,43 @@ export class Game {
       if (!winner) {
         this.socket.emit('gameState', this.board.shape, this.piece);
       } else {
-        const isGameOver = this.isGameOver();
-        if (isGameOver) {
+        if (this.isGameOver()) {
           this.socket.emit('gameOver');
           clearInterval(interval);
         } else {
-          this.piece = this.nextPiece;
+          /**
+           * ATENTION 🚨
+           * the value of this.piece has to be set  in this else
+           * and cannot be moved elsewhere, like inside this.newPiece()
+           */
+          /**
+           * DO NOT 👉 this.piece = this.nextPiece;
+           * it will only copy the same reference and share the same address
+           */
+          this.nextPiece.pos.forEach((pos, index) => {
+            this.piece.pos[index].x = pos.x;
+            this.piece.pos[index].y = pos.y;
+          });
+          this.piece.color = this.nextPiece.color;
+          this.piece.height = this.nextPiece.height;
+          this.piece.width = this.nextPiece.width;
+          /**
+           * Even though is seems that the drawing should come before
+           * it is not the case
+           * it need to come after, otherwise piece will start on row 1 
+           * instead of row 0 
+           */
+          this.board.drawPiece(this.piece);
           this.socket.emit('gameState', this.board.shape, this.piece);
-          const newPiece = new Piece();
-          this.nextPiece = newPiece.shape;
+          this.newPiece();
         }
       }
-    }, 1000);
+      console.log(new Date());
+    }, (900 * 60) / 100);
+  };
+
+  newPiece = (): void => {
+    this.nextPiece = new Piece().shape;
   };
 
   isNextXRowFree = (): boolean => {
@@ -64,6 +87,7 @@ export class Game {
         pos.x + 1 >= BOARD_HEIGHT ||
         this.board.shape[pos.x + 1][pos.y] !== 0
       ) {
+        // console.log(`\n💥💥🔥🔥☄️☄️\n`);
         isFree = false;
         this.board.drawPiece(this.piece);
         return;
@@ -78,6 +102,7 @@ export class Game {
       this.piece.pos.forEach((pos) => {
         console.log(`[${pos.x}][${pos.y}]`);
       });
+
       return true;
     }
 
@@ -90,14 +115,13 @@ export class Game {
   };
 
   isGameOver = (): boolean => {
-    return false;
     let gameOver = BOARD_HEIGHT;
     this.piece.pos.forEach((pos) => {
       if (pos.x < gameOver) {
         gameOver = pos.x;
       }
     });
-    console.log(`is x in the begining? ${gameOver} `);
-    return gameOver === 0;
+    console.log(`is x in the begining? ${gameOver} ${gameOver >= this.piece.height}`);
+    return gameOver < this.piece.height;
   };
 }
