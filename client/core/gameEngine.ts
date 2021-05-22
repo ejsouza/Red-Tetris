@@ -18,18 +18,16 @@ const isYLessThanZero = (piece: Piece): boolean => {
   piece.pos.forEach((pos) => {
     if (pos.y - 1 < 0) {
       isLess = true;
-			console.log(`isYLessThanZero ? ${pos.y} pos.y - 1 ? ${pos.y - 1}  `);
 			return;
     }
   });
-	console.log(`isLess = false ${piece.pos[0].y}`);
   return isLess;
 };
 
 const isYGreaterThanWidth = (piece: Piece): boolean => {
   let isGreater = false;
   piece.pos.forEach((pos) => {
-    if (pos.y > BOARD_WIDTH - piece.width) {
+    if (pos.y + 1 > BOARD_WIDTH) {
       isGreater = true;
 			return;
     }
@@ -37,29 +35,6 @@ const isYGreaterThanWidth = (piece: Piece): boolean => {
   return isGreater;
 };
 
-const isXPlusOneFree = (board: number[][], piece: Piece): boolean => {
-  let isFree = false;
-  let lastX = 0;
-  let lastY = 0;
-
-  piece.pos.forEach((pos) => {
-    lastX = pos.x;
-    lastY = pos.y;
-    if (pos.x + 1 < BOARD_HEIGHT) {
-      isFree = true;
-    } else {
-      isFree = false;
-    }
-  });
-  console.log(`lastX := ${lastX}`);
-  if (lastX < BOARD_HEIGHT - 1) {
-	 if (board[lastX + 1][lastY - 1] !== 0 || board[lastX + 1][lastY] !== 0)
-   {
-    isFree = false;
-  }
-}
-  return isFree;
-};
 
 const updateHorizontalPosition = (piece: Piece, value: number): void => {
   piece.pos.forEach((pos) => {
@@ -81,60 +56,45 @@ const writeNewPieceToBoard = (board: number[][], piece: Piece): void => {
 
 const leftCellIsFree = (board: number[][], piece: Piece): boolean => {
   let isFree = true;
-  let i = 1;
-  for (let k = 0; k < piece.height; k++) {
-    console.log(`{{ ${board[piece.pos[k].x][piece.pos[k].y]} }}[${k}]`);
-		console.log(`{{ ${board[piece.pos[k].x][piece.pos[k].y - 1]} }}[${k}]`);
-    if (
-      board[piece.pos[k].x][piece.pos[k].y] !== 0 &&
-      board[piece.pos[k].x][piece.pos[k].y - 1] !== 0
-    ) {
-      isFree = false;
-			console.log(`what here ?? ${board[piece.pos[k].x][piece.pos[k].y]}`);
-			console.log(board[piece.pos[k].x][piece.pos[k].y - 1]);
-			console.log(piece.pos[k].y, piece.pos[k].y - 1);
-      return false;
-    }
-  }
 
-  // piece.pos.forEach((pos) => {
-  // 	console.log(`board[${pos.x}][${pos.y}] >> ${i++}`);
-  //   console.log(`?? ${pos.x} == ${pos.y}`);
-  //   if (
-  //     board[pos.x][pos.y - piece.width] !== 0 &&
-  //     board[pos.x][pos.y - piece.width + 1] !== 0
-  //   ) {
-  //     console.log(
-  //       `[${board[pos.x][pos.y - piece.width]}] - [${
-  //         board[pos.x][pos.y - piece.width - 1]
-  //       }]`
-  //     );
-  //     isFree = false;
-  //     console.log(`here ${board[pos.x][pos.y - piece.width]} - ${pos.y}`);
-  //     return;
-  //   }
-  // });
+	cleanPieceFromBoard(board,  piece);
+	piece.pos.forEach(pos => {
+		if (pos.y - 1 < 0 || board[pos.x][pos.y - 1] !== 0) {
+			isFree = false;
+			writeNewPieceToBoard(board, piece);
+			return;
+		}
+	})
   return isFree;
-};;;;;
+}
 
 const rightCellIsFree = (board: number[][], piece: Piece): boolean => {
   let isFree = true;
+
+  cleanPieceFromBoard(board, piece);
   piece.pos.forEach((pos) => {
-    if (
-      board[pos.x][pos.y + piece.width] !== 0 &&
-      board[pos.x][pos.y + piece.width + 1] !== 0
-    ) {
-      console.log(
-        `[${board[pos.x][pos.y + piece.width]}] - [${
-          board[pos.x][pos.y + piece.width + 1]
-        }]`
-      );
+    if (pos.y + 1 > BOARD_WIDTH || board[pos.x][pos.y + 1] !== 0) {
       isFree = false;
+      writeNewPieceToBoard(board, piece);
       return;
     }
   });
   return isFree;
 };
+
+const isXPlusOneFree = (board: number[][], piece: Piece): boolean => {
+	 let isFree = true;
+
+   cleanPieceFromBoard(board, piece);
+   piece.pos.forEach((pos) => {
+     if (pos.x + 1 >= BOARD_HEIGHT || ( board[pos.x + 1][pos.y] !== 0)) {
+       isFree = false;
+       writeNewPieceToBoard(board, piece);
+       return;
+     }
+   });
+   return isFree;
+}
 
 export const updateBoard = (
   board: number[][],
@@ -150,6 +110,10 @@ export const updateBoard = (
       }
       break;
     }
+		case 38: {
+			console.log(`Turn piece around`);
+			break;	
+		}
     case 39: {
       if (!isYGreaterThanWidth(piece) && rightCellIsFree(board, piece)) {
         cleanPieceFromBoard(board, piece);
