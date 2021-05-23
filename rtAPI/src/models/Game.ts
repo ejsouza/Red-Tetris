@@ -15,12 +15,16 @@ export class Game {
   public board: ClassIPiece;
   public piece: IPiece;
   public nextPiece: IPiece;
+  public _piece: Piece;
 
   constructor(socket: socketIO.Socket) {
     this.socket = socket;
     this.board = new Board();
-    this.piece = new Piece().shape;
-    this.nextPiece = new Piece().shape;
+    this._piece = new Piece();
+    // this.piece = new Piece().shape;
+    // this.nextPiece = new Piece().shape;
+    this.piece = this._piece.randomPiece();
+    this.nextPiece = this._piece.randomPiece();
     this.start();
   }
 
@@ -35,6 +39,12 @@ export class Game {
   };
 
   startGameInterval = (): void => {
+    this.socket.on('keydown', (args) => {
+      this.board.cleanPiece(this.piece);
+      this.piece = args.piece;
+      this.board.drawPiece(this.piece);
+      this.socket.emit('gameState', this.board.shape, this.piece);
+    });
     const interval = setInterval(() => {
       const winner = this.gameLoop();
       if (!winner) {
@@ -54,8 +64,8 @@ export class Game {
            * it will only copy the same reference and share the same address
            */
           this.nextPiece.pos.forEach((pos, index) => {
-            this.piece.pos[index].x = pos.x;
             this.piece.pos[index].y = pos.y;
+            this.piece.pos[index].x = pos.x;
           });
           this.piece.color = this.nextPiece.color;
           this.piece.height = this.nextPiece.height;
@@ -63,20 +73,20 @@ export class Game {
           /**
            * Even though is seems that the drawing should come before
            * it is not the case
-           * it need to come after, otherwise piece will start on row 1 
-           * instead of row 0 
+           * it need to come after, otherwise piece will start on row 1
+           * instead of row 0
            */
           this.board.drawPiece(this.piece);
           this.socket.emit('gameState', this.board.shape, this.piece);
           this.newPiece();
         }
       }
-      console.log(new Date());
     }, (900 * 60) / 100);
   };
 
   newPiece = (): void => {
-    this.nextPiece = new Piece().shape;
+    // this.nextPiece = new Piece().shape;
+    this.nextPiece = this._piece.randomPiece();
   };
 
   isNextXRowFree = (): boolean => {
@@ -84,8 +94,8 @@ export class Game {
     this.board.cleanPiece(this.piece);
     this.piece.pos.forEach((pos) => {
       if (
-        pos.x + 1 >= BOARD_HEIGHT ||
-        this.board.shape[pos.x + 1][pos.y] !== 0
+        pos.y + 1 >= BOARD_HEIGHT ||
+        this.board.shape[pos.y + 1][pos.x] !== 0
       ) {
         // console.log(`\n💥💥🔥🔥☄️☄️\n`);
         isFree = false;
@@ -98,17 +108,12 @@ export class Game {
 
   gameLoop = (): boolean => {
     if (!this.isNextXRowFree()) {
-      console.log('!this.isNextXRowFree()');
-      this.piece.pos.forEach((pos) => {
-        console.log(`[${pos.x}][${pos.y}]`);
-      });
-
       return true;
     }
 
     this.board.cleanPiece(this.piece);
     this.piece.pos.forEach((pos) => {
-      pos.x++;
+      pos.y++;
     });
     this.board.drawPiece(this.piece);
     return false;
@@ -117,11 +122,10 @@ export class Game {
   isGameOver = (): boolean => {
     let gameOver = BOARD_HEIGHT;
     this.piece.pos.forEach((pos) => {
-      if (pos.x < gameOver) {
-        gameOver = pos.x;
+      if (pos.y < gameOver) {
+        gameOver = pos.y;
       }
     });
-    console.log(`is x in the begining? ${gameOver} ${gameOver >= this.piece.height}`);
     return gameOver < this.piece.height;
   };
 }
