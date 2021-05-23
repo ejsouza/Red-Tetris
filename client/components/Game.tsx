@@ -67,6 +67,7 @@ const Game = () => {
     }
     if (e.key === 'ArrowUp') {
       console.log('UP UP UP ', e.keyCode);
+      updateBoard(map, piece, e.keyCode);
     }
    
     socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
