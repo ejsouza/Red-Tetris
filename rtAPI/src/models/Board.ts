@@ -12,13 +12,13 @@ export class Board {
 
   drawPiece(piece: IPiece) {
     piece.pos.forEach((pos) => {
-      this.shape[pos.x][pos.y] = piece.color;
+      this.shape[pos.y][pos.x] = piece.color;
     });
   }
 
   cleanPiece(piece: IPiece) {
     piece.pos.forEach((pos) => {
-      this.shape[pos.x][pos.y] = 0;
+      this.shape[pos.y][pos.x] = 0;
     });
   }
 }
