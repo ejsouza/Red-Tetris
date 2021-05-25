@@ -3,6 +3,7 @@ export const COLUMNS = 10;
 export const ROWS = 20;
 export const BOARD_HEIGHT = 20;
 export const BOARD_WIDTH = 10;
+export const BLOCKED_ROW = 8;
 
 export const PIECES = [
   {
