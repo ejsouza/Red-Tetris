@@ -2,11 +2,12 @@ export const APIurl: string = 'http://localhost:8000/api/v1';
 export const BASEurl: string = 'http://localhost:8000';
 export const RT_API: string = 'http://localhost:5000';
 
-export const BOARD_HEIGHT = 20;
-export const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 20;
+const BOARD_WIDTH = 10;
+const BLOCKED_ROW = 8;
 
 
-export const EMPTY_PIECE = [
+const EMPTY_PIECE = [
   {
     pos: [
       { x: 0, y: 0 },
@@ -30,3 +31,5 @@ export interface IPiece {
 export interface IBoard {
   board: number[][];
 }
+
+export { BLOCKED_ROW, BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE };
