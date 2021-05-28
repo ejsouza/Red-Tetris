@@ -4,7 +4,14 @@ import styled, { createGlobalStyle, css } from 'styled-components';
 import socket from '../utils/socket';
 import Loading from '../components/Loading';
 import {BOARD_HEIGHT, BOARD_WIDTH} from '../utils/const';
-import { updateBoard, cleanPieceFromBoard } from '../core/gameEngine';
+import {
+  updateBoard,
+  cleanPieceFromBoard,
+  isYPlusOneFree,
+  isGameOver,
+  updatePiece,
+  score,
+} from '../core/gameEngine';
 
 const Container = styled.div`
   padding: 16px;
@@ -25,71 +32,111 @@ interface Piece {
 }
 
 interface ICallback {
-  fn: () => void
+(): void
 }
 
 const Game = () => {
   const [map, setMap] = useState<number[][]>();
   const [newMap, setNewMap] = useState(false);
   const [piece, setPiece] = useState<Piece>();
-  const mapRef = useRef(map);
+  const [nextPiece, setNextPiece] = useState<Piece>();
+  const [delay, setDelay] = useState(600 * 60 / 100);
+ 
 
   // ---- TEST LOOP ON THE FRONT ----
 
-  
-function useInterval(callback: ICallback, delay: number) {
-  const savedCallback = useRef<ICallback | null>(null);
+  const useInterval = (callback: ICallback, delay: number) => {
+    const savedCallback = useRef<ICallback | null>();
 
-  // Remember the latest callback.
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
+    // Remember the latest callback.
+    useEffect(() => {
+      savedCallback.current = callback;
+    }, [callback]);
 
-  // Set up the interval.
-  useEffect(() => {
-    function tick() {
-      savedCallback.current();
-    }
-    if (delay !== null) {
-      let id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-  }, [delay]);
-}
+    // Set up the interval.
+    useEffect(() => {
+      function tick() {
+        if (savedCallback.current) {
+          savedCallback.current();
+        }
+      }
+      if (delay !== 0) {
+        let id = setInterval(tick, delay);
+        return () => clearInterval(id);
+      }
+    }, [delay]);
+  };
 
-  const updateGame = () => {
+  const updateGame = (): boolean => {
+    let gameOver = false
     console.log(`updateGame() called`);
     if (!map || !piece) {
-      return;
+      return gameOver;
     }
     console.log('gets here');
-    cleanPieceFromBoard(map, piece);
+    if (isYPlusOneFree(map, piece)) {
+      cleanPieceFromBoard(map, piece);
+      piece.pos.forEach(pos => {
+        pos.y++;
+        map[pos.y][pos.x] = piece.color;
+      })
+    } else {
+      gameOver = false;
+    }
+
+    return gameOver;
+  };
+  let count = 0;
+  
+  useInterval(() => {
+    console.log(`counting ${count++}`)
+    if (count === 5) {
+      setDelay(0);
+    }
+     if (!map || !piece || !nextPiece) {
+       return ;
+     }
+    // const gameOver = updateGame();
+    if (isYPlusOneFree(map, piece)) {
+      cleanPieceFromBoard(map, piece);
+      piece.pos.forEach((pos) => {
+        pos.y++;
+        map[pos.y][pos.x] = piece.color;
+      });
+    } else {
+      if (isGameOver(piece)) {
+        setDelay(0);
+      } else {
+        // nextPiece.pos.forEach((pos, index) => {
+        //   map[pos.y][pos.x] = nextPiece.color;
+        //   piece.pos[index].y = pos.y;
+        //   piece.pos[index].x = pos.x;
+        // })
+        // piece.height = nextPiece.height;
+        // piece.width = nextPiece.width;
+        // piece.color = nextPiece.color;
+        score(map, piece);
+        updatePiece(map, piece, nextPiece);
+        socket.emit('getNextPiece', map, piece);
+      }
+    }
+    setPiece(piece);
     setMap([...map]);
-  };
-  const gameLoop = (board: number[][], piece: Piece, nextPiece: Piece) => {
-    console.log(`gameloop `, map);
-    let count = 0;
-    const interval = setInterval(
-      () => {
-        count++;
-        updateGame();
-        console.log(`map ${map}`);
-        console.log(`counting ${count}`);
-        if (count === 5) {
-          clearInterval(interval);
-        }
-      },
-      (900 * 60) / 100,
-      map,
-      piece
-    );
-  };
+  }, delay)
+
+  useEffect(() => {
+    socket.on('nextPiece', (nextPiece: Piece) => {
+      console.log('got next piece ');
+      setNextPiece(nextPiece);
+    })
+  }, []);
+  
   useEffect(() => {
     socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
       console.log('got newMap ', board);
       setMap(board);
       setPiece(piece);
-      gameLoop(board , piece, nextPiece);
+      setNextPiece(nextPiece);
     });
   }, []);
 
@@ -127,13 +174,14 @@ function useInterval(callback: ICallback, delay: number) {
     }
     if (e.key === 'ArrowDown') {
       updateBoard(map, piece, e.keyCode);
-      setMap(map);
+      // setMap(map);
     }
     if (e.key === 'ArrowUp') {
       updateBoard(map, piece, e.keyCode);
     }
-
-    socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
+    setMap([...map]);
+    // setPiece(piece);
+    // socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
   };
 
   useEffect(() => {
@@ -163,6 +211,6 @@ function useInterval(callback: ICallback, delay: number) {
       </Container>
     </>
   );
-};
+}
 
 export default Game;
