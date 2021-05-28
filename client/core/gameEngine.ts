@@ -1,19 +1,20 @@
-import { BOARD_HEIGHT, BOARD_WIDTH } from '../utils/const';
+import { posix } from 'node:path';
+import { BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE, BLOCKED_ROW } from '../utils/const';
 
-interface Piece {
+interface IPiece {
   pos: { x: number; y: number }[];
   width: number;
   height: number;
   color: number;
 }
 
-const cleanPieceFromBoard = (board: number[][], piece: Piece): void => {
+const cleanPieceFromBoard = (board: number[][], piece: IPiece): void => {
   piece.pos.forEach((pos) => {
     board[pos.y][pos.x] = 0;
   });
 };
 
-const isYLessThanZero = (piece: Piece): boolean => {
+const isYLessThanZero = (piece: IPiece): boolean => {
   let isLess = false;
   piece.pos.forEach((pos) => {
     if (pos.x - 1 < 0) {
@@ -24,7 +25,7 @@ const isYLessThanZero = (piece: Piece): boolean => {
   return isLess;
 };
 
-const isYGreaterThanWidth = (piece: Piece): boolean => {
+const isYGreaterThanWidth = (piece: IPiece): boolean => {
   let isGreater = false;
   piece.pos.forEach((pos) => {
     if (pos.x + 1 > BOARD_WIDTH) {
@@ -36,25 +37,25 @@ const isYGreaterThanWidth = (piece: Piece): boolean => {
 };
 
 
-const updateHorizontalPosition = (piece: Piece, value: number): void => {
+const updateHorizontalPosition = (piece: IPiece, value: number): void => {
   piece.pos.forEach((pos) => {
     pos.x = pos.x + value;
   });
 };
 
-const updateVerticalPosition = (piece: Piece): void => {
+const updateVerticalPosition = (piece: IPiece): void => {
   piece.pos.forEach((pos) => {
     pos.y = pos.y + 1;
   });
 };
 
-const writeNewPieceToBoard = (board: number[][], piece: Piece): void => {
+const writeNewPieceToBoard = (board: number[][], piece: IPiece): void => {
   piece.pos.forEach((pos) => {
     board[pos.y][pos.x] = piece.color;
   });
 };
 
-const leftCellIsFree = (board: number[][], piece: Piece): boolean => {
+const leftCellIsFree = (board: number[][], piece: IPiece): boolean => {
   let isFree = true;
 
 	cleanPieceFromBoard(board,  piece);
@@ -68,7 +69,7 @@ const leftCellIsFree = (board: number[][], piece: Piece): boolean => {
   return isFree;
 }
 
-const rightCellIsFree = (board: number[][], piece: Piece): boolean => {
+const rightCellIsFree = (board: number[][], piece: IPiece): boolean => {
   let isFree = true;
 
   cleanPieceFromBoard(board, piece);
@@ -82,7 +83,7 @@ const rightCellIsFree = (board: number[][], piece: Piece): boolean => {
   return isFree;
 };
 
-const isXPlusOneFree = (board: number[][], piece: Piece): boolean => {
+export const isYPlusOneFree = (board: number[][], piece: IPiece): boolean => {
 	 let isFree = true;
 
    cleanPieceFromBoard(board, piece);
@@ -96,32 +97,88 @@ const isXPlusOneFree = (board: number[][], piece: Piece): boolean => {
    return isFree;
 }
 
-const rotate = (board: number[][], piece: Piece): void => {
-  const diff = Math.floor(piece.height / 2);
-  if (piece.pos[0].y - diff < 0) {
-    return;
-  }
-  console.log(`before rotating ${piece.pos[0].y}`);
-  piece.pos.forEach((pos) => console.log(`[${pos.y}][${pos.x}]`));
-  // cleanPieceFromBoard(board, piece);
-  // piece.pos.forEach((pos) => {
-  //   const tmpY = pos.y;
-  //   pos.y = pos.x - diff;
-  //   pos.x = tmpY;
-  // });
-  // writeNewPieceToBoard(board, piece);
-  console.log(`after rotating ${piece.pos[0].y}`);
+const isGameOver = ( piece: IPiece): boolean => {
+	let gameOver = BOARD_HEIGHT;
+	piece.pos.forEach(pos => {
+		if (pos.y < gameOver) {
+			gameOver = pos.y
+		}
+	})
+	return gameOver < piece.height;
+} 
 
-  for (let y = 0; y < piece.height; y++) {
-    for (let x = 0; x < piece.width; x++) {
-      console.log(`${piece.pos[x].y} - ${piece.pos[x].x}`);
+const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
+	let fits = true;
+	piece.pos.forEach(pos => {
+		if (pos.x < 0 || pos.x >= BOARD_WIDTH ||
+				pos.y < 0 || pos.y >= BOARD_HEIGHT  ||
+				board[pos.y][pos.x] !== 0)
+		{
+			fits = false;
+			return;
+		}
+	})
+	return fits;
+}
+const rotate = (board: number[][], piece: IPiece): void => {
+	cleanPieceFromBoard(board, piece);
+
+	const rotatedPiece: Piece = EMPTY_PIECE[0];
+	const xLen: number[] = [];
+	const yLen: number[] = [];
+	rotatedPiece.color = piece.color;
+	 
+	const pos = piece.height < piece.width ? piece.height : piece.width;
+	const baseX = piece.pos[pos].x;
+	const baseY = piece.pos[pos].y;
+
+	rotatedPiece.pos.forEach(pos => {
+		pos.x = pos.y = 0;
+	})
+	/**
+	 * BASE ALGORITHM TO ROTATE PIECE
+	 *   clockwise         counter clockwise
+	 * 		[ 0   1 ]          [ 0  -1 ]
+	 *    [ -1  0 ]          [ 1   0 ]
+	 */
+  piece.pos.forEach((pos, index) => {
+		const newX = (0 * (pos.x - baseX)) + (1 * (pos.y - baseY));
+		const newY = (-1 * (pos.x - baseX)) + (0 * (pos.y - baseY));
+		if (!xLen.includes(pos.x)) {
+			xLen.push(pos.x);
+		}
+		if (!yLen.includes(pos.y)) {
+      yLen.push(pos.y);
     }
-  }
+		rotatedPiece.pos[index].x = baseX + newX;
+		rotatedPiece.pos[index].y = baseY + newY; 
+	});
+	rotatedPiece.height = xLen.length;
+	rotatedPiece.width = yLen.length;
+
+	/** Check if after rotating pieces fits on board */
+	if (newPieceFitsInBoard(board, rotatedPiece)) {
+		rotatedPiece.pos.forEach((pos, index) => {
+    	piece.pos[index].x = pos.x;
+    	piece.pos[index].y = pos.y;
+  	});
+  	piece.height = rotatedPiece.height;
+  	piece.width = rotatedPiece.width;
+	}
+	writeNewPieceToBoard(board, piece);
 };
+
+const drawNext = (board: number[][], piece: IPiece) => {
+	piece.pos.forEach(pos => {
+		board[pos.y][pos.x] = 0;
+		pos.y += 1;
+		board[pos.y][pos.x] = piece.color;
+	})
+}
 
 export const updateBoard = (
   board: number[][],
-  piece: Piece,
+  piece: IPiece,
   key: number
 ): void => {
   switch (key) {
@@ -134,7 +191,6 @@ export const updateBoard = (
       break;
     }
 		case 38: {
-			console.log(`Turn piece around`);
 			rotate(board, piece);
 			break;	
 		}
@@ -147,10 +203,12 @@ export const updateBoard = (
       break;
     }
     case 40: {
-      if (isXPlusOneFree(board, piece)) {
+			// for (let col = piece.pos[piece.height].y; col <)
+      if (isYPlusOneFree(board, piece)) {
         cleanPieceFromBoard(board, piece);
         updateVerticalPosition(piece);
         writeNewPieceToBoard(board, piece);
+				// drawNext(board, piece);
       }
       break;
     }
@@ -159,4 +217,52 @@ export const updateBoard = (
       break;
   }
 };
+
+const updatePiece = (board: number[][], piece: IPiece, nextPiece: IPiece): void => {
+	 nextPiece.pos.forEach((pos, index) => {
+     board[pos.y][pos.x] = nextPiece.color;
+     piece.pos[index].y = pos.y;
+     piece.pos[index].x = pos.x;
+   });
+   piece.height = nextPiece.height;
+   piece.width = nextPiece.width;
+   piece.color = nextPiece.color;
+}
+
+const score = (board: number[][], piece: IPiece): void => {
+	let min = BOARD_HEIGHT;
+	let height = 0
+
+	piece.pos.forEach((pos) => {
+		height = pos.y > height ? pos.y : height;
+		min = pos.y < min ? pos.y : min;
+	})
+
+	while (height >= min) {
+		let count = 0;
+
+		for (let col = 0; col < BOARD_WIDTH; col++) {
+			if (board[height][col] === BLOCKED_ROW) {
+				break ;
+			}
+			if (board[height][col] !== 0) {
+				count++;
+			}
+		}
+		if (count === BOARD_WIDTH) {
+			for (let col = 0; col < BOARD_WIDTH; col++) {
+				board[height][col] = 0;
+			}
+			for (let h = height; h > 0; h--) {
+				for(let col = 0; col < BOARD_WIDTH; col++) {
+					board[h][col] = board[h - 1][col];
+				}
+			}
+		} else {
+			height--;
+		}
+	}
+}
+
+export { cleanPieceFromBoard, isGameOver, updatePiece, score };
 
