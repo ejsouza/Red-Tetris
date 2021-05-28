@@ -2,9 +2,9 @@ import * as socketIO from 'socket.io';
 import { Board } from './Board';
 import { Piece } from './Piece';
 import { IPiece } from '../interfaces/piece.interface';
-import { BOARD_HEIGHT, BOARD_WIDTH, PIECES } from '../utils/const';
+import { BOARD_HEIGHT, BOARD_WIDTH, PIECES, BLOCKED_ROW } from '../utils/const';
 
-interface ClassIPiece {
+interface IBoard {
   shape: number[][];
   drawPiece(piece: IPiece): void;
   cleanPiece(piece: IPiece): void;
@@ -12,7 +12,7 @@ interface ClassIPiece {
 
 export class Game {
   public socket: socketIO.Socket;
-  public board: ClassIPiece;
+  public board: IBoard;
   public piece: IPiece;
   public nextPiece: IPiece;
   public _piece: Piece;
@@ -21,8 +21,6 @@ export class Game {
     this.socket = socket;
     this.board = new Board();
     this._piece = new Piece();
-    // this.piece = new Piece().shape;
-    // this.nextPiece = new Piece().shape;
     this.piece = this._piece.randomPiece();
     this.nextPiece = this._piece.randomPiece();
     this.start();
@@ -30,62 +28,109 @@ export class Game {
 
   start = (): void => {
     this.initializeBoard();
-    this.startGameInterval();
+    // this.startGameInterval();
+    this.events();
   };
 
   initializeBoard = (): void => {
     this.board.drawPiece(this.piece);
-    this.socket.emit('newMap', this.board.shape, this.piece);
+    this.socket.emit('newMap', this.board.shape, this.piece, this.nextPiece);
   };
 
-  startGameInterval = (): void => {
-    this.socket.on('keydown', (args) => {
-      this.board.cleanPiece(this.piece);
-      this.piece = args.piece;
-      this.board.drawPiece(this.piece);
-      this.socket.emit('gameState', this.board.shape, this.piece);
-    });
-    const interval = setInterval(() => {
-      const winner = this.gameLoop();
-      if (!winner) {
-        this.socket.emit('gameState', this.board.shape, this.piece);
-      } else {
-        if (this.isGameOver()) {
-          this.socket.emit('gameOver');
-          clearInterval(interval);
-        } else {
-          /**
-           * ATENTION 🚨
-           * the value of this.piece has to be set  in this else
-           * and cannot be moved elsewhere, like inside this.newPiece()
-           */
-          /**
-           * DO NOT 👉 this.piece = this.nextPiece;
-           * it will only copy the same reference and share the same address
-           */
-          this.nextPiece.pos.forEach((pos, index) => {
-            this.piece.pos[index].y = pos.y;
-            this.piece.pos[index].x = pos.x;
-          });
-          this.piece.color = this.nextPiece.color;
-          this.piece.height = this.nextPiece.height;
-          this.piece.width = this.nextPiece.width;
-          /**
-           * Even though is seems that the drawing should come before
-           * it is not the case
-           * it need to come after, otherwise piece will start on row 1
-           * instead of row 0
-           */
-          this.board.drawPiece(this.piece);
-          this.socket.emit('gameState', this.board.shape, this.piece);
-          this.newPiece();
-        }
-      }
-    }, (900 * 60) / 100);
-  };
+/** ---- TEST LOOP ON THE FRONT ---- */
+
+  events = (): void => {
+    this.socket.on('getNextPiece', () => {
+      const nextPiece = this._piece.randomPiece();
+      this.nextPiece = nextPiece;
+      this.socket.emit('nextPiece', nextPiece);
+    })
+  }
+
+
+
+/** ---- ENT TESTING ---- */
+
+  // startGameInterval = (): void => {
+  //   this.socket.on('keydown', ({  piece  }) => {
+  //     this.board.cleanPiece(this.piece);
+  //     this.piece = piece;
+  //     this.board.drawPiece(this.piece);
+  //     this.socket.emit('gameState', this.board.shape, this.piece);
+  //   });
+  //   const interval = setInterval(() => {
+  //     const winner = this.gameLoop();
+  //     if (!winner) {
+  //       this.socket.emit('gameState', this.board.shape, this.piece);
+  //     } else {
+  //       if (this.isGameOver()) {
+  //         this.socket.emit('gameOver');
+  //         clearInterval(interval);
+  //       } else {
+  //         // let height = BOARD_HEIGHT - 1;
+  //         let max = 0;
+  //         let min = BOARD_HEIGHT;
+  //         this.piece.pos.forEach((pos) => {
+  //           max = pos.y > max ? pos.y : max;
+  //           min = pos.y < min ? pos.y : min;
+  //         });
+  //         let height = max;
+
+  //         while (height >= min) {
+  //           let count = 0;
+
+  //           for (let col = 0; col < BOARD_WIDTH; col++) {
+  //             if (this.board.shape[height][col] === BLOCKED_ROW) {
+  //               break;
+  //             }
+  //             if (this.board.shape[height][col] !== 0) {
+  //               count++;
+  //             }
+  //           }
+  //           if (count === BOARD_WIDTH) {
+  //             for (let col = 0; col < BOARD_WIDTH; col++) {
+  //               this.board.shape[height][col] = 0;
+  //             }
+  //             for (let h = height; h > 0; h--) {
+  //               for (let col = 0; col < BOARD_WIDTH; col++) {
+  //                 this.board.shape[h][col] = this.board.shape[h - 1][col];
+  //               }
+  //             }
+  //             height++;
+  //           }
+  //           height--;
+  //         }
+  //         /**
+  //          * ATENTION 🚨
+  //          * the value of this.piece has to be set  in this else
+  //          * and cannot be moved elsewhere, like inside this.newPiece()
+  //          */
+  //         /**
+  //          * DO NOT 👉 this.piece = this.nextPiece;
+  //          * it will only copy the same reference and share the same address
+  //          */
+  //         this.nextPiece.pos.forEach((pos, index) => {
+  //           this.piece.pos[index].y = pos.y;
+  //           this.piece.pos[index].x = pos.x;
+  //         });
+  //         this.piece.color = this.nextPiece.color;
+  //         this.piece.height = this.nextPiece.height;
+  //         this.piece.width = this.nextPiece.width;
+  //         /**
+  //          * Even though is seems that the drawing should come before
+  //          * it is not the case
+  //          * it need to come after, otherwise piece will start on row 1
+  //          * instead of row 0
+  //          */
+  //         this.board.drawPiece(this.piece);
+  //         this.socket.emit('gameState', this.board.shape, this.piece);
+  //         this.newPiece();
+  //       }
+  //     }
+  //   }, (900 * 60) / 100);
+  // };
 
   newPiece = (): void => {
-    // this.nextPiece = new Piece().shape;
     this.nextPiece = this._piece.randomPiece();
   };
 
@@ -97,7 +142,6 @@ export class Game {
         pos.y + 1 >= BOARD_HEIGHT ||
         this.board.shape[pos.y + 1][pos.x] !== 0
       ) {
-        // console.log(`\n💥💥🔥🔥☄️☄️\n`);
         isFree = false;
         this.board.drawPiece(this.piece);
         return;
@@ -114,8 +158,8 @@ export class Game {
     this.board.cleanPiece(this.piece);
     this.piece.pos.forEach((pos) => {
       pos.y++;
+      this.board.shape[pos.y][pos.x] = this.piece.color;
     });
-    this.board.drawPiece(this.piece);
     return false;
   };
 
