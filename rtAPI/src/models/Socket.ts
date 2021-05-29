@@ -10,6 +10,7 @@ import {
   removeOldPiece,
   draw,
 } from '../utils/game';
+import { MAX_NUMBER_OF_PLAYERS } from '../utils/const'
 
 dotenv.config();
 
@@ -20,6 +21,14 @@ interface Piece {
   color: number;
 }
 
+interface IRoom {
+  name: string;
+  players: string[];
+  open: boolean;
+  numberOfPlayers: number;
+  host: string;
+}
+
 export class Socket {
   private _httpServer: htpp.Server;
   private _io: socketIO.Server;
@@ -28,14 +37,16 @@ export class Socket {
   private _data: { game: string; players: string[] }[];
   private _board: number[][];
   private _piece: Piece;
+  private _room: IRoom[];
 
-  constructor(games: { game: string; players: string[] }[]) {
-    this._data = games;
+  constructor() {
+    this._data = [];
     this._PORT = Number.parseInt(process.env.PORT, 10) || 5000;
     this._CLIENT_URL = process.env.CLIENT_URL;
     this.initializeServer();
     this.initializeSocketIO();
     this.listen();
+    this._room = [];
   }
 
   private initializeServer(): void {
@@ -51,7 +62,6 @@ export class Socket {
     });
 
     this._io.on('connection', (socket: socketIO.Socket) => {
-
       socket.on('join', (arg) => {
         console.log(`got from client := ${arg.name} <--> ${arg.game}`);
       });
@@ -65,8 +75,57 @@ export class Socket {
         // startGameInterval(socket, this._board, this._piece);
       });
 
-      socket.on('updateMove', () => console.log(`update this`));
+      socket.on('createOrJoinGame', (roomName, userName) => {
+        console.log(`got called ${roomName} - ${userName}`);
+        
+        // Check if room exist or have a player with same username
+        if (this._room.some(r => r.name === roomName)) {
+          // check if player can join
+          let room = this._room.filter(r => r.name === roomName)[0];
+          if (room.players.includes(userName)) {
+            console.log(`already taken`);
+            socket.emit('room', {success: false, msg: `This username '${userName}' is already taken`})
+          } else {
+            // let isFull = true;
+            this._room.forEach(room => {
+              if (room.name === roomName && room.open && room.numberOfPlayers < MAX_NUMBER_OF_PLAYERS) {
+                room.players.push(userName);
+                room.numberOfPlayers++;
+                // isFull = false;
+                socket.emit('room', {
+                  success: true,
+                  msg: `Please wait joining loby`,
+                });
+                return;
+              } 
+            })
+            // if (isFull) {
+              socket.emit('room', {
+                success: false,
+                msg: `This room '${userName}' is full`,
+              });
+            // }
+          }
+        } else {
+          const room: IRoom = {
+            name: roomName,
+            open: true,
+            numberOfPlayers: 1,
+            host: userName,
+            players: [userName],
+          };
+          this._room.push(room);
+          socket.emit('room', {
+            success: true,
+            msg: `Please wait joining loby`,
+          });
 
+        }
+      
+        console.log(this._room)
+      });
+
+      socket.on('updateMove', () => console.log(`update this`));
 
       // socket.on('getGameMap', () => {
       //   [this._board, this._piece] = buildNewMap();
