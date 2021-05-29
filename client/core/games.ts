@@ -43,6 +43,7 @@ export const creatNewGame: (
   }
   if (result.success && result.game.open) {
     // Game exist, check if is open
+    console.log(`what is the player name being checked ? ${player}`);
     console.log('Players ?', result.game.players);
     const userNameTaken = result.game.players.find((p: string) => p === player);
     if (!userNameTaken) {
@@ -52,15 +53,18 @@ export const creatNewGame: (
       console.log(`User added to game ? ${game.msg}`);
     } else {
       // return message saying username already in use in this room
-      return { success: false, msg: `Username '${player}' already in use` };
+      return JSON.stringify({
+        success: false,
+        msg: `Username '${player}' already in use`,
+      });
     }
     console.log(`User name already taken ? ${userNameTaken}`);
   } else {
     // return message tell user to choose another game name
-    return {
+    return JSON.stringify({
       success: false,
       msg: `Game '${name}' is not available, please choose another one`,
-    };
+    });
   }
 };
 
@@ -69,7 +73,7 @@ export const addUserToGame = async (
   player: string
 ): Promise<Response> => {
   console.log(`addUserToGame game := ${game} user :=  ${player}`);
-  return await fetch(`${APIurl}/games`, {
+  return await fetch(`${APIurl}/games/${game}`, {
     method: 'PATCH',
     mode: 'cors',
     headers: {
