@@ -3,10 +3,9 @@ import { useRouter } from 'next/router';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-import { getRoomByName } from '../core/rooms';
+import Alert from 'react-bootstrap/Alert';
 import { creatNewGame } from '../core/games';
-import io from 'socket.io-client';
-import { RT_API } from '../utils/const';
+import socket from '../utils/socket';
 
 interface IRoom {
   id: string;
@@ -20,6 +19,8 @@ interface IRoom {
 
 const NewGame = () => {
   const [show, setShow] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
   const [roomName, setRoomName] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const router = useRouter();
@@ -48,20 +49,29 @@ const NewGame = () => {
     //   }
     // });
 
+    // const res = await creatNewGame(roomName, userName);
+    // console.log(`Game created ? `, res);
+    // if (res.ok) {
+    //       router.push(`/`, `/#${roomName}[${userName}]`);
+    // } else {
+    //   console.log(`already in use := ${res.success}`);
+    //   router.push(`/`, `/#${roomName}[${userName}]`);
+    // }
 
-    const res = await creatNewGame(roomName, userName);
-    console.log(`Game created ? ${res.ok}`, res);
-    if (res.ok) {
-          router.push(`/`, `/#${roomName}[${userName}]`);
-    } else {
-      console.log(`already in use := ${res.success}`);
-      router.push(`/`, `/#${roomName}[${userName}]`);
-    }
+    socket.emit('createOrJoinGame', roomName, userName);;
+    socket.on('room', (args: {success: boolean, msg: string}) => {
+      console.log(`backend reponse ${args.success} - ${args.msg}`);
+      if (!args.success) {
+        setErrorMsg(args.msg);
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 3000)
+      } else {
+        router.push(`/`, `/#${roomName}[${userName}]`);
+      }
+    });
 
-
-
-
-    
     // socket = io(RT_API);
     // socket.emit('joinDetails', { name: userName, room: roomName });
     // socket.on('joinDetails', (arg: { success: boolean }) => {
@@ -75,6 +85,26 @@ const NewGame = () => {
   };
   return (
     <>
+      {
+        // error && <Alert variant='danger'>
+        //   {errorMsg}
+        // </Alert>
+
+        error && (
+          <Modal size="sm" show={error}>
+            <Modal.Header>
+              <Modal.Title id="example-modal-sizes-title-sm">
+                <h3 style={{ color: 'red' }}>
+                  <b>Error</b>
+                </h3>
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p style={{ color: 'red' }}>{errorMsg}</p>
+            </Modal.Body>
+          </Modal>
+        )
+      }
       <Modal
         show={show}
         size="lg"
