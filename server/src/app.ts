@@ -10,8 +10,8 @@ import { BaseURL } from './config/const';
 import { DB } from './db';
 
 interface IController {
-	path: string;
-	_router: express.Router;
+  path: string;
+  router: express.Router;
 }
 
 export class App {
@@ -37,7 +37,7 @@ export class App {
 
   private initializeControllers(controllers: IController[]) {
     controllers.forEach((controller) => {
-      this.app.use(`${BaseURL}`, controller._router);
+      this.app.use(`${BaseURL}`, controller.router);
     });
   }
 
