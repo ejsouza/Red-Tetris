@@ -1,11 +1,12 @@
 // https://tetris.fandom.com/wiki/SRS
-export const COLUMNS = 10;
-export const ROWS = 20;
-export const BOARD_HEIGHT = 20;
-export const BOARD_WIDTH = 10;
-export const BLOCKED_ROW = 8;
+ const COLUMNS = 10;
+ const ROWS = 20;
+ const BOARD_HEIGHT = 20;
+ const BOARD_WIDTH = 10;
+ const BLOCKED_ROW = 8;
+ const MAX_NUMBER_OF_PLAYERS = 4;
 
-export const PIECES = [
+const PIECES = [
   {
     pos: [
       { x: 4, y: 0 },
@@ -84,3 +85,13 @@ export const PIECES = [
     color: 7,
   },
 ];
+
+export {
+  PIECES,
+  COLUMNS,
+  ROWS,
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  BLOCKED_ROW,
+  MAX_NUMBER_OF_PLAYERS,
+};
