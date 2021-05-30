@@ -58,7 +58,7 @@ const NewGame = () => {
     //   router.push(`/`, `/#${roomName}[${userName}]`);
     // }
 
-    socket.emit('createOrJoinGame', roomName, userName);;
+    socket.emit('createOrJoinGame', roomName, userName);
     socket.on('room', (args: {success: boolean, msg: string}) => {
       console.log(`backend reponse ${args.success} - ${args.msg}`);
       if (!args.success) {
@@ -85,26 +85,20 @@ const NewGame = () => {
   };
   return (
     <>
-      {
-        // error && <Alert variant='danger'>
-        //   {errorMsg}
-        // </Alert>
-
-        error && (
-          <Modal size="sm" show={error}>
-            <Modal.Header>
-              <Modal.Title id="example-modal-sizes-title-sm">
-                <h3 style={{ color: 'red' }}>
-                  <b>Error</b>
-                </h3>
-              </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <p style={{ color: 'red' }}>{errorMsg}</p>
-            </Modal.Body>
-          </Modal>
-        )
-      }
+      {error && (
+        <Modal size="sm" show={error}>
+          <Modal.Header>
+            <Modal.Title id="example-modal-sizes-title-sm">
+              <h3 style={{ color: 'red' }}>
+                <b>Error</b>
+              </h3>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p style={{ color: 'red' }}>{errorMsg}</p>
+          </Modal.Body>
+        </Modal>
+      )}
       <Modal
         show={show}
         size="lg"
