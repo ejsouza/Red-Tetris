@@ -17,7 +17,8 @@ export class GamesController {
     this.router.get(this.path, this.getAllGames);
     this.router.get(`${this.path}/:id`, this.getByName);
     this.router.post(this.path, this.createGame);
-    this.router.patch(`${this.path}/:id`, this.addPlayerToGame );
+    this.router.patch(`${this.path}/:id`, this.addPlayerToGame);
+    this.router.delete(`${this.path}/:id`, this.deleteGame);
   }
 
   getAllGames = (req: express.Request, res: express.Response) => {
@@ -67,14 +68,17 @@ export class GamesController {
 
   addPlayerToGame = (req: express.Request, res: express.Response) => {
     const props = req.body as IGame;
-    const {name, players} = props;
+    const { name, players } = props;
     console.log(`game ${name} players ${players}`);
-    const filter = {name: name};
-    const update = { $push: { players: players }, $inc: {'numberOfPlayers': 1}};
+    const filter = { name: name };
+    const update = {
+      $push: { players: players },
+      $inc: { numberOfPlayers: 1 },
+    };
     this._game
       .findOneAndUpdate(filter, update, { new: true })
       .then((game) => {
-         if (!game) {
+        if (!game) {
           return res.status(200).json({ success: false, ok: false, game });
         }
         res.status(200).json({ success: true, ok: true, game });
@@ -82,5 +86,21 @@ export class GamesController {
       .catch((err) => {
         res.status(500).json({ success: false, err });
       });
-  }
+  };
+
+  deleteGame = (req: express.Request, res: express.Response) => {
+    const id = req.params.id
+
+    this._game
+      .findOneAndDelete({ name: id })
+      .then((game) => {
+           if (!game) {
+             return res.status(200).json({ success: false, ok: false, game });
+           }
+           res.status(200).json({ success: true, ok: true, game });
+      })
+      .catch((err) => {
+        res.status(500).json({ success: false, err });
+      });
+  };
 }
