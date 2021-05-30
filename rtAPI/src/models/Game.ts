@@ -10,25 +10,46 @@ interface IBoard {
   cleanPiece(piece: IPiece): void;
 }
 
+interface IRoom {
+  name: string;
+  players: string[];
+  open: boolean;
+  numberOfPlayers: number;
+  host: string;
+}
+
+interface IPlayer {
+  name: string;
+  board: IBoard;
+  piece: IPiece;
+  nextPiece: IPiece[];
+  isHost: boolean;
+  score: number;
+}
+
 export class Game {
   public socket: socketIO.Socket;
   public board: IBoard;
   public piece: IPiece;
   public nextPiece: IPiece;
-  public _piece: Piece;
+  public createPiece: Piece;
+  private _room: IRoom;
+  public players: IPlayer[];
 
-  constructor(socket: socketIO.Socket) {
+  constructor(socket: socketIO.Socket, room: IRoom) {
     this.socket = socket;
     this.board = new Board();
-    this._piece = new Piece();
-    this.piece = this._piece.randomPiece();
-    this.nextPiece = this._piece.randomPiece();
-    this.start();
+    this.createPiece = new Piece();
+    this.piece = this.createPiece.randomPiece();
+    this.nextPiece = this.createPiece.randomPiece();
+    this.players = [];
+    this.start(room);
   }
 
-  start = (): void => {
+  start = (room: IRoom): void => {
     this.initializeBoard();
     // this.startGameInterval();
+    this.initializePlayers(room);
     this.events();
   };
 
@@ -37,19 +58,35 @@ export class Game {
     this.socket.emit('newMap', this.board.shape, this.piece, this.nextPiece);
   };
 
-/** ---- TEST LOOP ON THE FRONT ---- */
+  initializePlayers = (room: IRoom): void => {
+    console.log(`Got game ${room}`);
+    room.players.forEach(player => {
+      console.log(`WHATE HERE ${player}`);
+      let p: IPlayer = {
+      name: player,
+      board: this.board,
+      isHost: room.name === player,
+      nextPiece: [this.nextPiece],
+      piece: this.piece,
+      score: 0,
+      }
+      
+      this.players.push(p);
+    })
+    this.players.forEach(player => console.log(`PLAYER := ${player}`))
+  };
+
+  /** ---- TEST LOOP ON THE FRONT ---- */
 
   events = (): void => {
     this.socket.on('getNextPiece', () => {
-      const nextPiece = this._piece.randomPiece();
+      const nextPiece = this.createPiece.randomPiece();
       this.nextPiece = nextPiece;
       this.socket.emit('nextPiece', nextPiece);
-    })
-  }
+    });
+  };
 
-
-
-/** ---- ENT TESTING ---- */
+  /** ---- ENT TESTING ---- */
 
   // startGameInterval = (): void => {
   //   this.socket.on('keydown', ({  piece  }) => {
@@ -131,7 +168,7 @@ export class Game {
   // };
 
   newPiece = (): void => {
-    this.nextPiece = this._piece.randomPiece();
+    this.nextPiece = this.createPiece.randomPiece();
   };
 
   isNextXRowFree = (): boolean => {
