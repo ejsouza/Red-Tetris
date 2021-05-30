@@ -20,18 +20,30 @@ interface IGame {
   players: string[];
 }
 
+interface IRoom {
+  name: string;
+  players: string[];
+  open: boolean;
+  numberOfPlayers: number;
+  host: string;
+}
+
 const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
-  const [game, setGame] = useState<IGame>();
+  const [game, setGame] = useState<IRoom>();
 
 
 	const startGame = () => {
-		socket.emit('start');
+		socket.emit('start', { name: gameName });
 	}
   useEffect(() => {
-    getGameByName(gameName).then((res) => {
-      res.json().then((res) => {
-        setGame(res.game);
-      });
+    // getGameByName(gameName).then((res) => {
+    //   res.json().then((res) => {
+    //     setGame(res.game);
+    //   });
+    // });
+    socket.emit('getLobby', gameName);
+    socket.on('lobby', (lobby: IRoom) => {
+      setGame(lobby);
     });
   }, []);
 
