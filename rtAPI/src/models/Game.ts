@@ -29,6 +29,7 @@ interface IPlayer {
 
 export class Game {
   public socket: socketIO.Socket;
+  public io: socketIO.Server;
   public board: IBoard;
   public piece: IPiece;
   public nextPiece: IPiece;
@@ -36,44 +37,60 @@ export class Game {
   private _room: IRoom;
   public players: IPlayer[];
 
-  constructor(socket: socketIO.Socket, room: IRoom) {
+  constructor(
+    socket: socketIO.Socket,
+    io: socketIO.Server,
+    room: IRoom[],
+    roomName: string
+  ) {
     this.socket = socket;
+    this.io = io;
     this.board = new Board();
     this.createPiece = new Piece();
     this.piece = this.createPiece.randomPiece();
     this.nextPiece = this.createPiece.randomPiece();
     this.players = [];
-    this.start(room);
+    this.start(room, roomName);
   }
 
-  start = (room: IRoom): void => {
-    this.initializeBoard();
+  start = (room: IRoom[], roomName: string): void => {
+    this.initializeBoard(roomName);
     // this.startGameInterval();
     this.initializePlayers(room);
     this.events();
   };
 
-  initializeBoard = (): void => {
+  initializeBoard = (roomName: string): void => {
     this.board.drawPiece(this.piece);
-    this.socket.emit('newMap', this.board.shape, this.piece, this.nextPiece);
+
+    console.log(`<<<?>>> ${this.io.sockets.adapter.rooms.get(roomName).size}`);
+    // this.socket.emit('newMap', this.board.shape, this.piece, this.nextPiece);
+    // this.io.sockets
+    //   .to(roomName)
+    //   .emit('newMap', this.board.shape, this.piece, this.nextPiece);
+
+    this.io.sockets
+      .in(roomName)
+      .emit('newMap', this.board.shape, this.piece, this.nextPiece);
+
   };
 
-  initializePlayers = (room: IRoom): void => {
+  initializePlayers = (room: IRoom[]): void => {
     console.log(`Got game ${room}`);
-    room.players.forEach(player => {
-      console.log(`WHATE HERE ${player}`);
-      let p: IPlayer = {
-      name: player,
-      board: this.board,
-      isHost: room.name === player,
-      nextPiece: [this.nextPiece],
-      piece: this.piece,
-      score: 0,
-      }
-      
-      this.players.push(p);
-    })
-    this.players.forEach(player => console.log(`PLAYER := ${player}`))
+    room.forEach((r) => {
+      r.players.forEach((player) => {
+        let p: IPlayer = {
+          name: player,
+          board: this.board,
+          isHost: r.name === player,
+          nextPiece: [this.nextPiece],
+          piece: this.piece,
+          score: 0,
+        };
+        this.players.push(p);
+      });
+    });
+    this.players.forEach((player) => console.log(`PLAYER := ${player.name}`));
   };
 
   /** ---- TEST LOOP ON THE FRONT ---- */
