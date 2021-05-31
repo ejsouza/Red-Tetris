@@ -68,6 +68,7 @@ const NewGame = () => {
           setError(false);
         }, 3000)
       } else {
+        socket.emit('createRoom', roomName);
         router.push(`/`, `/#${roomName}[${userName}]`);
       }
     });
