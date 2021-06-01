@@ -35,13 +35,18 @@ interface ICallback {
 (): void
 }
 
-const Game = () => {
+interface IGameProps {
+  gameName: string;
+  playerName: string;
+}
+
+const Game = ({ gameName, playerName }: IGameProps) => {
+  console.log(`PLAYER NAME IS ? ${playerName}`);
   const [map, setMap] = useState<number[][]>();
   const [newMap, setNewMap] = useState(false);
   const [piece, setPiece] = useState<Piece>();
   const [nextPiece, setNextPiece] = useState<Piece>();
-  const [delay, setDelay] = useState(600 * 60 / 100);
- 
+  const [delay, setDelay] = useState((600 * 60) / 100);
 
   // ---- TEST LOOP ON THE FRONT ----
 
@@ -67,35 +72,16 @@ const Game = () => {
     }, [delay]);
   };
 
-  const updateGame = (): boolean => {
-    let gameOver = false
-    console.log(`updateGame() called`);
-    if (!map || !piece) {
-      return gameOver;
-    }
-    console.log('gets here');
-    if (isYPlusOneFree(map, piece)) {
-      cleanPieceFromBoard(map, piece);
-      piece.pos.forEach(pos => {
-        pos.y++;
-        map[pos.y][pos.x] = piece.color;
-      })
-    } else {
-      gameOver = false;
-    }
-
-    return gameOver;
-  };
   let count = 0;
-  
+
   useInterval(() => {
-    console.log(`counting ${count++}`)
+    console.log(`counting ${count++}`);
     if (count === 5) {
       setDelay(0);
     }
-     if (!map || !piece || !nextPiece) {
-       return ;
-     }
+    if (!map || !piece || !nextPiece) {
+      return;
+    }
     // const gameOver = updateGame();
     if (isYPlusOneFree(map, piece)) {
       cleanPieceFromBoard(map, piece);
@@ -107,30 +93,22 @@ const Game = () => {
       if (isGameOver(piece)) {
         setDelay(0);
       } else {
-        // nextPiece.pos.forEach((pos, index) => {
-        //   map[pos.y][pos.x] = nextPiece.color;
-        //   piece.pos[index].y = pos.y;
-        //   piece.pos[index].x = pos.x;
-        // })
-        // piece.height = nextPiece.height;
-        // piece.width = nextPiece.width;
-        // piece.color = nextPiece.color;
         score(map, piece);
         updatePiece(map, piece, nextPiece);
-        socket.emit('getNextPiece', map, piece);
+        socket.emit('getNextPiece', { gameName, playerName, map, piece });
       }
     }
     setPiece(piece);
     setMap([...map]);
-  }, delay)
+  }, delay);
 
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: Piece) => {
       console.log('got next piece ');
       setNextPiece(nextPiece);
-    })
+    });
   }, []);
-  
+
   useEffect(() => {
     socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
       console.log('got newMap ', board);
@@ -142,19 +120,19 @@ const Game = () => {
 
   // ---- ENT TESTING
 
-  useEffect(() => {
-    socket.on('gameState', (board: number[][], piece: Piece) => {
-      setMap(board);
-      setPiece(piece);
-    });
-  }, []);
+  // useEffect(() => {
+  //   socket.on('gameState', (board: number[][], piece: Piece) => {
+  //     setMap(board);
+  //     setPiece(piece);
+  //   });
+  // }, []);
 
-  useEffect(() => {
-    socket.on('newMap', (map: number[][], piece: Piece) => {
-      setMap(map);
-      setPiece(piece);
-    });
-  }, [newMap]);
+  // useEffect(() => {
+  //   socket.on('newMap', (map: number[][], piece: Piece) => {
+  //     setMap(map);
+  //     setPiece(piece);
+  //   });
+  // }, [newMap]);
 
   useEffect(() => {
     socket.emit('getGameMap');
@@ -192,12 +170,12 @@ const Game = () => {
     };
   }, [piece]);
 
-  useEffect(() => {
-    socket.on('updateMove', (map: number[][], piece: Piece) => {
-      setMap(map);
-      setPiece(piece);
-    });
-  }, []);
+  // useEffect(() => {
+  //   socket.on('updateMove', (map: number[][], piece: Piece) => {
+  //     setMap(map);
+  //     setPiece(piece);
+  //   });
+  // }, []);
 
   return !map ? (
     <Loading />
@@ -211,6 +189,6 @@ const Game = () => {
       </Container>
     </>
   );
-}
+};
 
 export default Game;
