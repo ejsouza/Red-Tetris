@@ -12,13 +12,20 @@ interface IBoard {
 
 interface IRoom {
   name: string;
-  players: string[];
+  // players: string[];
+  players: [
+    {
+      name: string;
+      socketId: string;
+    }
+  ];
   open: boolean;
   numberOfPlayers: number;
   host: string;
 }
 
 interface IPlayer {
+  socketId: string;
   name: string;
   board: IBoard;
   piece: IPiece;
@@ -63,26 +70,19 @@ export class Game {
   initializeBoard = (roomName: string): void => {
     this.board.drawPiece(this.piece);
 
-    console.log(`<<<?>>> ${this.io.sockets.adapter.rooms.get(roomName).size}`);
-    // this.socket.emit('newMap', this.board.shape, this.piece, this.nextPiece);
-    // this.io.sockets
-    //   .to(roomName)
-    //   .emit('newMap', this.board.shape, this.piece, this.nextPiece);
-
     this.io.sockets
-      .in(roomName)
+      .to(roomName)
       .emit('newMap', this.board.shape, this.piece, this.nextPiece);
-
   };
 
   initializePlayers = (room: IRoom[]): void => {
-    console.log(`Got game ${room}`);
     room.forEach((r) => {
       r.players.forEach((player) => {
         let p: IPlayer = {
-          name: player,
+          socketId: player.socketId,
+          name: player.name,
           board: this.board,
-          isHost: r.name === player,
+          isHost: r.name === player.name,
           nextPiece: [this.nextPiece],
           piece: this.piece,
           score: 0,
@@ -90,16 +90,29 @@ export class Game {
         this.players.push(p);
       });
     });
-    this.players.forEach((player) => console.log(`PLAYER := ${player.name}`));
+    this.players.forEach((player) =>
+      console.log(`PLAYER := ${player.name} id := ${player.socketId}`)
+    );
   };
 
   /** ---- TEST LOOP ON THE FRONT ---- */
 
   events = (): void => {
-    this.socket.on('getNextPiece', () => {
+    this.socket.on('getNextPiece', (args) => {
       const nextPiece = this.createPiece.randomPiece();
-      this.nextPiece = nextPiece;
-      this.socket.emit('nextPiece', nextPiece);
+      // this.nextPiece = nextPiece;
+      const player = this.players.find((p) => p.name === args.playerName);
+      this.players.every((p) => {
+        p.nextPiece.push(nextPiece);
+      });
+
+      console.log(`PLAYER WAS FOUND ?? ${player.name} - ${player.socketId}`);
+      // player.nextPiece.push(nextPiece);
+      console.log(`piece will be emited only for player ${args.playerName}`);
+      // this.socket.emit('nextPiece', nextPiece);
+      this.io.sockets
+        .to(player.socketId)
+        .emit('nextPiece', player.nextPiece.shift());
     });
   };
 
