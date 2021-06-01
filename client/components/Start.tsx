@@ -22,7 +22,12 @@ interface IGame {
 
 interface IRoom {
   name: string;
-  players: string[];
+  players: [
+    {
+      name: string;
+      socketId: string;
+    }
+  ];
   open: boolean;
   numberOfPlayers: number;
   host: string;
@@ -56,23 +61,18 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
           <Col>PLAYERS</Col>
           {game.players.map((player) => (
             <Col
-              style={{ color: player === playerName ? 'pink' : '' }}
-              key={player}
+              style={{ color: player.name === playerName ? 'pink' : '' }}
+              key={player.name}
             >
-              {player}
+              {player.name}
             </Col>
           ))}
         </Row>
       </Container>
       {console.log(game)}
-			{/* This button shall be visible only for the host of the game */}
+      {/* This button shall be visible only for the host of the game */}
       <Container>
-        <Button
-					variant="secondary"
-					size="lg"
-					block
-					onClick={ () => startGame()}
-				>
+        <Button variant="secondary" size="lg" block onClick={() => startGame()}>
           Start Game
         </Button>
       </Container>
