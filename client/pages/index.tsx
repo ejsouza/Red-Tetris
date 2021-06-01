@@ -119,7 +119,7 @@ const Index = () => {
       {/* Here the idea is to have a menu with some animated tetris */}
       {!hideMenu && <Menu />}
       {!hideStart && <Start gameName={gameName} playerName={playerName} />}
-      {startGame && <Game />}
+      {startGame && <Game gameName={gameName} playerName={playerName} />}
     </Layout>
   );
 };
