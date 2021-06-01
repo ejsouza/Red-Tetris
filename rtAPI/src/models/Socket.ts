@@ -20,7 +20,13 @@ interface Piece {
 
 interface IRoom {
   name: string;
-  players: string[];
+  // players: string[];
+  players: [
+    {
+      name: string;
+      socketId: string;
+    }
+  ];
   open: boolean;
   numberOfPlayers: number;
   host: string;
@@ -64,12 +70,14 @@ export class Socket {
       });
 
       socket.on('start', (arg) => {
-        this._io.emit('closeStartComponent');
-        this._io.emit('setGame', { start: true });
+        this._io.sockets.in(arg.name).emit('closeStartComponent');
+        this._io.sockets.in(arg.name).emit('setGame', { start: true });
         console.log(`ROM NAME >>> ${arg.name}`);
-        
+        const game = this._room.filter((r) => r.name === arg.name)[0];
+        console.log(`Is Open Before ${game.open}`);
+        game.open = false;
+        console.log(`Is Open After ${game.open}`);
         new Game(socket, this._io, this._room, arg.name);
-       
       });
 
       socket.on('getLobby', (name) => { 
@@ -99,7 +107,7 @@ export class Socket {
                  socket.on('createRoom', (roomName) => {
                    socket.join(roomName);
                  });
-                room.players.push(userName);
+                room.players.push({ name: userName, socketId: socket.id });
                 room.numberOfPlayers++;
                 isFull = false;
                 socket.emit('room', {
@@ -122,7 +130,12 @@ export class Socket {
             open: true,
             numberOfPlayers: 1,
             host: userName,
-            players: [userName],
+            players: [
+              {
+                name: userName,
+                socketId: socket.id,
+              },
+            ],
           };
           this._room.push(room);
            socket.on('createRoom', (roomName) => {
