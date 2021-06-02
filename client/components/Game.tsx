@@ -41,9 +41,8 @@ interface IGameProps {
 }
 
 const Game = ({ gameName, playerName }: IGameProps) => {
-  console.log(`PLAYER NAME IS ? ${playerName}`);
+  // console.log(`PLAYER NAME IS ? ${playerName}`);
   const [map, setMap] = useState<number[][]>();
-  const [newMap, setNewMap] = useState(false);
   const [piece, setPiece] = useState<Piece>();
   const [nextPiece, setNextPiece] = useState<Piece>();
   const [delay, setDelay] = useState((600 * 60) / 100);
@@ -72,13 +71,14 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }, [delay]);
   };
 
-  let count = 0;
+  // let count = 0;
 
   useInterval(() => {
-    console.log(`counting ${count++}`);
-    if (count === 5) {
-      setDelay(0);
-    }
+
+    // console.log(`counting ${count++}`);
+    // if (count === 5) {
+    //   setDelay(0);
+    // }
     if (!map || !piece || !nextPiece) {
       return;
     }
@@ -93,6 +93,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       if (isGameOver(piece)) {
         setDelay(0);
       } else {
+        console.log(`FRONT asking for nextPiece ${playerName}`);
         score(map, piece);
         updatePiece(map, piece, nextPiece);
         socket.emit('getNextPiece', { gameName, playerName, map, piece });
@@ -108,6 +109,12 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setNextPiece(nextPiece);
     });
   }, []);
+
+  useEffect(() => {
+    socket.on('target', (id: string)  => {
+      console.log(`🚨  ${id}`)
+    })
+  },[])
 
   useEffect(() => {
     socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
@@ -134,10 +141,10 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   //   });
   // }, [newMap]);
 
-  useEffect(() => {
-    socket.emit('getGameMap');
-    setNewMap(true);
-  }, []);
+  // useEffect(() => {
+  //   socket.emit('getGameMap');
+  //   setNewMap(true);
+  // }, []);
 
   const handleKeyDown = (e: any) => {
     if (!piece || !map) {
