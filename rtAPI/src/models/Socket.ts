@@ -41,6 +41,7 @@ export class Socket {
   private _board: number[][];
   private _piece: Piece;
   private _room: IRoom[];
+  public game: Game;
 
   constructor() {
     this._data = [];
@@ -70,16 +71,17 @@ export class Socket {
       });
 
       socket.on('start', (arg) => {
-        this._io.sockets.in(arg.name).emit('closeStartComponent');
-        this._io.sockets.in(arg.name).emit('setGame', { start: true });
+        this._io.sockets.to(arg.name).emit('closeStartComponent');
+        this._io.sockets.to(arg.name).emit('setGame', { start: true });
         console.log(`ROM NAME >>> ${arg.name}`);
         const game = this._room.filter((r) => r.name === arg.name)[0];
-        console.log(`Is Open Before ${game.open}`);
         game.open = false;
-        console.log(`Is Open After ${game.open}`);
-        new Game(socket, this._io, this._room, arg.name);
+        this.game =  new Game(socket, this._io, this._room, arg.name);
       });
 
+      socket.on('getNextPiece', (args) => {
+        this.game.getNextPiece(socket.id, args.playerName);
+      })
       socket.on('getLobby', (name) => { 
         const lobby = this._room.filter(r => r.name === name)[0];
         socket.emit('lobby', lobby);
