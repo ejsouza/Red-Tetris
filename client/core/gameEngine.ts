@@ -123,7 +123,7 @@ const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
 const rotate = (board: number[][], piece: IPiece): void => {
 	cleanPieceFromBoard(board, piece);
 
-	const rotatedPiece: Piece = EMPTY_PIECE[0];
+	const rotatedPiece: IPiece = EMPTY_PIECE[0];
 	const xLen: number[] = [];
 	const yLen: number[] = [];
 	rotatedPiece.color = piece.color;
@@ -229,9 +229,10 @@ const updatePiece = (board: number[][], piece: IPiece, nextPiece: IPiece): void 
    piece.color = nextPiece.color;
 }
 
-const score = (board: number[][], piece: IPiece): void => {
+const score = (board: number[][], piece: IPiece): number => {
 	let min = BOARD_HEIGHT;
-	let height = 0
+	let height = 0;
+	let score = 0;
 
 	piece.pos.forEach((pos) => {
 		height = pos.y > height ? pos.y : height;
@@ -258,11 +259,27 @@ const score = (board: number[][], piece: IPiece): void => {
 					board[h][col] = board[h - 1][col];
 				}
 			}
+			score++;
 		} else {
 			height--;
 		}
 	}
+	// Return number fo rows scored for number of penalities for opponents
+	return score;
 }
 
-export { cleanPieceFromBoard, isGameOver, updatePiece, score };
+const penalty = (board: number[][]): void => {
+	let row = BOARD_HEIGHT - 1;
+	
+	console.log(`penalty called >>>>>>>>>>>>> `);
+	while (row > 0 && board[row][0] === BLOCKED_ROW) {
+		row--;
+	}
+	
+  for (let col = 0; col < BOARD_WIDTH; col++) {
+    board[row][col] = BLOCKED_ROW;
+  }
+}
+
+export { cleanPieceFromBoard, isGameOver, updatePiece, score, penalty };
 
