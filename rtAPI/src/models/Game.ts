@@ -62,15 +62,9 @@ export class Game {
 
   start = (room: IRoom[], roomName: string): void => {
     this.initializeBoard(roomName);
-    // this.startGameInterval();
     this.initializePlayers(room);
     this.events();
-    this.printUsersInGame();
   };
-
-  printUsersInGame = () => {
-    this.players.forEach((p) => console.log(' ???', p.name))
-  }
 
   initializeBoard = (roomName: string): void => {
     this.board.drawPiece(this.piece);
@@ -83,20 +77,17 @@ export class Game {
   getNextPiece = (id: string, playerName: string) => {
     this.io.sockets.to(id).emit('target', id);
 
-     const nextPiece = this.createPiece.randomPiece();
-     // this.nextPiece = nextPiece;
-     const player = this.players.find((p) => p.name === playerName);
-     this.players.forEach((p) => {
-      //  console.log(`pushing nextPiece to ${p.name}`);
-       p.nextPiece.push(nextPiece);
-     });
+    const nextPiece = this.createPiece.randomPiece();
+    const player = this.players.find((p) => p.name === playerName);
+    this.players.forEach((p) => {
+      p.nextPiece.push(nextPiece);
+    });
 
-     // player.nextPiece.push(nextPiece);
-     // this.socket.emit('nextPiece', nextPiece);
-     this.io.sockets
-       .to(player.socketId)
-       .emit('nextPiece', player.nextPiece.shift());
+    this.io.sockets
+      .to(player.socketId)
+      .emit('nextPiece', player.nextPiece.shift());
   };
+
   initializePlayers = (room: IRoom[]): void => {
     room.forEach((r) => {
       r.players.forEach((player) => {
@@ -112,30 +103,14 @@ export class Game {
         this.players.push(p);
       });
     });
-    // this.players.forEach((player) =>
-    //   console.log(`PLAYER := ${player.name} id := ${player.socketId}`)
-    // );
   };
 
   /** ---- TEST LOOP ON THE FRONT ---- */
 
   events = (): void => {
-    // this.socket.on('getNextPiece', (args) => {
-    //   const nextPiece = this.createPiece.randomPiece();
-    //   // this.nextPiece = nextPiece;
-    //   const player = this.players.find((p) => p.name === args.playerName);
-    //   this.players.every((p) => {
-    //     p.nextPiece.push(nextPiece);
-    //   });
-
-    //   console.log(`PLAYER WAS FOUND ?? ${player.name} - ${player.socketId}`);
-    //   // player.nextPiece.push(nextPiece);
-    //   console.log(`piece will be emited only for player ${args.playerName}`);
-    //   // this.socket.emit('nextPiece', nextPiece);
-    //   this.io.sockets
-    //     .to(player.socketId)
-    //     .emit('nextPiece', player.nextPiece.shift());
-    // });
+    this.socket.on('applyPenalty', (gameName) => {
+      this.socket.broadcast.to(gameName).emit('penalty');
+    });
   };
 
   /** ---- ENT TESTING ---- */
