@@ -37,6 +37,7 @@ const BoardGame = (props: number[][]) => {
     '#45F304',
     '#E90005',
     '#48EFEC',
+    '#FC03db',
   ];
   // console.table(props);
   const board = Object.entries(props).map((row) => {
