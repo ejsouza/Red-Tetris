@@ -11,6 +11,7 @@ import {
   isGameOver,
   updatePiece,
   score,
+  penalty,
 } from '../core/gameEngine';
 
 const Container = styled.div`
@@ -41,14 +42,22 @@ interface IGameProps {
 }
 
 const Game = ({ gameName, playerName }: IGameProps) => {
-  // console.log(`PLAYER NAME IS ? ${playerName}`);
   const [map, setMap] = useState<number[][]>();
   const [piece, setPiece] = useState<Piece>();
   const [nextPiece, setNextPiece] = useState<Piece>();
-  const [delay, setDelay] = useState((600 * 60) / 100);
+  const [delay, setDelay] = useState((700 * 60) / 100);
+  const [toggle, setToggle] = useState(false);
 
   // ---- TEST LOOP ON THE FRONT ----
 
+  const callPenalty = () => {
+    if (!map) {
+      return;
+    }
+    penalty(map);
+    setMap(map);
+    console.log(`can access here ${map}`);
+  };;
   const useInterval = (callback: ICallback, delay: number) => {
     const savedCallback = useRef<ICallback | null>();
 
@@ -74,7 +83,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   // let count = 0;
 
   useInterval(() => {
-
     // console.log(`counting ${count++}`);
     // if (count === 5) {
     //   setDelay(0);
@@ -93,8 +101,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       if (isGameOver(piece)) {
         setDelay(0);
       } else {
-        console.log(`FRONT asking for nextPiece ${playerName}`);
-        score(map, piece);
+        if (score(map, piece)) {
+          socket.emit('applyPenalty', gameName);
+        }
         updatePiece(map, piece, nextPiece);
         socket.emit('getNextPiece', { gameName, playerName, map, piece });
       }
@@ -105,16 +114,22 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: Piece) => {
-      console.log('got next piece ');
       setNextPiece(nextPiece);
     });
   }, []);
 
   useEffect(() => {
-    socket.on('target', (id: string)  => {
-      console.log(`🚨  ${id}`)
-    })
-  },[])
+    socket.on('penalty', () => {
+      setToggle(!toggle)
+      callPenalty();
+      console.log(`🚨  ${map}`);
+      if (map) {
+        // penalty(map);
+        // console.log(map);
+        // setMap(map);
+      }
+    });
+  }, [toggle]);
 
   useEffect(() => {
     socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
@@ -124,27 +139,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setNextPiece(nextPiece);
     });
   }, []);
-
-  // ---- ENT TESTING
-
-  // useEffect(() => {
-  //   socket.on('gameState', (board: number[][], piece: Piece) => {
-  //     setMap(board);
-  //     setPiece(piece);
-  //   });
-  // }, []);
-
-  // useEffect(() => {
-  //   socket.on('newMap', (map: number[][], piece: Piece) => {
-  //     setMap(map);
-  //     setPiece(piece);
-  //   });
-  // }, [newMap]);
-
-  // useEffect(() => {
-  //   socket.emit('getGameMap');
-  //   setNewMap(true);
-  // }, []);
 
   const handleKeyDown = (e: any) => {
     if (!piece || !map) {
