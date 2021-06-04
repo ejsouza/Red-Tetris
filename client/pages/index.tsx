@@ -77,7 +77,6 @@ const Index = () => {
         console.log(`URL WRONG FORMAT  ${url}`);
       }
       const [roomName, userName] = parseUrlWithHash(url);
-      const room = createGame(roomName, userName);
 
       setHideMenu(true);
       // /#roomName[userName]
