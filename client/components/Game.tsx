@@ -50,14 +50,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   // ---- TEST LOOP ON THE FRONT ----
 
-  const callPenalty = () => {
-    if (!map) {
-      return;
-    }
-    penalty(map);
-    setMap(map);
-    console.log(`can access here ${map}`);
-  };;
   const useInterval = (callback: ICallback, delay: number) => {
     const savedCallback = useRef<ICallback | null>();
 
@@ -80,17 +72,10 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }, [delay]);
   };
 
-  // let count = 0;
-
   useInterval(() => {
-    // console.log(`counting ${count++}`);
-    // if (count === 5) {
-    //   setDelay(0);
-    // }
     if (!map || !piece || !nextPiece) {
       return;
     }
-    // const gameOver = updateGame();
     if (isYPlusOneFree(map, piece)) {
       cleanPieceFromBoard(map, piece);
       piece.pos.forEach((pos) => {
@@ -120,23 +105,21 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   useEffect(() => {
     socket.on('penalty', () => {
-      setToggle(!toggle)
-      callPenalty();
-      console.log(`🚨  ${map}`);
+      setToggle(true);
       if (map) {
-        // penalty(map);
-        // console.log(map);
-        // setMap(map);
+        // TODO Check if player is still in game before applying penalty
+        penalty(map);
+        setMap([...map]);
       }
     });
   }, [toggle]);
 
   useEffect(() => {
     socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
-      console.log('got newMap ', board);
       setMap(board);
       setPiece(piece);
       setNextPiece(nextPiece);
+      setToggle(!toggle);
     });
   }, []);
 
@@ -170,13 +153,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [piece]);
-
-  // useEffect(() => {
-  //   socket.on('updateMove', (map: number[][], piece: Piece) => {
-  //     setMap(map);
-  //     setPiece(piece);
-  //   });
-  // }, []);
 
   return !map ? (
     <Loading />
