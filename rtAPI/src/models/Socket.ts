@@ -2,11 +2,6 @@ import * as htpp from 'http';
 import * as socketIO from 'socket.io';
 import * as dotenv from 'dotenv';
 import { Game } from './Game';
-import {
-  startGameInterval,
-  createBoard,
-  draw,
-} from '../utils/game';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const'
 
 dotenv.config();
@@ -20,7 +15,6 @@ interface Piece {
 
 interface IRoom {
   name: string;
-  // players: string[];
   players: [
     {
       name: string;
@@ -41,7 +35,12 @@ export class Socket {
   private _board: number[][];
   private _piece: Piece;
   private _room: IRoom[];
-  public game: Game;
+  /*
+   *  TODO Game should be probably an array of games
+   *  multiple games are conflicting
+   */
+  // public game: Game;
+  public game: Game[];
 
   constructor() {
     this._data = [];
@@ -51,6 +50,7 @@ export class Socket {
     this.initializeSocketIO();
     this.listen();
     this._room = [];
+    this.game = [];
   }
 
   private initializeServer(): void {
@@ -74,26 +74,44 @@ export class Socket {
         this._io.sockets.to(arg.name).emit('closeStartComponent');
         this._io.sockets.to(arg.name).emit('setGame', { start: true });
         console.log(`ROM NAME >>> ${arg.name}`);
-        const game = this._room.filter((r) => r.name === arg.name)[0];
-        game.open = false;
-        this.game =  new Game(socket, this._io, this._room, arg.name);
+        const room = this._room.filter((r) => r.name === arg.name)[0];
+        room.open = false;
+        // this.game = new Game(socket, this._io, this._room, arg.name);
+        const game = new Game(socket, this._io, this._room, arg.name);
+        console.log(`Game created -> ${game.gameName}`);
+        this.game.push(game);
       });
 
       socket.on('getNextPiece', (args) => {
-        this.game.getNextPiece(socket.id, args.playerName);
-      })
-      socket.on('getLobby', (name) => { 
-        const lobby = this._room.filter(r => r.name === name)[0];
+        let game: Game;  
+        this.game.forEach((g) =>  {
+          if (g.gameName === args.gameName) {
+            game = g;
+          }
+        });
+        game.getNextPiece(socket.id, args.playerName);
+      });
+
+      socket.on('getLobby', (name) => {
+        const lobby = this._room.filter((r) => r.name === name)[0];
         socket.emit('lobby', lobby);
         console.log(`WHAT IS THE ID ${socket.id}`);
         // socket.to(`${name}`).emit('lobby', lobby);
-      })
+      });
+
       socket.on('createOrJoinGame', (roomName, userName) => {
         // Check if room exist or have a player with same username
-        if (this._room.some(r => r.name === roomName)) {
+        if (this._room.some((r) => r.name === roomName)) {
           // check if player can join
-          let room = this._room.filter(r => r.name === roomName)[0];
-          if (room.players.includes(userName)) {
+          let room = this._room.filter((r) => r.name === roomName)[0];
+          let userNameTaken = false;
+          room.players.forEach((p) => {
+            if (p.name === userName) {
+              userNameTaken = true;
+              return;
+            }
+          });
+          if (userNameTaken) {
             socket.emit('room', {
               success: false,
               msg: `This username '${userName}' is already taken`,
@@ -106,9 +124,9 @@ export class Socket {
                 room.open &&
                 room.numberOfPlayers < MAX_NUMBER_OF_PLAYERS
               ) {
-                 socket.on('createRoom', (roomName) => {
-                   socket.join(roomName);
-                 });
+                socket.on('createRoom', (roomName) => {
+                  socket.join(roomName);
+                });
                 room.players.push({ name: userName, socketId: socket.id });
                 room.numberOfPlayers++;
                 isFull = false;
@@ -120,10 +138,10 @@ export class Socket {
               }
             });
             if (isFull) {
-                socket.emit('room', {
-                  success: false,
-                  msg: `This room '${userName}' is full`,
-                });
+              socket.emit('room', {
+                success: false,
+                msg: `This room '${userName}' is full`,
+              });
             }
           }
         } else {
@@ -140,66 +158,24 @@ export class Socket {
             ],
           };
           this._room.push(room);
-           socket.on('createRoom', (roomName) => {
-             socket.join(roomName);
-           });
+          socket.on('createRoom', (roomName) => {
+            socket.join(roomName);
+          });
           socket.emit('room', {
             success: true,
             msg: `Please wait joining loby`,
           });
-         
         }
-      
-        console.log(this._room)
+
+        console.log(this._room);
       });
 
-      socket.on('updateMove', () => console.log(`update this`));
+      socket.on('applyPenalty', (gameName) => {
+        console.log(`applyPenalty called 🚨`);
 
-      // socket.on('getGameMap', () => {
-      //   [this._board, this._piece] = buildNewMap();
-      //   this._io.emit('newMap', this._board, this._piece);
-      // });
-
-      // socket.on('updateMap', (board: number[][], piece: Piece, delay: Date) => {
-      //   [this._board, this._piece] = updateBoard(board, piece);
-      //   setTimeout(() => {
-      //     this._io.emit('mapUpdated', this._board, this._piece);
-      //     console.log(`PIECE.X := ${piece.x} PIECE.Y := ${piece.y} -- ${Date.now() - delay}`);
-      //   }, (1000 * 60 ) / 60, );
-      // });
-
-      // // Listen for move piece
-      // socket.on(
-      //   'move',
-      //   (board: number[][], piece: Piece, direction: number) => {
-      //     [this._board, this._piece] = movePiece(
-      //       board,
-      //       piece,
-      //       direction
-      //     );
-      //     process.nextTick(() => {
-      //       this._io.emit('updateMove', this._board, this._piece);
-      //     });
-      //   }
-      // );
-
-      // socket.on('joinDetails', (arg: { name: string; room: string }) => {
-      //   const simple = {
-      //     game: arg.room,
-      //     players: [arg.name],
-      //   };
-      //   console.log(`new user ${arg.name} in  room ${arg.room}`);
-      //   this._data.push(simple);
-      //   console.log(`added? ${this._data}`);
-      //   console.log(`obje len := ${this._data.length}`);
-      //   for (let d of this._data) {
-      //     console.log(
-      //       `d := ${d} -- d.game := ${d.game} -- d.players := ${d.players}`
-      //     );
-      //   }
-      //   socket.emit('joinDetails', { success: true });
-      // });
-
+        socket.on('updateMove', () => console.log(`update this`));
+        socket.broadcast.to(gameName).emit('penalty');
+      });
       return;
     });
   }
