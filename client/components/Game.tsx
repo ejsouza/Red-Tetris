@@ -3,7 +3,6 @@ import BoardGame from '../components/BoardGame';
 import styled, { createGlobalStyle, css } from 'styled-components';
 import socket from '../utils/socket';
 import Loading from '../components/Loading';
-import {BOARD_HEIGHT, BOARD_WIDTH} from '../utils/const';
 import {
   updateBoard,
   cleanPieceFromBoard,
@@ -47,6 +46,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   const [nextPiece, setNextPiece] = useState<Piece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   // ---- TEST LOOP ON THE FRONT ----
 
@@ -84,6 +84,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       });
     } else {
       if (isGameOver(piece)) {
+        console.log('GAME OVER');
+        window.removeEventListener('keydown', handleKeyDown);
+        setGameOver(true);
         setDelay(0);
       } else {
         if (score(map, piece)) {
@@ -124,8 +127,12 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   }, []);
 
   const handleKeyDown = (e: any) => {
-    if (!piece || !map) {
+    if (!piece || !map || gameOver) {
       return;
+    }
+
+    if (delay === 0) {
+      console.log('DELAY === 0 ', gameOver);
     }
 
     if (e.key === 'ArrowLeft') {
