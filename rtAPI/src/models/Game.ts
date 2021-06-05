@@ -43,6 +43,7 @@ export class Game {
   public createPiece: Piece;
   private _room: IRoom;
   public players: IPlayer[];
+  public gameName: string;
 
   constructor(
     socket: socketIO.Socket,
@@ -50,6 +51,7 @@ export class Game {
     room: IRoom[],
     roomName: string
   ) {
+    this.gameName = roomName;
     this.socket = socket;
     this.io = io;
     this.board = new Board();
@@ -63,7 +65,6 @@ export class Game {
   start = (room: IRoom[], roomName: string): void => {
     this.initializeBoard(roomName);
     this.initializePlayers(room);
-    this.events();
   };
 
   initializeBoard = (roomName: string): void => {
@@ -104,16 +105,6 @@ export class Game {
       });
     });
   };
-
-  /** ---- TEST LOOP ON THE FRONT ---- */
-
-  events = (): void => {
-    this.socket.on('applyPenalty', (gameName) => {
-      this.socket.broadcast.to(gameName).emit('penalty');
-    });
-  };
-
-  /** ---- ENT TESTING ---- */
 
   newPiece = (): void => {
     this.nextPiece = this.createPiece.randomPiece();
