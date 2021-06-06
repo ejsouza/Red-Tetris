@@ -10,6 +10,7 @@ interface IPiece {
   width: number;
   height: number;
   color: number;
+  still: boolean;
 }
 
 const cleanPieceFromBoard = (board: number[][], piece: IPiece): void => {
@@ -74,7 +75,7 @@ const writeAsMuchAsPossibleToBoard = (
   board: number[][],
   piece: IPiece
 ): void => {
-  console.log(`writeAsMuchAsPossibleToBoard() called`);
+  console.log(`writeAsMuchAsPossibleToBoard() pieceHeight ${piece.height}`);
   if (firstRowFree(board)) {
     piece.pos.forEach((pos) => {
       console.log(`y: ${pos.y} x: ${pos.x}`);
@@ -128,22 +129,31 @@ export const isYPlusOneFree = (board: number[][], piece: IPiece): boolean => {
   return isFree;
 };
 
-const isGameOver = (piece: IPiece): boolean => {
-  let gameOver = BOARD_HEIGHT;
-  piece.pos.forEach((pos) => {
-    if (pos.y < gameOver) {
-      gameOver = pos.y;
-      // Can break out of the loop, take the very first Y position
+const isGameOver = (board: number[][], nextPiece: IPiece): boolean => {
+  let gameOver = false;
+  nextPiece.pos.forEach((pos) => {
+    if (board[pos.y][pos.x] !== 0) {
+      gameOver = true;
       return ;
     }
-  });
+  })
+
+  return gameOver;
+  // let gameOver = BOARD_HEIGHT;
+  // piece.pos.forEach((pos) => {
+  //   if (pos.y < gameOver) {
+  //     gameOver = pos.y;
+  //     // Can break out of the loop, take the very first Y position
+  //     return ;
+  //   }
+  // });
   /**
    * Check gameOver < 3 because at the begining every piece has height = 2
    * and with this logic we can have a gameOver at position 3 if the last
    * piece set was the I in vertical so we still have 3 rows and another
    * piece is still possible to be set 
    */
-  return ((gameOver < piece.height) && (gameOver < 3));
+  // return ((gameOver < piece.height) && (gameOver < 3));
 };
 
 const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
@@ -220,6 +230,9 @@ export const updateBoard = (
   piece: IPiece,
   key: number
 ): void => {
+  if (piece.still) {
+    return ;
+  }
   switch (key) {
     case 37: {
       if (!isYLessThanZero(piece) && leftCellIsFree(board, piece)) {
