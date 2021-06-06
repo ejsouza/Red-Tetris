@@ -58,6 +58,34 @@ const writeNewPieceToBoard = (board: number[][], piece: IPiece): void => {
   });
 };
 
+
+const firstRowFree = (board: number[][]): boolean => {
+  let isFree = true;
+  for (let col = 0; col < BOARD_WIDTH; col++) {
+    if (board[0][col] !== 0) {
+      isFree = false;
+      break;
+    }
+  }
+  return isFree;
+};
+
+const writeAsMuchAsPossibleToBoard = (
+  board: number[][],
+  piece: IPiece
+): void => {
+  console.log(`writeAsMuchAsPossibleToBoard() called`);
+  if (firstRowFree(board)) {
+    piece.pos.forEach((pos) => {
+      console.log(`y: ${pos.y} x: ${pos.x}`);
+      if (pos.y === 1 && board[pos.y - 1][pos.x] === 0) {
+        board[pos.y - 1][pos.x] = piece.color;
+        console.log(`writed last to row`);
+      }
+    });
+  }
+};
+
 const leftCellIsFree = (board: number[][], piece: IPiece): boolean => {
   let isFree = true;
 
@@ -105,9 +133,17 @@ const isGameOver = (piece: IPiece): boolean => {
   piece.pos.forEach((pos) => {
     if (pos.y < gameOver) {
       gameOver = pos.y;
+      // Can break out of the loop, take the very first Y position
+      return ;
     }
   });
-  return gameOver < piece.height;
+  /**
+   * Check gameOver < 3 because at the begining every piece has height = 2
+   * and with this logic we can have a gameOver at position 3 if the last
+   * piece set was the I in vertical so we still have 3 rows and another
+   * piece is still possible to be set 
+   */
+  return ((gameOver < piece.height) && (gameOver < 3));
 };
 
 const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
@@ -126,6 +162,7 @@ const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
   });
   return fits;
 };
+
 const rotate = (board: number[][], piece: IPiece): void => {
   cleanPieceFromBoard(board, piece);
 
@@ -162,6 +199,10 @@ const rotate = (board: number[][], piece: IPiece): void => {
   rotatedPiece.height = xLen.length;
   rotatedPiece.width = yLen.length;
 
+  console.log(
+    `after rotating heigh := ${rotatedPiece.height} - width := ${rotatedPiece.width}`
+  );
+
   /** Check if after rotating pieces fits on board */
   if (newPieceFitsInBoard(board, rotatedPiece)) {
     rotatedPiece.pos.forEach((pos, index) => {
@@ -172,14 +213,6 @@ const rotate = (board: number[][], piece: IPiece): void => {
     piece.width = rotatedPiece.width;
   }
   writeNewPieceToBoard(board, piece);
-};
-
-const drawNext = (board: number[][], piece: IPiece) => {
-  piece.pos.forEach((pos) => {
-    board[pos.y][pos.x] = 0;
-    pos.y += 1;
-    board[pos.y][pos.x] = piece.color;
-  });
 };
 
 export const updateBoard = (
@@ -290,4 +323,11 @@ const penalty = (board: number[][]): void => {
   }
 };
 
-export { cleanPieceFromBoard, isGameOver, updatePiece, score, penalty };
+export {
+  cleanPieceFromBoard,
+  isGameOver,
+  updatePiece,
+  score,
+  penalty,
+  writeAsMuchAsPossibleToBoard,
+};
