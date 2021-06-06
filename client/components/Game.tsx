@@ -13,6 +13,7 @@ import {
   penalty,
   writeAsMuchAsPossibleToBoard,
 } from '../core/gameEngine';
+import { IPiece } from '../interfaces';
 
 const Container = styled.div`
   padding: 16px;
@@ -24,16 +25,8 @@ const Section = styled.div`
   margin: auto;
 `;
 
-
-interface Piece {
-  pos: { x: number; y: number }[];
-  width: number;
-  height: number;
-  color: number;
-}
-
 interface ICallback {
-(): void
+  (): void
 }
 
 interface IGameProps {
@@ -43,12 +36,10 @@ interface IGameProps {
 
 const Game = ({ gameName, playerName }: IGameProps) => {
   const [map, setMap] = useState<number[][]>();
-  const [piece, setPiece] = useState<Piece>();
-  const [nextPiece, setNextPiece] = useState<Piece>();
+  const [piece, setPiece] = useState<IPiece>();
+  const [nextPiece, setNextPiece] = useState<IPiece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
-
-  // ---- TEST LOOP ON THE FRONT ----
 
   const useInterval = (callback: ICallback, delay: number) => {
     const savedCallback = useRef<ICallback | null>();
@@ -85,8 +76,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setPiece(piece);
       setMap([...map]);
     } else {
-      if (isGameOver(piece)) {
-        // writeAsMuchAsPossibleToBoard(map, piece);
+      if (isGameOver(map, nextPiece)) {
+        piece.still = true;
         writeAsMuchAsPossibleToBoard(map, nextPiece);
         setDelay(0);
       } else {
@@ -97,12 +88,10 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         socket.emit('getNextPiece', { gameName, playerName, map, piece });
       }
     }
-    // setPiece(piece);
-    // setMap([...map]);
   }, delay);
 
   useEffect(() => {
-    socket.on('nextPiece', (nextPiece: Piece) => {
+    socket.on('nextPiece', (nextPiece: IPiece) => {
       setNextPiece(nextPiece);
     });
   }, []);
@@ -119,12 +108,19 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   }, [toggle]);
 
   useEffect(() => {
-    socket.on('newMap', (board: number[][], piece: Piece, nextPiece: Piece) => {
-      setMap(board);
-      setPiece(piece);
-      setNextPiece(nextPiece);
-      setToggle(!toggle);
-    });
+    socket.on(
+      'newMap',
+      (board: number[][], piece: IPiece, nextPiece: IPiece) => {
+        setMap(board);
+        setPiece(piece);
+        setNextPiece(nextPiece);
+        /**
+         * setToggle() is called here because otherwise map will be undefined
+         * in the first penalty
+         */
+        setToggle(!toggle);
+      }
+    );
   }, []);
 
   const handleKeyDown = (e: any) => {
