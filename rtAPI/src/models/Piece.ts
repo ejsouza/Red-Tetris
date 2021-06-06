@@ -6,9 +6,7 @@ export class Piece {
   private _pieces: number[];
 
   constructor() {
-    // this.shape = PIECES[Math.floor(Math.random() * 7)];
-		this._pieces = [];
-    // this.shape = this.randomPiece();
+    this._pieces = [];
   }
   randomPiece = (): IPiece => {
     if (this._pieces.length === 0) {
@@ -23,8 +21,11 @@ export class Piece {
     //     Math.random() * this._pieces.length
     //   )} LEN ${this._pieces.length} \n`
     // );
+
+
     return PIECES[
       this._pieces.splice(Math.floor(Math.random() * this._pieces.length), 1)[0]
     ];
+    // return PIECES[6];
   };
 }
