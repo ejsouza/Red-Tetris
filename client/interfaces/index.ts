@@ -8,3 +8,13 @@ export type User = {
   id: number
   name: string
 }
+
+interface IPiece {
+  pos: { x: number; y: number }[];
+  width: number;
+  height: number;
+  color: number;
+  still: boolean;
+}
+
+export type { IPiece };
