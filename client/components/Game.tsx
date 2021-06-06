@@ -11,6 +11,7 @@ import {
   updatePiece,
   score,
   penalty,
+  writeAsMuchAsPossibleToBoard,
 } from '../core/gameEngine';
 
 const Container = styled.div`
@@ -46,7 +47,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   const [nextPiece, setNextPiece] = useState<Piece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
 
   // ---- TEST LOOP ON THE FRONT ----
 
@@ -82,11 +82,12 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         pos.y++;
         map[pos.y][pos.x] = piece.color;
       });
+      setPiece(piece);
+      setMap([...map]);
     } else {
       if (isGameOver(piece)) {
-        console.log('GAME OVER');
-        window.removeEventListener('keydown', handleKeyDown);
-        setGameOver(true);
+        // writeAsMuchAsPossibleToBoard(map, piece);
+        writeAsMuchAsPossibleToBoard(map, nextPiece);
         setDelay(0);
       } else {
         if (score(map, piece)) {
@@ -96,8 +97,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         socket.emit('getNextPiece', { gameName, playerName, map, piece });
       }
     }
-    setPiece(piece);
-    setMap([...map]);
+    // setPiece(piece);
+    // setMap([...map]);
   }, delay);
 
   useEffect(() => {
@@ -127,12 +128,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   }, []);
 
   const handleKeyDown = (e: any) => {
-    if (!piece || !map || gameOver) {
+    if (!piece || !map) {
       return;
-    }
-
-    if (delay === 0) {
-      console.log('DELAY === 0 ', gameOver);
     }
 
     if (e.key === 'ArrowLeft') {
@@ -143,14 +140,11 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }
     if (e.key === 'ArrowDown') {
       updateBoard(map, piece, e.keyCode);
-      // setMap(map);
     }
     if (e.key === 'ArrowUp') {
       updateBoard(map, piece, e.keyCode);
     }
     setMap([...map]);
-    // setPiece(piece);
-    // socket.emit('keydown', { key: e.keyCode, board: map, piece: piece });
   };
 
   useEffect(() => {
