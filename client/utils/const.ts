@@ -18,6 +18,7 @@ const EMPTY_PIECE = [
     width: 0,
     height: 0,
     color: 0,
+    still: false,
   },
 ];
 
@@ -26,6 +27,7 @@ export interface IPiece {
   width: number;
   height: number;
   color: number;
+  still: boolean;
 }
 
 export interface IBoard {
