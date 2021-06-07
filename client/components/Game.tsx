@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import BoardGame from '../components/BoardGame';
-import styled, { createGlobalStyle, css } from 'styled-components';
+import BoardGame from './BoardGame';
+import { InfoGame } from './InfoGame';
+import styled from 'styled-components';
 import socket from '../utils/socket';
-import Loading from '../components/Loading';
+import Loading from './Loading';
 import {
   updateBoard,
   cleanPieceFromBoard,
@@ -16,13 +17,15 @@ import {
 import { IPiece } from '../interfaces';
 
 const Container = styled.div`
+  display: flex;
+  justify-content: center;
+  // justify-content: space-around;
+  // justify-content: space-between;
   padding: 16px;
 `;
 
 const Section = styled.div`
   max-width: 360px;
-  height: auto;
-  margin: auto;
 `;
 
 interface ICallback {
@@ -151,14 +154,16 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     };
   }, [piece]);
 
-  return !map ? (
+  return !map || !nextPiece ? (
     <Loading />
   ) : (
     <>
       <Container>
         <Section>
-          <div>Game</div>
           <BoardGame {...map} />
+        </Section>
+        <Section>
+          <InfoGame player={playerName} piece={nextPiece} />
         </Section>
       </Container>
     </>
