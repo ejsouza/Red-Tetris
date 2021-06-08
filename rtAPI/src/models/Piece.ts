@@ -22,7 +22,6 @@ export class Piece {
     //   )} LEN ${this._pieces.length} \n`
     // );
 
-
     return PIECES[
       this._pieces.splice(Math.floor(Math.random() * this._pieces.length), 1)[0]
     ];
