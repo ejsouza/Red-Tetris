@@ -3,4 +3,5 @@ export interface IPiece {
   width: number;
   height: number;
   color: number;
+  still: boolean;
 }
