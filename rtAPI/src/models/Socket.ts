@@ -2,16 +2,10 @@ import * as htpp from 'http';
 import * as socketIO from 'socket.io';
 import * as dotenv from 'dotenv';
 import { Game } from './Game';
+import { IPiece } from '../interfaces/piece.interface';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const'
 
 dotenv.config();
-
-interface Piece {
-  pos: { x: number; y: number }[];
-  width: number;
-  height: number;
-  color: number;
-}
 
 interface IRoom {
   name: string;
@@ -33,7 +27,7 @@ export class Socket {
   private _CLIENT_URL: string;
   private _data: { game: string; players: string[] }[];
   private _board: number[][];
-  private _piece: Piece;
+  private _piece: IPiece;
   private _room: IRoom[];
   /*
    *  TODO Game should be probably an array of games
@@ -73,29 +67,31 @@ export class Socket {
       socket.on('start', (arg) => {
         this._io.sockets.to(arg.name).emit('closeStartComponent');
         this._io.sockets.to(arg.name).emit('setGame', { start: true });
-        console.log(`ROM NAME >>> ${arg.name}`);
         const room = this._room.filter((r) => r.name === arg.name)[0];
         room.open = false;
         // this.game = new Game(socket, this._io, this._room, arg.name);
         const game = new Game(socket, this._io, this._room, arg.name);
-        console.log(`Game created -> ${game.gameName}`);
         this.game.push(game);
       });
 
       socket.on('getNextPiece', (args) => {
-        let game: Game;  
-        this.game.forEach((g) =>  {
+        let game: Game;
+        this.game.forEach((g) => {
           if (g.gameName === args.gameName) {
             game = g;
           }
         });
-        game.getNextPiece(socket.id, args.playerName);
+        game.getNextPiece({
+          id: socket.id,
+          playerName: args.playerName,
+          board: args.map,
+          gameName: args.gameName,
+        });
       });
 
       socket.on('getLobby', (name) => {
         const lobby = this._room.filter((r) => r.name === name)[0];
         socket.emit('lobby', lobby);
-        console.log(`WHAT IS THE ID ${socket.id}`);
         // socket.to(`${name}`).emit('lobby', lobby);
       });
 
