@@ -34,6 +34,13 @@ interface IPlayer {
   score: number;
 }
 
+interface INextPiece {
+  id: string;
+  playerName: string;
+  board: number[][];
+  gameName: string;
+}
+
 export class Game {
   public socket: socketIO.Socket;
   public io: socketIO.Server;
@@ -75,9 +82,8 @@ export class Game {
       .emit('newMap', this.board.shape, this.piece, this.nextPiece);
   };
 
-  getNextPiece = (id: string, playerName: string) => {
+  getNextPiece = ({ id, playerName, board, gameName }: INextPiece) => {
     this.io.sockets.to(id).emit('target', id);
-
     const nextPiece = this.createPiece.randomPiece();
     const player = this.players.find((p) => p.name === playerName);
     this.players.forEach((p) => {
@@ -87,6 +93,24 @@ export class Game {
     this.io.sockets
       .to(player.socketId)
       .emit('nextPiece', player.nextPiece.shift());
+
+    /**
+     * Probably this copy is not necessary
+     * can just send the board to all the other players
+     */
+    for (let row = 0; row < BOARD_HEIGHT; row++) {
+      for (let col = 0; col < BOARD_WIDTH; col++) {
+        player.board.shape[row][col] = board[row][col];
+      }
+    }
+
+    this.io.to(id).emit('boardShadow', player.board.shape);
+    this.socket.broadcast.to(gameName).emit(
+      'shadow',
+        this.players.forEach((player) => {
+          if(player.name !== playerName) {return player}
+        })
+    );
   };
 
   initializePlayers = (room: IRoom[]): void => {
