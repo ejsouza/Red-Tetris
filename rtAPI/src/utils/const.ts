@@ -17,6 +17,7 @@ const PIECES = [
     width: 2,
     height: 2,
     color: 1,
+    still: false,
   },
   {
     pos: [
@@ -28,6 +29,7 @@ const PIECES = [
     width: 3,
     height: 2,
     color: 2,
+    still: false,
   },
   {
     pos: [
@@ -39,6 +41,7 @@ const PIECES = [
     width: 3,
     height: 2,
     color: 3,
+    still: false,
   },
   {
     pos: [
@@ -50,6 +53,7 @@ const PIECES = [
     width: 3,
     height: 2,
     color: 4,
+    still: false,
   },
   {
     pos: [
@@ -61,6 +65,7 @@ const PIECES = [
     width: 3,
     height: 2,
     color: 5,
+    still: false,
   },
   {
     pos: [
@@ -72,6 +77,7 @@ const PIECES = [
     width: 3,
     height: 2,
     color: 6,
+    still: false,
   },
   {
     pos: [
@@ -83,6 +89,7 @@ const PIECES = [
     width: 4,
     height: 1,
     color: 7,
+    still: false,
   },
 ];
 
