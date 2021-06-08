@@ -18,6 +18,8 @@ import { IPiece } from '../interfaces';
 
 const Container = styled.div`
   display: flex;
+  flex-wrap: wrap;
+  // max-height: 640px;
   justify-content: center;
   // justify-content: space-around;
   // justify-content: space-between;
@@ -25,7 +27,7 @@ const Container = styled.div`
 `;
 
 const Section = styled.div`
-  max-width: 360px;
+  // max-width: 360px;
 `;
 
 interface ICallback {
@@ -163,7 +165,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
           <BoardGame {...map} />
         </Section>
         <Section>
-          <InfoGame player={playerName} piece={nextPiece} />
+          <InfoGame player={playerName} piece={nextPiece} board={map} />
         </Section>
       </Container>
     </>
