@@ -4,6 +4,7 @@ import { InfoGame } from './InfoGame';
 import styled from 'styled-components';
 import socket from '../utils/socket';
 import Loading from './Loading';
+import MiniBoard from './MiniBoard';
 import {
   updateBoard,
   cleanPieceFromBoard,
