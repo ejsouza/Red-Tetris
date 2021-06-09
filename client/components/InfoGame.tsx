@@ -40,6 +40,11 @@ interface IPlayer {
   score: number;
 }
 
+interface IShadow {
+		player: string;
+		board: number[][];
+}
+
 const Parent = styled.div`
   display: block;
   // width: 200px;
@@ -48,18 +53,43 @@ const Parent = styled.div`
 export const InfoGame = (props: IProps) => {
   const piece: number[][] = Array.from({ length: 2 }, () => Array(10).fill(0));
   const [boardShadow, setBoardShadow] = useState<number[][]>();
+	// const [shadows, setShadow] = useState<IShadow[]>([])
 
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
   });
 
-  socket.on('boardShadow', (board: number[][]) => {
-    setBoardShadow(board);
-  });
+	useEffect(() => {
+ 		socket.on('boardShadow', (board: number[][]) => {
+   		setBoardShadow(board);
+ 		});
+	})
+ 
 
-  socket.on('shadow', (player: IPlayer) => {
-    console.log(`got shadow >>>>> ${player}`);
-  });
+
+	// useEffect(() => {
+  // 	socket.on('shadow', (board: number[][], playerName: string) => {
+  //   	// console.log(`got shadow >>>>> ${board}`);
+	// 		let shade: IShadow = {
+	// 			player: playerName,
+	// 			board: board,
+	// 		};
+	// 		if (shadows.length > 0) {
+  //       shadows.forEach((shadow) => {
+  //         if (shadow.player === playerName) {
+  //           shadow = shade;
+  //         } else {
+  //           shadows.push(shade);
+  //         }
+  //         setShadow(shadows => [...shadows, shade]);
+  //       });
+  //     } else {
+	// 			 shadows.push(shade);
+	// 		}
+  // 	});
+	// }, [])
+
+
   return (
     <>
       <Container>
@@ -87,8 +117,11 @@ export const InfoGame = (props: IProps) => {
           <Col>Following player</Col>
         </Row>
         <Row>
-          <Col>{boardShadow && <MiniBoard {...boardShadow} />}</Col>
+          {/* <Col>{boardShadow && <MiniBoard map={boardShadow} shadows={shadows}/>}</Col> */}
+          {/* <Col>{boardShadow && <MiniBoard shadows={shadows} />}</Col> */}
+          <Col>{boardShadow && <MiniBoard />}</Col>
         </Row>
+        <Row></Row>
       </Container>
     </>
   );
