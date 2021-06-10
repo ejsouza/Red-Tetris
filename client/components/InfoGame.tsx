@@ -7,16 +7,6 @@ import { IPiece } from '../interfaces';
 import BoardGame from './BoardGame';
 import MiniBoard from './MiniBoard';
 import socket from '../utils/socket';
-const Wrapper = styled.div`
-  padding: 10px;
-  display: inline-block;
-  // max-width: 360px;
-  // height: 100%;
-  // overflow: auto;
-  // background-color: #596269;
-  background-color: #2196f3;
-  border: 1px solid rgba(255, 255, 255, 1);
-`;
 
 const sizeOfGrid = 10;
 const Grid = styled.div`
@@ -84,7 +74,6 @@ export const InfoGame = (props: IProps) => {
 	const [player, setPlayer] = useState<IShadow>();
 	// const [shades, setShades] = useState<JSX.Element[][]>([]);
 	const [shades, setShades] = useState<JSX.Element[][][]>([]);
-	const [toggle, setToggle] = useState(false);
 
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
@@ -114,21 +103,24 @@ export const InfoGame = (props: IProps) => {
 
 	useEffect(() => {
 		socket.on('shaddy', () => {
-			setToggle(!toggle);
+  	  socket.emit('getArrayOfPlayers', props.game, props.player);
 		})
 	}, []);
 
-
-	useEffect(() => {
-    // When page first load get array of players with their board
-    socket.emit('getArrayOfPlayers', props.game, props.player);
-  }, [player, toggle]);
 
 	useEffect(() => {
     socket.on('arrayOfPlayers', (shadows: IShadow[]) => {
       setShadows([...shadows]);
     });
   }, []);
+
+	useEffect(() => {
+    // console.log(`**** shadows updated **** {[${props.player}]}`);
+    // shadows.forEach((shadow) => console.log(shadow.player));
+    Object.values(shadows).map((shadow) =>
+      console.log(shadow.player, shadow.board)
+    );
+  }, [shadows]);
 
 		useEffect(() => {
       let index = 0;
@@ -145,33 +137,10 @@ export const InfoGame = (props: IProps) => {
         '#FC03db',
       ];
 
-      //   if(shadows) {
-      //     let board: JSX.Element[][] = [];
-
-      //     shadows.forEach((shade) => {
-      //       board = Object.entries(shade.board).map((row) => {
-      //         return row[1].map((cell) => (
-      //           <GridItem
-      //             style={{ background: colors[cell] }}
-      //             key={`cell-${index++}`}
-      //           >
-      //             <span>{cell}</span>
-      //           </GridItem>
-      //         ));
-      //       });
-      //     });
-      //     if (board.length < 1) {
-      //       return;
-      //     }
-      //     setShades(board);
-      //   }
-      // }, [shadows]);
-
       if (shadows) {
         let board: JSX.Element[][][] = [];
 
         shadows.forEach((shade, i) => {
-					console.log(`>>>>>>>>>>[${shade.player}] ${i}`);
           board[i] = Object.entries(shade.board).map((row) => {
             return row[1].map((cell) => (
               <GridItem
@@ -190,44 +159,11 @@ export const InfoGame = (props: IProps) => {
       }
     }, [shadows]);
 
-
-
-
-  // useEffect(() => {
-  // 	socket.on('shadow', (board: number[][], playerName: string) => {
-  //   	// console.log(`got shadow >>>>> ${board}`);
-  // 		let shade: IShadow = {
-  // 			player: playerName,
-  // 			board: board,
-  // 		};
-  // 		if (shadows.length > 0) {
-  //       shadows.forEach((shadow) => {
-  //         if (shadow.player === playerName) {
-  //           shadow = shade;
-  //         } else {
-  //           shadows.push(shade);
-  //         }
-  //         setShadow(shadows => [...shadows, shade]);
-  //       });
-  //     } else {
-  // 			 shadows.push(shade);
-  // 		}
-  // 	});
-  // }, [])
-
   return (
     <>
       <Container>
         <Row>
           <Col>
-            {/* <Wrapper>
-              <Row>
-                <Col>Player: {props.player}</Col>
-                <Col>Score:</Col>
-              </Row>
-              <BoardGame {...piece} />
-            </Wrapper> */}
-
             <Row>
               <Col>Player: {props.player}</Col>
               <Col>Score:</Col>
@@ -241,18 +177,14 @@ export const InfoGame = (props: IProps) => {
           <Col>Following player</Col>
           <Col>Following player</Col>
         </Row>
-        {/* <Col>{boardShadow && <MiniBoard map={boardShadow} shadows={shadows}/>}</Col> */}
-        {/* <Col>{boardShadow && <MiniBoard shadows={shadows} />}</Col> */}
-        <Parent>
-          <Row>
-            {/* <Col>{boardShadow && <MiniBoard />}</Col>
-            <Col>{boardShadow && <MiniBoard />}</Col> */}
-            {/* <Col>{shadows && <MiniBoard />}</Col> */}
-          </Row>
-        </Parent>
-        {/* <Row>{shadows && <Grid>{shades}</Grid>}</Row> */}
-        {/* <Row>{shadows && <Grid>{shades.map((shade) => shade)}</Grid>}</Row> */}
-        <Row>{shadows && shades.map(shade => <Grid>{shade}</Grid>)}</Row>
+        <Row>
+          {shadows &&
+            Object.values(shades).map((shade) => (
+              <Col>
+                <Grid>{shade}</Grid>
+              </Col>
+            ))}
+        </Row>
       </Container>
     </>
   );
