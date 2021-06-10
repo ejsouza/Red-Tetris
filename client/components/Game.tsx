@@ -166,7 +166,13 @@ const Game = ({ gameName, playerName }: IGameProps) => {
           <BoardGame {...map} />
         </Section>
         <Section>
-          <InfoGame player={playerName} piece={nextPiece} board={map} />
+          <InfoGame
+            player={playerName}
+            game={gameName}
+            piece={nextPiece}
+            board={map}
+          />
+          {/* <MiniBoard /> */}
         </Section>
       </Container>
     </>
