@@ -7,6 +7,8 @@ import { IPiece } from '../interfaces';
 import BoardGame from './BoardGame';
 import MiniBoard from './MiniBoard';
 import socket from '../utils/socket';
+import NextPiece from './NextPiece';
+import { COLORS_WITH_WHITE, BOARD_COLORS } from '../utils/const';
 
 const sizeOfGrid = 10;
 const Grid = styled.div`
@@ -67,21 +69,16 @@ const Parent = styled.div`
 
 export const InfoGame = (props: IProps) => {
   const piece: number[][] = Array.from({ length: 2 }, () => Array(10).fill(0));
-  const [boardShadow, setBoardShadow] = useState<number[][]>();
   const [shadows, setShadows] = useState<IShadow[]>([]);
   const [shades, setShades] = useState<JSX.Element[][][]>([]);
   const [players, setPlayers] = useState<IShadow[]>([]);
-	const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
-
+	// const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
+ 	let key = 0;
+	 
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
   });
 
-  // useEffect(() => {
-  //   socket.on('boardShadow', (board: number[][]) => {
-  //     setBoardShadow(board);
-  //   });
-  // }, []);
 
   useEffect(() => {
     socket.on('shaddy', () => {
@@ -117,18 +114,6 @@ export const InfoGame = (props: IProps) => {
   useEffect(() => {
     let index = 0;
 
-    const colors = [
-      '',
-      '#ECF00B',
-      '#8C00EC',
-      '#1100EC',
-      '#EB8E08',
-      '#45F304',
-      '#E90005',
-      '#48EFEC',
-      '#FC03db',
-    ];
-
     if (players) {
       let board: JSX.Element[][][] = [];
 
@@ -136,7 +121,7 @@ export const InfoGame = (props: IProps) => {
         board[i] = Object.entries(player.board).map((row) => {
           return row[1].map((cell) => (
             <GridItem
-              style={{ background: colors[cell] }}
+              style={{ background: BOARD_COLORS[cell] }}
               key={`cell-${index++}-${player.player}`}
             >
               <span>{cell}</span>
@@ -149,21 +134,8 @@ export const InfoGame = (props: IProps) => {
       }
       setShades(board);
     }
-		   
-    const nextP = piece.map((row) =>
-      row.map((cell) => (
-        <GridItem
-          style={{ background: colors[cell] }}
-            key={`cell-${cell}`}
-          >
-            <span>{cell}</span>
-        </GridItem>
-      ))
-    );
-		setNextPiece(nextP);
         
   }, [shadows]);
-
 
   return (
     <>
@@ -174,31 +146,35 @@ export const InfoGame = (props: IProps) => {
               <Col>Player: {props.player}</Col>
               <Col>Score:</Col>
             </Row>
-            <Parent>
-              {/* TODO This causes the "key" should be unique error */}
-              {/* <BoardGame {...piece} /> */}
-
-              {piece.map(row => row.map(cell => {
-								// <GridItem>
-									cell
-								// </GridItem>
-							})) }
-            </Parent>
+            {
+              <Grid>
+                {piece.map((row) =>
+                  row.map((cell) => (
+                    <GridItem
+                      style={{ background:COLORS_WITH_WHITE[cell] }}
+                      key={`shaddy-next-piece-${key++}-${props.player}`}
+                    >
+                      <span>{cell}</span>
+                    </GridItem>
+                  ))
+                )}
+              </Grid>
+            }
           </Col>
         </Row>
         <Row>
           {players.map((player) => (
-            <Col>{player.player}</Col>
+            <Col key={`player-${player.player}`}>{player.player}</Col>
           ))}
         </Row>
         <Row>
           {shadows &&
-            Object.values(shades).map((shade) => (
-              <Col>
+            Object.values(shades).map((shade, index) => (
+              <Col key={`shadow-board-${index}`}>
                 <Grid>{shade}</Grid>
               </Col>
             ))}
-        </Row>
+        </Row> 
       </Container>
     </>
   );
