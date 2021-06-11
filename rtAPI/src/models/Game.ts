@@ -86,6 +86,7 @@ export class Game {
     this.io.sockets.to(id).emit('target', id);
     const nextPiece = this.createPiece.randomPiece();
     const player = this.players.find((p) => p.name === playerName);
+    player.board.shape = board;
     this.players.forEach((p) => {
       p.nextPiece.push(nextPiece);
     });
@@ -98,19 +99,13 @@ export class Game {
      * Probably this copy is not necessary
      * can just send the board to all the other players
      */
-    for (let row = 0; row < BOARD_HEIGHT; row++) {
-      for (let col = 0; col < BOARD_WIDTH; col++) {
-        player.board.shape[row][col] = board[row][col];
-      }
-    }
+    // for (let row = 0; row < BOARD_HEIGHT; row++) {
+    //   for (let col = 0; col < BOARD_WIDTH; col++) {
+    //     player.board.shape[row][col] = board[row][col];
+    //   }
+    // }
 
-    this.io.to(id).emit('boardShadow', player.board.shape);
-    this.socket.broadcast.to(gameName).emit(
-      'shadow',
-        this.players.forEach((player) => {
-          if(player.name !== playerName) {return player}
-        })
-    );
+    // this.io.to(id).emit('boardShadow', player.board.shape);
   };
 
   initializePlayers = (room: IRoom[]): void => {
