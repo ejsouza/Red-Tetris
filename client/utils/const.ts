@@ -34,4 +34,35 @@ export interface IBoard {
   board: number[][];
 }
 
-export { BLOCKED_ROW, BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE };
+const COLORS_WITH_WHITE = [
+  '#FFFFFF',
+  '#ECF00B',
+  '#8C00EC',
+  '#1100EC',
+  '#EB8E08',
+  '#45F304',
+  '#E90005',
+  '#48EFEC',
+  '#FC03db',
+];
+
+const BOARD_COLORS = [
+  '',
+  '#ECF00B',
+  '#8C00EC',
+  '#1100EC',
+  '#EB8E08',
+  '#45F304',
+  '#E90005',
+  '#48EFEC',
+  '#FC03db',
+];
+
+export {
+  BLOCKED_ROW,
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  EMPTY_PIECE,
+  COLORS_WITH_WHITE,
+  BOARD_COLORS,
+};
