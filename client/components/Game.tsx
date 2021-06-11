@@ -86,6 +86,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         piece.still = true;
         writeAsMuchAsPossibleToBoard(map, nextPiece);
         setDelay(0);
+        // Be careful
+        socket.emit('gameOver', { gameName, playerName, map, piece });
       } else {
         if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
