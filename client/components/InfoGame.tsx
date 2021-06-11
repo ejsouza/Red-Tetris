@@ -68,96 +68,102 @@ const Parent = styled.div`
 export const InfoGame = (props: IProps) => {
   const piece: number[][] = Array.from({ length: 2 }, () => Array(10).fill(0));
   const [boardShadow, setBoardShadow] = useState<number[][]>();
-  // const [shadows, setShadow] = useState<IShadow[]>([])
   const [shadows, setShadows] = useState<IShadow[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [player, setPlayer] = useState<IShadow>();
-	// const [shades, setShades] = useState<JSX.Element[][]>([]);
-	const [shades, setShades] = useState<JSX.Element[][][]>([]);
+  const [shades, setShades] = useState<JSX.Element[][][]>([]);
+  const [players, setPlayers] = useState<IShadow[]>([]);
+	const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
 
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
   });
 
- useEffect(() => {
-   setTimeout(() => {
-     setLoading(true);
-   }, 2000);
- }, []);
-
-  useEffect(() => {
-    socket.on('boardShadow', (board: number[][]) => {
-      setBoardShadow(board);
-    });
-  }, []);
-
   // useEffect(() => {
-  //   socket.on('shaddy', (player: IShadow) => {
-	// 		setPlayer(player);
-
-	// 		setShadows(
-	// 			shadows.map(shadow => shadow.player === player.player ? {...shadow} : player)
-	// 		)
+  //   socket.on('boardShadow', (board: number[][]) => {
+  //     setBoardShadow(board);
   //   });
   // }, []);
 
-	useEffect(() => {
-		socket.on('shaddy', () => {
-  	  socket.emit('getArrayOfPlayers', props.game, props.player);
-		})
-	}, []);
+  useEffect(() => {
+    socket.on('shaddy', () => {
+      socket.emit('getArrayOfPlayers', props.game, props.player);
+    });
+  }, []);
 
-
-	useEffect(() => {
+  useEffect(() => {
     socket.on('arrayOfPlayers', (shadows: IShadow[]) => {
       setShadows([...shadows]);
     });
   }, []);
 
-	useEffect(() => {
-    // console.log(`**** shadows updated **** {[${props.player}]}`);
-    // shadows.forEach((shadow) => console.log(shadow.player));
-    Object.values(shadows).map((shadow) =>
-      console.log(shadow.player, shadow.board)
+  useEffect(() => {
+    socket.on('player', (player: IShadow) => {
+      if (players.length === 0) {
+        players.push(player);
+      } else {
+        let playerFound = false;
+        players.forEach((p) => {
+          if (p.player === player.player) {
+            playerFound = true;
+            p.board = player.board;
+          }
+        });
+        if (!playerFound) {
+          players.push(player);
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    let index = 0;
+
+    const colors = [
+      '',
+      '#ECF00B',
+      '#8C00EC',
+      '#1100EC',
+      '#EB8E08',
+      '#45F304',
+      '#E90005',
+      '#48EFEC',
+      '#FC03db',
+    ];
+
+    if (players) {
+      let board: JSX.Element[][][] = [];
+
+      players.forEach((player, i) => {
+        board[i] = Object.entries(player.board).map((row) => {
+          return row[1].map((cell) => (
+            <GridItem
+              style={{ background: colors[cell] }}
+              key={`cell-${index++}-${player.player}`}
+            >
+              <span>{cell}</span>
+            </GridItem>
+          ));
+        });
+      });
+      if (board.length < 1) {
+        return;
+      }
+      setShades(board);
+    }
+		   
+    const nextP = piece.map((row) =>
+      row.map((cell) => (
+        <GridItem
+          style={{ background: colors[cell] }}
+            key={`cell-${cell}`}
+          >
+            <span>{cell}</span>
+        </GridItem>
+      ))
     );
+		setNextPiece(nextP);
+        
   }, [shadows]);
 
-		useEffect(() => {
-      let index = 0;
-
-      const colors = [
-        '',
-        '#ECF00B',
-        '#8C00EC',
-        '#1100EC',
-        '#EB8E08',
-        '#45F304',
-        '#E90005',
-        '#48EFEC',
-        '#FC03db',
-      ];
-
-      if (shadows) {
-        let board: JSX.Element[][][] = [];
-
-        shadows.forEach((shade, i) => {
-          board[i] = Object.entries(shade.board).map((row) => {
-            return row[1].map((cell) => (
-              <GridItem
-                style={{ background: colors[cell] }}
-                key={`cell-${index++}-${shade.player}`}
-              >
-                <span>{cell}</span>
-              </GridItem>
-            ));
-          });
-        });
-        if (board.length < 1) {
-          return;
-        }
-        setShades(board);
-      }
-    }, [shadows]);
 
   return (
     <>
@@ -169,13 +175,21 @@ export const InfoGame = (props: IProps) => {
               <Col>Score:</Col>
             </Row>
             <Parent>
-              <BoardGame {...piece} />
+              {/* TODO This causes the "key" should be unique error */}
+              {/* <BoardGame {...piece} /> */}
+
+              {piece.map(row => row.map(cell => {
+								// <GridItem>
+									cell
+								// </GridItem>
+							})) }
             </Parent>
           </Col>
         </Row>
         <Row>
-          <Col>Following player</Col>
-          <Col>Following player</Col>
+          {players.map((player) => (
+            <Col>{player.player}</Col>
+          ))}
         </Row>
         <Row>
           {shadows &&
