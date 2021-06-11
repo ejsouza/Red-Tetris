@@ -20,6 +20,11 @@ interface IRoom {
   host: string;
 }
 
+interface IShadow {
+  player: string;
+  board: number[][];
+}
+
 export class Socket {
   private _httpServer: htpp.Server;
   private _io: socketIO.Server;
@@ -87,6 +92,50 @@ export class Socket {
           board: args.map,
           gameName: args.gameName,
         });
+
+        const shadows: IShadow[] = [];
+
+        const myBoardShadow: IShadow = {
+          player: args.playerName,
+          board: args.map,
+        };
+        socket.broadcast.to(args.gameName).emit('player', myBoardShadow);
+        game.players.forEach((player) => {
+          if (player.name !== args.playerName) {
+            let shade: IShadow = {
+              player: player.name,
+              board: player.board.shape,
+            };
+
+            shadows.push(shade);
+          } else {
+            player.board.shape = args.map;
+          }
+        });
+        // sending to all clients in 'game' room(channel) except sender
+        socket.broadcast.to(args.gameName).emit('shaddy');
+      });
+
+      socket.on('getArrayOfPlayers', (gameName: string, playerName: string) => {
+        let game: Game;
+        const shadows: IShadow[] = [];
+        this.game.forEach((g) => {
+          if (g.gameName === gameName) {
+            game = g;
+          }
+        });
+
+        game.players.forEach((player) => {
+          if (player.name !== playerName) {
+            let shade: IShadow = {
+              player: player.name,
+              board: player.board.shape,
+            };
+            shadows.push(shade);
+          }
+        });
+
+        this._io.sockets.to(socket.id).emit('arrayOfPlayers', shadows);
       });
 
       socket.on('getLobby', (name) => {
@@ -171,6 +220,17 @@ export class Socket {
 
         socket.on('updateMove', () => console.log(`update this`));
         socket.broadcast.to(gameName).emit('penalty');
+      });
+
+      socket.on('gameOver', (args) => {
+        // START Handle send last version of a map when game over
+        const myBoardShadow: IShadow = {
+          player: args.playerName,
+          board: args.map,
+        };
+        socket.broadcast.to(args.gameName).emit('player', myBoardShadow);
+        socket.broadcast.to(args.gameName).emit('shaddy');
+        // END Handle send last version of a map when game over
       });
       return;
     });
