@@ -1,5 +1,7 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
+import socket from '../utils/socket';
+import { BOARD_HEIGHT, BOARD_WIDTH } from '../utils/const';
 
 const sizeOfGrid = 10;
 
@@ -26,7 +28,22 @@ const GridItem = styled.div`
   }
 `;
 
-const MiniBoard = (props: number[][]) => {
+interface IShadow {
+  player: string;
+  board: number[][];
+}
+
+interface IProps {
+	map?: number[][];
+	shadows: IShadow[];
+}
+
+// const MiniBoard:  React.FC<IProps> = ({map, shadows}) => {
+const MiniBoard = () => {
+
+		const [shadows, setShadow] = useState<IShadow[]>([]);
+		const [shades, setShades] = useState<JSX.Element[][]>([])
+
   let index = 0;
   const colors = [
     '',
@@ -39,16 +56,43 @@ const MiniBoard = (props: number[][]) => {
     '#48EFEC',
     '#FC03db',
   ];
-  // console.table(props);
-  const board = Object.entries(props).map((row) => {
-    return row[1].map((cell) => (
-      <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
-        <span>{cell}</span>
-      </GridItem>
-    ));
-  });
+	// console.log(`MiniBoard called`);
 
-  return <Grid>{board}</Grid>;
+
+		useEffect(() => {
+			socket.on('shade', (shades: IShadow[]) => {
+			let board: JSX.Element[][] = [];
+
+				shades.forEach(shade => {
+					board = Object.entries(shade.board).map((row) => {
+            return row[1].map((cell) => (
+              <GridItem
+                style={{ background: colors[cell] }}
+                key={`cell-${index++}`}
+              >
+                <span>{cell}</span>
+              </GridItem>
+            ));
+          });
+				})
+				if (board.length < 1) {
+					return ;
+				}
+				setShades(board);
+			});
+    }, []);
+
+  return <Grid>{shades}</Grid>;
+
+	  // return (
+    //   <>
+    //     {shades.map((shade) => (
+    //       <Col>
+    //         <Grid>{shade}</Grid>
+    //       </Col>
+    //     ))}
+    //   </>
+    // );
 };
 
 export default MiniBoard;
