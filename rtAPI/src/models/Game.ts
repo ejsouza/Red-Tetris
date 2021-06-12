@@ -94,18 +94,6 @@ export class Game {
     this.io.sockets
       .to(player.socketId)
       .emit('nextPiece', player.nextPiece.shift());
-
-    /**
-     * Probably this copy is not necessary
-     * can just send the board to all the other players
-     */
-    // for (let row = 0; row < BOARD_HEIGHT; row++) {
-    //   for (let col = 0; col < BOARD_WIDTH; col++) {
-    //     player.board.shape[row][col] = board[row][col];
-    //   }
-    // }
-
-    // this.io.to(id).emit('boardShadow', player.board.shape);
   };
 
   initializePlayers = (room: IRoom[]): void => {
