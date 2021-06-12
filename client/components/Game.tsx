@@ -48,6 +48,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   const [toggle, setToggle] = useState(false);
 
   const useInterval = (callback: ICallback, delay: number) => {
+    // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
     const savedCallback = useRef<ICallback | null>();
 
     // Remember the latest callback.
