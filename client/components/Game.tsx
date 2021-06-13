@@ -75,6 +75,15 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       return;
     }
     if (isYPlusOneFree(map, piece)) {
+      /**
+       * IMMUTABILITY
+       * Maybe instead of mutating the map every time
+       * could be better have a blanc map (i.e) a map set to zero
+       * and instead of calling cleanPieceFromBoard()
+       * setMap([mapZeroed])
+       * so in another places I can just call
+       * ...mapZeroed to create a copy
+       */
       cleanPieceFromBoard(map, piece);
       piece.pos.forEach((pos) => {
         pos.y++;
