@@ -88,11 +88,24 @@ export const InfoGame = (props: IProps) => {
 
   useEffect(() => {
     socket.on('arrayOfPlayers', (shadows: IShadow[]) => {
+      /**
+       * Need to use the object (or array) spread operator when
+       * updating deeply-nested items within state
+       * (anything deeper than the first level).
+       */
       setShadows([...shadows]);
     });
   }, []);
 
   useEffect(() => {
+    /**
+     * Rethink this logic
+     * React components will re-render whenever their parent re-render
+     * or whenever you change their state with 'setState'
+     *
+     * For setPlayers() to work here I need to create a copy of the object
+     * (Immutability)
+     */
     socket.on('player', (player: IShadow) => {
       if (players.length === 0) {
         players.push(player);
