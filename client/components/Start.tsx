@@ -40,11 +40,11 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
 	const startGame = () => {
 		socket.emit('start', { name: gameName });
 	}
+
   useEffect(() => {
     socket.emit('getLobby', gameName);
     socket.on('lobby', (lobby: IRoom) => {
       setGame(lobby);
-      console.log(`lobby ? ${lobby}`);
     });
   }, []);
 
