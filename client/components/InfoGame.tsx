@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { connect } from 'react-redux';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -83,6 +84,7 @@ export const InfoGame = (props: IProps) => {
   useEffect(() => {
     socket.on('shaddy', () => {
       socket.emit('getArrayOfPlayers', props.game, props.player);
+      // console.log(`HAVE ACCESS TO STORE HERE? ${state.}`);
     });
   }, []);
 
