@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import redux, { createStore } from 'redux';
+import { connect, Provider } from 'react-redux';
 import { useRouter } from 'next/router';
 import io from 'socket.io-client';
 import Layout from '../components/Layout';
@@ -19,7 +21,41 @@ interface IRoom {
   players: Array<string>;
 }
 
+interface IActions {
+  type: string;
+  playload: string;
+}
 
+/**
+ * REDUX
+ */
+
+// const initialState = {
+//   count: 0,
+// };
+
+// /**
+//  * REDUCER FUNCTION LOGIC STEPS (reducers must make immutable updates)
+//  * ● Check to see if the reducer cares about this action
+//  *  ￮ If so, make a copy of the state, update the copy with new values, and return it
+//  * ● Otherwise, return the existing state unchanged
+//  */
+
+// const reducer = (state = initialState, action: IActions) => {
+//   // Check to see if the reducer cares about this action
+//   if (action.type === 'INCREMENT') {
+//     // If so, make a copy of `state`
+//     return {
+//       ...state,
+//       // and update the copy with the new value
+//       count: state.count + 1,
+//     };
+//   }
+//   // otherwise return the existing state unchanged
+//   return state;
+// };
+
+// const store = createStore(reducer);
 
 const Index = () => {
 
