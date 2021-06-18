@@ -1,4 +1,6 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { useAppSelector } from '../store/hooks';
 import styled, { createGlobalStyle, css } from 'styled-components';
 
 const sizeOfGrid = 10;
@@ -39,7 +41,8 @@ const GridItem = styled.div`
   }
 `;
 
-const BoardGame = (props: number[][]) => {
+
+const BoardGame = () => {
   let index = 0;
   const colors = [
     '',
@@ -52,8 +55,12 @@ const BoardGame = (props: number[][]) => {
     '#48EFEC',
     '#FC03db',
   ];
+
+  // const b: number[][] = useSelector((state) => state.board);
+  const b: number[][] = useAppSelector((state) => state.board);
+  // console.log(`BoardGame := ${b}`);
   // console.table(props);
-  const board = Object.entries(props).map((row) => {
+  const board = Object.entries(b).map((row) => {
     return row[1].map((cell) => (
       <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
         <span>{cell}</span>
