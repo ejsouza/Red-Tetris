@@ -9,6 +9,11 @@ export type User = {
   name: string
 }
 
+interface IShadow {
+  player: string;
+  board: number[][];
+}
+
 interface IPiece {
   pos: { x: number; y: number }[];
   width: number;
@@ -17,4 +22,11 @@ interface IPiece {
   still: boolean;
 }
 
-export type { IPiece };
+interface IInitialState {
+  board: number[][];
+  piece: IPiece;
+  nextPiece: IPiece;
+  shadows: IShadow[];
+}
+
+export type { IPiece, IInitialState };
