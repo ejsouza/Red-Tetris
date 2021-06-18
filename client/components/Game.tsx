@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { connect, useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import BoardGame from './BoardGame';
 import { InfoGame } from './InfoGame';
 import styled from 'styled-components';
@@ -40,12 +42,32 @@ interface IGameProps {
   playerName: string;
 }
 
+interface IShadow {
+  player: string;
+  board: number[][];
+}
+
+interface IInitialState {
+  board: number[][];
+  piece: IPiece;
+  nextPiece: IPiece;
+  shadows: IShadow[];
+}
+
 const Game = ({ gameName, playerName }: IGameProps) => {
   const [map, setMap] = useState<number[][]>();
   const [piece, setPiece] = useState<IPiece>();
   const [nextPiece, setNextPiece] = useState<IPiece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
+  // const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+
+  const board = useAppSelector((state) => state.board);
+  const pc = useAppSelector((state) => state.piece);
+  const nxtpc = useAppSelector((state) => state.nextPiece);
+
+  // console.log(`?? ${b}`);
 
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
@@ -84,13 +106,17 @@ const Game = ({ gameName, playerName }: IGameProps) => {
        * so in another places I can just call
        * ...mapZeroed to create a copy
        */
-      cleanPieceFromBoard(map, piece);
+      // cleanPieceFromBoard(map, piece);
       piece.pos.forEach((pos) => {
         pos.y++;
         map[pos.y][pos.x] = piece.color;
       });
       setPiece(piece);
-      setMap([...map]);
+      // setMap([...map]);
+      // setMap([...board]);
+      dispatch({ type: 'PIECE/UPDATED', payload: piece });
+      dispatch({ type: 'BOARD/UPDATED', payload: map });
+      setMap([...board]);
     } else {
       if (isGameOver(map, nextPiece)) {
         piece.still = true;
@@ -98,6 +124,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         setDelay(0);
         // Be careful
         socket.emit('gameOver', { gameName, playerName, map, piece });
+        dispatch({ type: 'PIECE/UPDATED', payload: piece });
+        dispatch({ type: 'BOARD/UPDATED', payload: map });
       } else {
         if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
@@ -110,6 +138,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: IPiece) => {
+      dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
       setNextPiece(nextPiece);
     });
   }, []);
@@ -120,7 +149,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       if (map) {
         // TODO Check if player is still in game before applying penalty
         penalty(map);
-        setMap([...map]);
+        // setMap([...map]);
+        setMap([...board]);
+        dispatch({ type: 'BOARD/UPDATED', payload: map });
       }
     });
   }, [toggle]);
@@ -128,10 +159,16 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   useEffect(() => {
     socket.on(
       'newMap',
-      (board: number[][], piece: IPiece, nextPiece: IPiece) => {
-        setMap(board);
+      (map: number[][], piece: IPiece, nextPiece: IPiece) => {
+        setMap(map);
         setPiece(piece);
         setNextPiece(nextPiece);
+        dispatch({ type: 'BOARD/UPDATED', payload: map });
+        dispatch({ type: 'PIECE/UPDATED', payload: piece });
+        dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
+        //  setMap(board);
+        //  setPiece(pc);
+        //  setNextPiece(nxtpc);
         /**
          * setToggle() is called here because otherwise map will be undefined
          * in the first penalty
@@ -175,7 +212,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     <>
       <Container>
         <Section>
-          <BoardGame {...map} />
+          <BoardGame />
         </Section>
         <Section>
           <InfoGame
@@ -189,6 +226,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       </Container>
     </>
   );
-};
+};;
 
-export default Game;
+export default connect()(Game);
