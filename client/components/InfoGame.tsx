@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { connect } from 'react-redux';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -73,13 +74,21 @@ export const InfoGame = (props: IProps) => {
   const [shadows, setShadows] = useState<IShadow[]>([]);
   const [shades, setShades] = useState<JSX.Element[][][]>([]);
   const [players, setPlayers] = useState<IShadow[]>([]);
-	// const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
- 	let key = 0;
-	 
+  // const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
+  let key = 0;
+	const dispatch = useAppDispatch();
+
+  const pc = useAppSelector((state) => state.piece);
+
+  // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
+
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
   });
 
+  // pc.pos.forEach((pos) => {
+  //   piece[pos.y][pos.x] = props.piece.color;
+  // });
 
   useEffect(() => {
     socket.on('shaddy', () => {
@@ -96,6 +105,7 @@ export const InfoGame = (props: IProps) => {
        * (anything deeper than the first level).
        */
       setShadows([...shadows]);
+			dispatch({ type: 'SHADOWS/UPDATED', payload: shadows });
     });
   }, []);
 
@@ -149,7 +159,6 @@ export const InfoGame = (props: IProps) => {
       }
       setShades(board);
     }
-        
   }, [shadows]);
 
   return (
@@ -166,7 +175,7 @@ export const InfoGame = (props: IProps) => {
                 {piece.map((row) =>
                   row.map((cell) => (
                     <GridItem
-                      style={{ background:COLORS_WITH_WHITE[cell] }}
+                      style={{ background: COLORS_WITH_WHITE[cell] }}
                       key={`shaddy-next-piece-${key++}-${props.player}`}
                     >
                       <span>{cell}</span>
@@ -189,8 +198,8 @@ export const InfoGame = (props: IProps) => {
                 <Grid>{shade}</Grid>
               </Col>
             ))}
-        </Row> 
+        </Row>
       </Container>
     </>
   );
-};
+};;;;
