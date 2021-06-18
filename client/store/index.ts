@@ -4,26 +4,30 @@ import redux, { createStore, applyMiddleware } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE } from '../utils/const';
+import { IPiece } from '../interfaces/index';
 
-interface IActions {
-  type: string;
-  playload: string;
+
+interface IShadow {
+  player: string;
+  board: number[][];
 }
 
 interface IInitialState {
-  lastUpdate: number;
-  light: boolean;
-  count: number;
+  board: number[][];
+  piece: IPiece;
+  nextPiece: IPiece;
+  shadows: IShadow[];
 }
 
 let store: redux.Store | undefined;
 
-const initialState = {
+const initialState: IInitialState = {
   board: Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0)),
   piece: EMPTY_PIECE[0],
   nextPiece: EMPTY_PIECE[0],
   shadows: [],
 };
+
 
 const reducer = (state = initialState, action: any) => {
   switch (action.type) {
@@ -32,20 +36,20 @@ const reducer = (state = initialState, action: any) => {
         ...state,
         board: action.payload,
       };
-    case 'PIECE':
+    case 'PIECE/UPDATED':
       return {
         ...state,
-        piece: action.piece,
+        piece: action.payload,
       };
-    case 'NEXT_PIECE':
+    case 'NEXT_PIECE/UPDATED':
       return {
         ...state,
-        nextPiece: action.nextPiece,
+        nextPiece: action.payload,
       };
-    case 'SHADOWS':
+    case 'SHADOWS/UPDATED':
       return {
         ...state,
-        shadows: action.shadows,
+        shadows: action.payload,
       };
     default:
       return state;
@@ -57,6 +61,10 @@ const configStore = configureStore({
     reducer: reducer,
   },
 });
+
+export type RootState = ReturnType<typeof configStore.getState>;
+
+export type AppDispatch = typeof configStore.dispatch;
 
 const initStore = (preloadedState = initialState) => {
   return createStore(
