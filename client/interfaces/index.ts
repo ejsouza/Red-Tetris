@@ -29,4 +29,8 @@ interface IInitialState {
   shadows: IShadow[];
 }
 
-export type { IPiece, IInitialState };
+interface IBoard {
+  board: number[][];
+}
+
+export type { IPiece, IInitialState, IBoard, IShadow };
