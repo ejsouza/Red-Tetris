@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { selectPiece } from '../features/piece/pieceSlice';
+import { RootState } from '../store';
 import { connect } from 'react-redux';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -76,7 +78,7 @@ export const InfoGame = (props: IProps) => {
   const [players, setPlayers] = useState<IShadow[]>([]);
   // const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
   let key = 0;
-	const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
 
   const pc = useAppSelector((state) => state.piece);
 
@@ -85,10 +87,6 @@ export const InfoGame = (props: IProps) => {
   props.piece.pos.forEach((pos) => {
     piece[pos.y][pos.x] = props.piece.color;
   });
-
-  // pc.pos.forEach((pos) => {
-  //   piece[pos.y][pos.x] = props.piece.color;
-  // });
 
   useEffect(() => {
     socket.on('shaddy', () => {
@@ -105,7 +103,7 @@ export const InfoGame = (props: IProps) => {
        * (anything deeper than the first level).
        */
       setShadows([...shadows]);
-			dispatch({ type: 'SHADOWS/UPDATED', payload: shadows });
+      dispatch({ type: 'SHADOWS/UPDATED', payload: shadows });
     });
   }, []);
 
