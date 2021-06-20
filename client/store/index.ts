@@ -1,16 +1,10 @@
 // https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js
 import { useMemo } from 'react';
-import redux, { createStore, applyMiddleware } from 'redux';
+import redux, { createStore, applyMiddleware, combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE } from '../utils/const';
-import { IPiece } from '../interfaces/index';
-
-
-interface IShadow {
-  player: string;
-  board: number[][];
-}
+import { IPiece, IBoard, IShadow } from '../interfaces/';
 
 interface IInitialState {
   board: number[][];
@@ -18,6 +12,8 @@ interface IInitialState {
   nextPiece: IPiece;
   shadows: IShadow[];
 }
+
+const boardInitialState: number[][] = [];
 
 let store: redux.Store | undefined;
 
@@ -28,24 +24,60 @@ const initialState: IInitialState = {
   shadows: [],
 };
 
+interface IBoardAction {
+	type: string;
+	payload?: number[][];
+}
 
-const reducer = (state = initialState, action: any) => {
-  switch (action.type) {
+interface IPieceAction {
+  type: string;
+  payload?: IPiece;
+}
+
+interface IShadowAction {
+	type: string;
+	payload?: IShadow[];
+}
+
+
+const boardReducer = (state = boardInitialState, action: IBoardAction) => {
+	switch (action.type) {
     case 'BOARD/UPDATED':
       return {
         ...state,
         board: action.payload,
       };
-    case 'PIECE/UPDATED':
-      return {
-        ...state,
-        piece: action.payload,
-      };
+    default:
+			return state
+  }
+}
+
+const pieceReducer = (state = EMPTY_PIECE[0], action: IPieceAction) => {
+		switch (action.type) {
+      case 'PIECE/UPDATED':
+        return {
+          ...state,
+          piece: action.payload,
+        };
+      default:
+        return state;
+    }
+}
+
+const nextPieceReducer = (state = [EMPTY_PIECE[0]], action: IPieceAction) => {
+  switch (action.type) {
     case 'NEXT_PIECE/UPDATED':
       return {
         ...state,
         nextPiece: action.payload,
       };
+    default:
+      return state;
+  }
+};
+
+const shadowsReducer = (state = [], action: IShadowAction) => {
+  switch (action.type) {
     case 'SHADOWS/UPDATED':
       return {
         ...state,
@@ -56,9 +88,16 @@ const reducer = (state = initialState, action: any) => {
   }
 };
 
+const rootReducer = combineReducers({
+	board: boardReducer,
+	piece: pieceReducer,
+	nextPiece: nextPieceReducer,
+	shadows: shadowsReducer,
+})
+
 const configStore = configureStore({
   reducer: {
-    reducer: reducer,
+   rootReducer
   },
 });
 
@@ -68,7 +107,7 @@ export type AppDispatch = typeof configStore.dispatch;
 
 const initStore = (preloadedState = initialState) => {
   return createStore(
-    reducer,
+  	rootReducer,
     preloadedState,
     composeWithDevTools(applyMiddleware())
   );
