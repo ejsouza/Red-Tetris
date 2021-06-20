@@ -22,6 +22,19 @@ const EMPTY_PIECE = [
   },
 ];
 
+const EMPTY_PIECE2 = {
+  pos: [
+    { x: 0, y: 0 },
+    { x: 0, y: 0 },
+    { x: 0, y: 0 },
+    { x: 0, y: 0 },
+  ],
+  width: 0,
+  height: 0,
+  color: 0,
+  still: false,
+};
+
 export interface IPiece {
   pos: { x: number; y: number }[];
   width: number;
@@ -63,6 +76,7 @@ export {
   BOARD_HEIGHT,
   BOARD_WIDTH,
   EMPTY_PIECE,
+  EMPTY_PIECE2,
   COLORS_WITH_WHITE,
   BOARD_COLORS,
 };
