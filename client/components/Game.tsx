@@ -63,12 +63,10 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   // const dispatch = useDispatch();
   const dispatch = useAppDispatch();
 
-  const board = useAppSelector((state) => state.board);
-  const pc = useAppSelector((state) => state.piece);
-  const nxtpc = useAppSelector((state) => state.nextPiece);
-
-  // console.log(`?? ${b}`);
-
+  // const board = useAppSelector((state) => state.board);
+  // const p = useAppSelector((store) => store.piece);
+  // const pc = useAppSelector((state) => state.piece);
+  // const nxtpc = useAppSelector((state) => state.nextPiece);
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
     const savedCallback = useRef<ICallback | null>();
@@ -112,11 +110,11 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         map[pos.y][pos.x] = piece.color;
       });
       setPiece(piece);
-      // setMap([...map]);
+      setMap([...map]);
       // setMap([...board]);
-      dispatch({ type: 'PIECE/UPDATED', payload: piece });
+      // dispatch({ type: 'PIECE/UPDATED', payload: piece });
       dispatch({ type: 'BOARD/UPDATED', payload: map });
-      setMap([...board]);
+      // setMap([...board]);
     } else {
       if (isGameOver(map, nextPiece)) {
         piece.still = true;
@@ -124,8 +122,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         setDelay(0);
         // Be careful
         socket.emit('gameOver', { gameName, playerName, map, piece });
-        dispatch({ type: 'PIECE/UPDATED', payload: piece });
-        dispatch({ type: 'BOARD/UPDATED', payload: map });
+        // dispatch({ type: 'PIECE/UPDATED', payload: piece });
+        // dispatch({ type: 'BOARD/UPDATED', payload: map });
       } else {
         if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
@@ -149,33 +147,30 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       if (map) {
         // TODO Check if player is still in game before applying penalty
         penalty(map);
-        // setMap([...map]);
-        setMap([...board]);
-        dispatch({ type: 'BOARD/UPDATED', payload: map });
+        setMap([...map]);
+        // setMap([...board]);
+        // dispatch({ type: 'BOARD/UPDATED', payload: map });
       }
     });
   }, [toggle]);
 
   useEffect(() => {
-    socket.on(
-      'newMap',
-      (map: number[][], piece: IPiece, nextPiece: IPiece) => {
-        setMap(map);
-        setPiece(piece);
-        setNextPiece(nextPiece);
-        dispatch({ type: 'BOARD/UPDATED', payload: map });
-        dispatch({ type: 'PIECE/UPDATED', payload: piece });
-        dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
-        //  setMap(board);
-        //  setPiece(pc);
-        //  setNextPiece(nxtpc);
-        /**
-         * setToggle() is called here because otherwise map will be undefined
-         * in the first penalty
-         */
-        setToggle(!toggle);
-      }
-    );
+    socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
+      setMap(map);
+      setPiece(piece);
+      setNextPiece(nextPiece);
+      dispatch({ type: 'BOARD/UPDATED', payload: map });
+      // dispatch({ type: 'PIECE/UPDATED', payload: piece });
+      // dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
+      //  setMap(board);
+      //  setPiece(pc);
+      //  setNextPiece(nxtpc);
+      /**
+       * setToggle() is called here because otherwise map will be undefined
+       * in the first penalty
+       */
+      setToggle(!toggle);
+    });
   }, []);
 
   const handleKeyDown = (e: any) => {
@@ -212,7 +207,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     <>
       <Container>
         <Section>
-          <BoardGame />
+          <BoardGame b={map} />
         </Section>
         <Section>
           <InfoGame
@@ -226,6 +221,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       </Container>
     </>
   );
-};;
+};;;
 
+// export default Game;
 export default connect()(Game);
