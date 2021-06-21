@@ -11,7 +11,6 @@ import { IPiece } from '../interfaces';
 import BoardGame from './BoardGame';
 import MiniBoard from './MiniBoard';
 import socket from '../utils/socket';
-import NextPiece from './NextPiece';
 import { COLORS_WITH_WHITE, BOARD_COLORS } from '../utils/const';
 
 const sizeOfGrid = 10;
@@ -81,6 +80,7 @@ export const InfoGame = (props: IProps) => {
   const dispatch = useAppDispatch();
 
   const pc = useAppSelector((state) => state.piece);
+  const border = useAppSelector((state) => state.board);
 
   // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
 
