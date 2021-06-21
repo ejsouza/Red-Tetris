@@ -42,7 +42,11 @@ const GridItem = styled.div`
 `;
 
 
-const BoardGame = () => {
+interface IProps {
+  b: number[][];
+}
+
+const BoardGame = (props: IProps) => {
   let index = 0;
   const colors = [
     '',
@@ -57,10 +61,10 @@ const BoardGame = () => {
   ];
 
   // const b: number[][] = useSelector((state) => state.board);
-  const b: number[][] = useAppSelector((state) => state.board);
-  // console.log(`BoardGame := ${b}`);
+  const b = useAppSelector((state) => state.board);
+  console.log(`BoardGame := ${b} - ${typeof b}`);
   // console.table(props);
-  const board = Object.entries(b).map((row) => {
+  const board = Object.entries(props.b).map((row) => {
     return row[1].map((cell) => (
       <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
         <span>{cell}</span>
