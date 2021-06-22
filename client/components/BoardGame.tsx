@@ -61,10 +61,8 @@ const BoardGame = (props: IProps) => {
   ];
 
   // const b: number[][] = useSelector((state) => state.board);
-  const b = useAppSelector((state) => state.board);
-  console.log(`BoardGame := ${b} - ${typeof b}`);
-  // console.table(props);
-  const board = Object.entries(props.b).map((row) => {
+  const boardState = useAppSelector((state) => state.board);
+  const board = Object.entries(boardState).map((row) => {
     return row[1].map((cell) => (
       <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
         <span>{cell}</span>
