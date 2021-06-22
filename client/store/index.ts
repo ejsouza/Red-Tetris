@@ -2,103 +2,96 @@
 import { useMemo } from 'react';
 import redux, { createStore, applyMiddleware, combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
+import thunkMiddleware from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import { BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE } from '../utils/const';
+import {
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  EMPTY_PIECE,
+  BOARD_UPDATED,
+  PIECE_UPDATED,
+  NEXT_PIECE_UPDATED,
+  SHADOWS_UPDATED,
+} from '../utils/const';
 import { IPiece, IBoard, IShadow } from '../interfaces/';
-
-interface IInitialState {
-  board: number[][];
-  piece: IPiece;
-  nextPiece: IPiece;
-  shadows: IShadow[];
-}
-
-const boardInitialState: number[][] = [];
 
 let store: redux.Store | undefined;
 
-const initialState: IInitialState = {
-  board: Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0)),
+const intialShadows: IShadow[] = [];
+
+const initialState = {
+  board: <number[][]>(
+    Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0))
+  ),
   piece: EMPTY_PIECE[0],
   nextPiece: EMPTY_PIECE[0],
-  shadows: [],
+  shadows: intialShadows,
 };
 
-interface IBoardAction {
-	type: string;
-	payload?: number[][];
-}
+const updateBoard = (board: number[][]) => {
+  return <const>{
+    type: BOARD_UPDATED,
+    board,
+  };
+};
 
-interface IPieceAction {
-  type: string;
-  payload?: IPiece;
-}
+const updatePiece = (piece: IPiece) => {
+  return <const>{
+    type: PIECE_UPDATED,
+    piece,
+  };
+};
 
-interface IShadowAction {
-	type: string;
-	payload?: IShadow[];
-}
+const updateNextPiece = (nextPiece: IPiece) => {
+  return <const>{
+    type: NEXT_PIECE_UPDATED,
+    nextPiece,
+  };
+};
 
+const updateShadows = (shadows: IShadow[]) => {
+  return <const>{
+    type: SHADOWS_UPDATED,
+    shadows,
+  };
+};
 
-const boardReducer = (state = boardInitialState, action: IBoardAction) => {
-	switch (action.type) {
-    case 'BOARD/UPDATED':
-      return {
-        ...state,
-        board: action.payload,
-      };
-    default:
-			return state
-  }
-}
-
-const pieceReducer = (state = EMPTY_PIECE[0], action: IPieceAction) => {
-		switch (action.type) {
-      case 'PIECE/UPDATED':
-        return {
-          ...state,
-          piece: action.payload,
-        };
-      default:
-        return state;
-    }
-}
-
-const nextPieceReducer = (state = [EMPTY_PIECE[0]], action: IPieceAction) => {
+type ActionsType = ReturnType<
+  | typeof updateBoard
+  | typeof updatePiece
+  | typeof updateNextPiece
+  | typeof updateShadows
+>;
+type State = typeof initialState;
+const reducer = (state = initialState, action: ActionsType): State => {
   switch (action.type) {
-    case 'NEXT_PIECE/UPDATED':
+    case BOARD_UPDATED:
       return {
         ...state,
-        nextPiece: action.payload,
+        board: action.board,
+      };
+    case PIECE_UPDATED:
+      return {
+        ...state,
+        piece: action.piece,
+      };
+    case NEXT_PIECE_UPDATED:
+      return {
+        ...state,
+        nextPiece: action.nextPiece,
+      };
+    case SHADOWS_UPDATED:
+      return {
+        ...state,
+        shadows: action.shadows,
       };
     default:
       return state;
   }
 };
-
-const shadowsReducer = (state = [], action: IShadowAction) => {
-  switch (action.type) {
-    case 'SHADOWS/UPDATED':
-      return {
-        ...state,
-        shadows: action.payload,
-      };
-    default:
-      return state;
-  }
-};
-
-const rootReducer = combineReducers({
-	board: boardReducer,
-	piece: pieceReducer,
-	nextPiece: nextPieceReducer,
-	shadows: shadowsReducer,
-})
 
 const configStore = configureStore({
-  reducer: {
-   rootReducer
-  },
+  reducer: reducer,
 });
 
 export type RootState = ReturnType<typeof configStore.getState>;
@@ -107,7 +100,7 @@ export type AppDispatch = typeof configStore.dispatch;
 
 const initStore = (preloadedState = initialState) => {
   return createStore(
-  	rootReducer,
+    reducer,
     preloadedState,
     composeWithDevTools(applyMiddleware())
   );
