@@ -22,18 +22,6 @@ const EMPTY_PIECE = [
   },
 ];
 
-const EMPTY_PIECE2 = {
-  pos: [
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-  ],
-  width: 0,
-  height: 0,
-  color: 0,
-  still: false,
-};
 
 export interface IPiece {
   pos: { x: number; y: number }[];
@@ -71,12 +59,20 @@ const BOARD_COLORS = [
   '#FC03db',
 ];
 
+const BOARD_UPDATED = 'BOARD/UPDATED';
+const PIECE_UPDATED = 'PIECE/UPDATED';
+const NEXT_PIECE_UPDATED = 'NEXT_PIECE/UPDATED';
+const SHADOWS_UPDATED = 'SHADOWS/UPDATED';
+
 export {
   BLOCKED_ROW,
   BOARD_HEIGHT,
   BOARD_WIDTH,
   EMPTY_PIECE,
-  EMPTY_PIECE2,
   COLORS_WITH_WHITE,
   BOARD_COLORS,
+  BOARD_UPDATED,
+  PIECE_UPDATED,
+  NEXT_PIECE_UPDATED,
+  SHADOWS_UPDATED,
 };
