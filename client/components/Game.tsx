@@ -17,6 +17,11 @@ import {
   penalty,
   writeAsMuchAsPossibleToBoard,
 } from '../core/gameEngine';
+import {
+  BOARD_UPDATED,
+  PIECE_UPDATED,
+  NEXT_PIECE_UPDATED,
+} from '../utils/const';
 import { IPiece } from '../interfaces';
 
 const Container = styled.div`
@@ -60,13 +65,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   const [nextPiece, setNextPiece] = useState<IPiece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
-  // const dispatch = useDispatch();
   const dispatch = useAppDispatch();
 
-  // const board = useAppSelector((state) => state.board);
-  // const p = useAppSelector((store) => store.piece);
-  // const pc = useAppSelector((state) => state.piece);
-  // const nxtpc = useAppSelector((state) => state.nextPiece);
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
     const savedCallback = useRef<ICallback | null>();
@@ -112,8 +112,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setPiece(piece);
       setMap([...map]);
       // setMap([...board]);
-      // dispatch({ type: 'PIECE/UPDATED', payload: piece });
-      dispatch({ type: 'BOARD/UPDATED', payload: map });
+      dispatch({ type: PIECE_UPDATED, piece: piece });
+      dispatch({ type: BOARD_UPDATED, board: map });
       // setMap([...board]);
     } else {
       if (isGameOver(map, nextPiece)) {
@@ -122,8 +122,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         setDelay(0);
         // Be careful
         socket.emit('gameOver', { gameName, playerName, map, piece });
-        // dispatch({ type: 'PIECE/UPDATED', payload: piece });
-        // dispatch({ type: 'BOARD/UPDATED', payload: map });
+        dispatch({ type: PIECE_UPDATED, piece: piece });
+        dispatch({ type: BOARD_UPDATED, board: map });
       } else {
         if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
@@ -136,7 +136,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: IPiece) => {
-      dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
+      dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
       setNextPiece(nextPiece);
     });
   }, []);
@@ -149,7 +149,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         penalty(map);
         setMap([...map]);
         // setMap([...board]);
-        // dispatch({ type: 'BOARD/UPDATED', payload: map });
+        dispatch({ type: BOARD_UPDATED, board: map });
       }
     });
   }, [toggle]);
@@ -159,12 +159,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setMap(map);
       setPiece(piece);
       setNextPiece(nextPiece);
-      dispatch({ type: 'BOARD/UPDATED', payload: map });
-      // dispatch({ type: 'PIECE/UPDATED', payload: piece });
-      // dispatch({ type: 'NEXT_PIECE/UPDATED', payload: nextPiece });
-      //  setMap(board);
-      //  setPiece(pc);
-      //  setNextPiece(nxtpc);
+      dispatch({ type: BOARD_UPDATED, board: map });
+      dispatch({ type: PIECE_UPDATED, piece: piece });
+      dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
       /**
        * setToggle() is called here because otherwise map will be undefined
        * in the first penalty
