@@ -7,11 +7,15 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import styled from 'styled-components';
-import { IPiece } from '../interfaces';
+import { IPiece, IShadow } from '../interfaces';
 import BoardGame from './BoardGame';
 import MiniBoard from './MiniBoard';
 import socket from '../utils/socket';
-import { COLORS_WITH_WHITE, BOARD_COLORS } from '../utils/const';
+import {
+  COLORS_WITH_WHITE,
+  BOARD_COLORS,
+  SHADOWS_UPDATED,
+} from '../utils/const';
 
 const sizeOfGrid = 10;
 const Grid = styled.div`
@@ -61,11 +65,6 @@ interface IPlayer {
   score: number;
 }
 
-interface IShadow {
-		player: string;
-		board: number[][];
-}
-
 const Parent = styled.div`
   max-width: 308px;
 `;
@@ -103,7 +102,7 @@ export const InfoGame = (props: IProps) => {
        * (anything deeper than the first level).
        */
       setShadows([...shadows]);
-      dispatch({ type: 'SHADOWS/UPDATED', payload: shadows });
+      dispatch({ type: SHADOWS_UPDATED, shadows: shadows });
     });
   }, []);
 
@@ -200,4 +199,4 @@ export const InfoGame = (props: IProps) => {
       </Container>
     </>
   );
-};;;;
+};
