@@ -60,12 +60,14 @@ interface IInitialState {
 }
 
 const Game = ({ gameName, playerName }: IGameProps) => {
-  const [map, setMap] = useState<number[][]>();
-  const [piece, setPiece] = useState<IPiece>();
+  // const [map, setMap] = useState<number[][]>();
+  // const [piece, setPiece] = useState<IPiece>();
   const [nextPiece, setNextPiece] = useState<IPiece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
   const dispatch = useAppDispatch();
+  const boardState = useAppSelector((state) => state.board);
+  const pieceState = useAppSelector((state) => state.piece);
 
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
@@ -90,11 +92,18 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }, [delay]);
   };
 
+
   useInterval(() => {
-    if (!map || !piece || !nextPiece) {
-      return;
-    }
-    if (isYPlusOneFree(map, piece)) {
+      const copyPiece: IPiece = Object.create(pieceState);
+
+    // if (!map || !piece || !nextPiece) {
+    //   return;
+    // }
+      if (!nextPiece) {
+        return;
+      }
+    // if (isYPlusOneFree(map, piece)) {
+    if (isYPlusOneFree(boardState, pieceState)) {
       /**
        * IMMUTABILITY
        * Maybe instead of mutating the map every time
@@ -105,31 +114,44 @@ const Game = ({ gameName, playerName }: IGameProps) => {
        * ...mapZeroed to create a copy
        */
       // cleanPieceFromBoard(map, piece);
-      piece.pos.forEach((pos) => {
+      copyPiece.pos.forEach((pos) => {
         pos.y++;
-        map[pos.y][pos.x] = piece.color;
+        // map[pos.y][pos.x] = piece.color;
+        boardState[pos.y][pos.x] = pieceState.color;
       });
-      setPiece(piece);
-      setMap([...map]);
+      // setPiece(piece);
+      // setMap([...map]);
       // setMap([...board]);
-      dispatch({ type: PIECE_UPDATED, piece: piece });
-      dispatch({ type: BOARD_UPDATED, board: map });
+      dispatch({ type: PIECE_UPDATED, piece: copyPiece });
+      // dispatch({ type: BOARD_UPDATED, board: map });
+      dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       // setMap([...board]);
     } else {
-      if (isGameOver(map, nextPiece)) {
-        piece.still = true;
-        writeAsMuchAsPossibleToBoard(map, nextPiece);
+      if (isGameOver(boardState, nextPiece)) {
+      // if (isGameOver(map, nextPiece)) {
+        const copyPiece: IPiece = Object.create(pieceState);
+        copyPiece.still = true;
+        writeAsMuchAsPossibleToBoard(boardState, nextPiece);
         setDelay(0);
         // Be careful
-        socket.emit('gameOver', { gameName, playerName, map, piece });
-        dispatch({ type: PIECE_UPDATED, piece: piece });
-        dispatch({ type: BOARD_UPDATED, board: map });
+        // socket.emit('gameOver', { gameName, playerName, map, piece });
+        socket.emit('gameOver', { gameName, playerName, boardState, copyPiece });
+        dispatch({ type: PIECE_UPDATED, piece: copyPiece });
+        // dispatch({ type: BOARD_UPDATED, board: map });
+        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       } else {
-        if (score(map, piece)) {
+        if (score(boardState, copyPiece)) {
+        // if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
         }
-        updatePiece(map, piece, nextPiece);
-        socket.emit('getNextPiece', { gameName, playerName, map, piece });
+        // updatePiece(map, piece, nextPiece);
+        // updatePiece(boardState, copyPiece, nextPiece);
+        // stopped here *******
+          dispatch({ type: PIECE_UPDATED, piece: nextPiece });
+          dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+
+        // socket.emit('getNextPiece', { gameName, playerName, map, piece });
+        socket.emit('getNextPiece', { gameName, playerName, boardState, copyPiece });
       }
     }
   }, delay);
@@ -144,20 +166,22 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   useEffect(() => {
     socket.on('penalty', () => {
       setToggle(true);
-      if (map) {
+      // const board = useAppSelector((state) => state.board);
+      // if (map) {
         // TODO Check if player is still in game before applying penalty
-        penalty(map);
-        setMap([...map]);
-        // setMap([...board]);
-        dispatch({ type: BOARD_UPDATED, board: map });
-      }
+        // penalty(map);
+        penalty(boardState);
+        // setMap([...map]);
+        // dispatch({ type: BOARD_UPDATED, board: map });
+        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+      // }
     });
   }, [toggle]);
 
   useEffect(() => {
     socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
-      setMap(map);
-      setPiece(piece);
+      // setMap(map);
+      // setPiece(piece);
       setNextPiece(nextPiece);
       dispatch({ type: BOARD_UPDATED, board: map });
       dispatch({ type: PIECE_UPDATED, piece: piece });
@@ -171,23 +195,37 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   }, []);
 
   const handleKeyDown = (e: any) => {
-    if (!piece || !map) {
-      return;
-    }
-
+    // if (!piece || !map) {
+    //   return;
+    // }
+    // const boardState = useAppSelector((state) => state.board);
+    // if (!piece) {
+    //   return;
+    // }
+    const copyPiece: IPiece = Object.create(pieceState);
     if (e.key === 'ArrowLeft') {
-      updateBoard(map, piece, e.keyCode);
+      // updateBoard(map, piece, e.keyCode);
+      // updateBoard(boardState, piece, e.keyCode);
+      updateBoard(boardState, copyPiece, e.keyCode);
     }
     if (e.key === 'ArrowRight') {
-      updateBoard(map, piece, e.keyCode);
+      // updateBoard(map, piece, e.keyCode);
+      // updateBoard(boardState, piece, e.keyCode);
+      updateBoard(boardState, copyPiece, e.keyCode);
     }
     if (e.key === 'ArrowDown') {
-      updateBoard(map, piece, e.keyCode);
+      // updateBoard(map, piece, e.keyCode);
+      // updateBoard(boardState, piece, e.keyCode);
+      updateBoard(boardState, copyPiece, e.keyCode);
     }
     if (e.key === 'ArrowUp') {
-      updateBoard(map, piece, e.keyCode);
+      // updateBoard(map, piece, e.keyCode);
+      // updateBoard(boardState, piece, e.keyCode);
+      updateBoard(boardState, copyPiece, e.keyCode);
     }
-    setMap([...map]);
+    // setMap([...map]);
+     dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+     dispatch({ type: PIECE_UPDATED, piece: copyPiece });
   };
 
   useEffect(() => {
@@ -196,22 +234,24 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [piece]);
+  }, [pieceState]);
 
-  return !map || !nextPiece ? (
+  // return !map || !nextPiece ? (
+  return !nextPiece ? (
     <Loading />
   ) : (
     <>
       <Container>
         <Section>
-          <BoardGame b={map} />
+          {/* <BoardGame b={map} /> */}
+          <BoardGame />
         </Section>
         <Section>
           <InfoGame
             player={playerName}
             game={gameName}
             piece={nextPiece}
-            board={map}
+            // board={map}
           />
           {/* <MiniBoard /> */}
         </Section>
