@@ -46,7 +46,8 @@ interface IProps {
   b: number[][];
 }
 
-const BoardGame = (props: IProps) => {
+const BoardGame = () => {
+  // const BoardGame = (props: IProps) => {
   let index = 0;
   const colors = [
     '',
