@@ -44,9 +44,9 @@ const GridItem = styled.div`
 
 interface IProps {
   player: string;
-	game: string;
+  game: string;
   piece: IPiece;
-  board: number[][];
+  board?: number[][]; // tobe deleted
 }
 
 interface IBoard {
