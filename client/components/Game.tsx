@@ -68,6 +68,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   const dispatch = useAppDispatch();
   const boardState = useAppSelector((state) => state.board);
   const pieceState = useAppSelector((state) => state.piece);
+  const nextPieceState = useAppSelector((state) => state.nextPiece);
 
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
@@ -99,9 +100,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     // if (!map || !piece || !nextPiece) {
     //   return;
     // }
-      if (!nextPiece) {
-        return;
-      }
+      // if (!nextPiece) {
+      //   return;
+      // }
     // if (isYPlusOneFree(map, piece)) {
     if (isYPlusOneFree(boardState, pieceState)) {
       /**
@@ -127,11 +128,11 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       // setMap([...board]);
     } else {
-      if (isGameOver(boardState, nextPiece)) {
+      if (isGameOver(boardState, nextPieceState)) {
       // if (isGameOver(map, nextPiece)) {
         const copyPiece: IPiece = Object.create(pieceState);
         copyPiece.still = true;
-        writeAsMuchAsPossibleToBoard(boardState, nextPiece);
+        writeAsMuchAsPossibleToBoard(boardState, nextPieceState);
         setDelay(0);
         // Be careful
         // socket.emit('gameOver', { gameName, playerName, map, piece });
@@ -147,7 +148,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         // updatePiece(map, piece, nextPiece);
         // updatePiece(boardState, copyPiece, nextPiece);
         // stopped here *******
-          dispatch({ type: PIECE_UPDATED, piece: nextPiece });
+          dispatch({ type: PIECE_UPDATED, piece: nextPieceState }); // ??? is needed ???
           dispatch({ type: BOARD_UPDATED, board: [...boardState] });
 
         // socket.emit('getNextPiece', { gameName, playerName, map, piece });
@@ -236,7 +237,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     };
   }, [pieceState]);
 
-  // return !map || !nextPiece ? (
+  // // return !map || !nextPiece ? (
   return !nextPiece ? (
     <Loading />
   ) : (
