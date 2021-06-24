@@ -70,7 +70,19 @@ const Parent = styled.div`
 `;
 
 export const InfoGame = (props: IProps) => {
-  const piece: number[][] = Array.from({ length: 2 }, () => Array(10).fill(0));
+  const nextPiece: number[][] =  Array.from({ length: 2 }, () =>
+    Array(10).fill(0)
+  );
+
+  let next: number[][] = [];
+
+  for (let x = 0; x < 2; x++) {
+    next[x] = [];
+    for (let y = 0; y < 10; y++) {
+      next[x][y] = 0;
+    }
+  }
+
   const [shadows, setShadows] = useState<IShadow[]>([]);
   const [shades, setShades] = useState<JSX.Element[][][]>([]);
   const [players, setPlayers] = useState<IShadow[]>([]);
@@ -80,12 +92,22 @@ export const InfoGame = (props: IProps) => {
 
   const pc = useAppSelector((state) => state.piece);
   const border = useAppSelector((state) => state.board);
+  const nextPieceState = useAppSelector((state) => state.nextPiece);
 
+  // console.log(`nextPieceState := ${nextPieceState.color}`);
   // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
-
-  props.piece.pos.forEach((pos) => {
-    piece[pos.y][pos.x] = props.piece.color;
+  
+  nextPieceState.pos.forEach((pos) => {
+    next[pos.y][pos.x] = nextPieceState.color;
   });
+
+
+  // if (!nextPiece) {
+  //   console.log('***************/|/*************');
+  // }
+  // nextPieceState.pos.forEach((pos) => {
+  //   nextPiece[pos.y][pos.x] = nextPieceState.color;
+  // });
 
   useEffect(() => {
     socket.on('shaddy', () => {
@@ -169,7 +191,7 @@ export const InfoGame = (props: IProps) => {
             </Row>
             {
               <Grid>
-                {piece.map((row) =>
+                {next.map((row) =>
                   row.map((cell) => (
                     <GridItem
                       style={{ background: COLORS_WITH_WHITE[cell] }}
