@@ -47,22 +47,7 @@ interface IGameProps {
   playerName: string;
 }
 
-interface IShadow {
-  player: string;
-  board: number[][];
-}
-
-interface IInitialState {
-  board: number[][];
-  piece: IPiece;
-  nextPiece: IPiece;
-  shadows: IShadow[];
-}
-
 const Game = ({ gameName, playerName }: IGameProps) => {
-  // const [map, setMap] = useState<number[][]>();
-  // const [piece, setPiece] = useState<IPiece>();
-  const [nextPiece, setNextPiece] = useState<IPiece>();
   const [delay, setDelay] = useState((700 * 60) / 100);
   const [toggle, setToggle] = useState(false);
   const dispatch = useAppDispatch();
@@ -93,17 +78,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }, [delay]);
   };
 
-
   useInterval(() => {
-      const copyPiece: IPiece = Object.create(pieceState);
-
-    // if (!map || !piece || !nextPiece) {
-    //   return;
-    // }
-      // if (!nextPiece) {
-      //   return;
-      // }
-    // if (isYPlusOneFree(map, piece)) {
+    const copyPiece: IPiece = Object.create(pieceState);
+      
     if (isYPlusOneFree(boardState, copyPiece)) {
       /**
        * IMMUTABILITY
@@ -114,23 +91,13 @@ const Game = ({ gameName, playerName }: IGameProps) => {
        * so in another places I can just call
        * ...mapZeroed to create a copy
        */
-      // cleanPieceFromBoard(boardState, copyPiece);
-      // ----- HERE IS WHAT CAUSES THE NEXT PIECE TO GO ONE ROW BELLOW -----
       copyPiece.pos.forEach((pos) => {
-        // map[pos.y][pos.x] = piece.color;
         pos.y++;
         boardState[pos.y][pos.x] = copyPiece.color;
       });
-      
 
-    
-      // setPiece(piece);
-      // setMap([...map]);
-      // setMap([...board]);
       dispatch({ type: PIECE_UPDATED, piece: copyPiece });
-      // dispatch({ type: BOARD_UPDATED, board: map });
       dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-      // setMap([...board]);
     } else {
       if (isGameOver(boardState, nextPieceState)) {
         // if (isGameOver(map, nextPiece)) {
@@ -151,16 +118,14 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       } else {
         if (score(boardState, copyPiece)) {
-          // if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
         }
-        // updatePiece(map, piece, nextPiece);
-        // updatePiece(boardState, copyPiece, nextPiece);
-      
-        dispatch({ type: PIECE_UPDATED, piece: nextPieceState }); // ??? is needed ???
+        dispatch({ type: PIECE_UPDATED, piece: nextPieceState });
+        // Update board here, otherwise piece will appear on second row
+        nextPieceState.pos.forEach((pos) => {
+          boardState[pos.y][pos.x] = nextPieceState.color;
+        });
         dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-
-        // socket.emit('getNextPiece', { gameName, playerName, map, piece });
         socket.emit('getNextPiece', {
           gameName,
           playerName,
@@ -174,7 +139,6 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: IPiece) => {
       dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
-      // setNextPiece(nextPiece);
     });
   }, []);
 
@@ -183,21 +147,18 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       setToggle(true);
       // const board = useAppSelector((state) => state.board);
       // if (map) {
-        // TODO Check if player is still in game before applying penalty
-        // penalty(map);
-        penalty(boardState);
-        // setMap([...map]);
-        // dispatch({ type: BOARD_UPDATED, board: map });
-        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+      // TODO Check if player is still in game before applying penalty
+      // penalty(map);
+      penalty(boardState);
+      // setMap([...map]);
+      // dispatch({ type: BOARD_UPDATED, board: map });
+      dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       // }
     });
   }, [toggle]);
 
   useEffect(() => {
     socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
-      // setMap(map);
-      // setPiece(piece);
-      setNextPiece(nextPiece);
       dispatch({ type: BOARD_UPDATED, board: map });
       dispatch({ type: PIECE_UPDATED, piece: piece });
       dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
@@ -239,8 +200,8 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       updateBoard(boardState, copyPiece, e.keyCode);
     }
     // setMap([...map]);
-     dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-     dispatch({ type: PIECE_UPDATED, piece: copyPiece });
+    dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+    dispatch({ type: PIECE_UPDATED, piece: copyPiece });
   };
 
   useEffect(() => {
@@ -251,29 +212,22 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     };
   }, [pieceState]);
 
-  // // return !map || !nextPiece ? (
-  return !nextPiece ? (
-    <Loading />
-  ) : (
+  return (
     <>
       <Container>
         <Section>
-          {/* <BoardGame b={map} /> */}
           <BoardGame />
         </Section>
         <Section>
           <InfoGame
             player={playerName}
             game={gameName}
-            // piece={nextPiece}
-            // board={map}
           />
-          {/* <MiniBoard /> */}
         </Section>
       </Container>
     </>
   );
-};;;
+};
 
 // export default Game;
 export default connect()(Game);
