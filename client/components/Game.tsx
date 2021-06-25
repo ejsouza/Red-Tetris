@@ -104,7 +104,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       //   return;
       // }
     // if (isYPlusOneFree(map, piece)) {
-    if (isYPlusOneFree(boardState, pieceState)) {
+    if (isYPlusOneFree(boardState, copyPiece)) {
       /**
        * IMMUTABILITY
        * Maybe instead of mutating the map every time
@@ -114,12 +114,16 @@ const Game = ({ gameName, playerName }: IGameProps) => {
        * so in another places I can just call
        * ...mapZeroed to create a copy
        */
-      // cleanPieceFromBoard(map, piece);
+      // cleanPieceFromBoard(boardState, copyPiece);
+      // ----- HERE IS WHAT CAUSES THE NEXT PIECE TO GO ONE ROW BELLOW -----
       copyPiece.pos.forEach((pos) => {
-        pos.y++;
         // map[pos.y][pos.x] = piece.color;
-        boardState[pos.y][pos.x] = pieceState.color;
+        pos.y++;
+        boardState[pos.y][pos.x] = copyPiece.color;
       });
+      
+
+    
       // setPiece(piece);
       // setMap([...map]);
       // setMap([...board]);
@@ -129,30 +133,40 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       // setMap([...board]);
     } else {
       if (isGameOver(boardState, nextPieceState)) {
-      // if (isGameOver(map, nextPiece)) {
+        // if (isGameOver(map, nextPiece)) {
         const copyPiece: IPiece = Object.create(pieceState);
         copyPiece.still = true;
         writeAsMuchAsPossibleToBoard(boardState, nextPieceState);
         setDelay(0);
         // Be careful
         // socket.emit('gameOver', { gameName, playerName, map, piece });
-        socket.emit('gameOver', { gameName, playerName, boardState, copyPiece });
+        socket.emit('gameOver', {
+          gameName,
+          playerName,
+          boardState,
+          copyPiece,
+        });
         dispatch({ type: PIECE_UPDATED, piece: copyPiece });
         // dispatch({ type: BOARD_UPDATED, board: map });
         dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       } else {
         if (score(boardState, copyPiece)) {
-        // if (score(map, piece)) {
+          // if (score(map, piece)) {
           socket.emit('applyPenalty', gameName);
         }
         // updatePiece(map, piece, nextPiece);
         // updatePiece(boardState, copyPiece, nextPiece);
-        // stopped here *******
-          dispatch({ type: PIECE_UPDATED, piece: nextPieceState }); // ??? is needed ???
-          dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+      
+        dispatch({ type: PIECE_UPDATED, piece: nextPieceState }); // ??? is needed ???
+        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
 
         // socket.emit('getNextPiece', { gameName, playerName, map, piece });
-        socket.emit('getNextPiece', { gameName, playerName, boardState, copyPiece });
+        socket.emit('getNextPiece', {
+          gameName,
+          playerName,
+          boardState,
+          copyPiece,
+        });
       }
     }
   }, delay);
@@ -160,7 +174,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   useEffect(() => {
     socket.on('nextPiece', (nextPiece: IPiece) => {
       dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
-      setNextPiece(nextPiece);
+      // setNextPiece(nextPiece);
     });
   }, []);
 
@@ -251,7 +265,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
           <InfoGame
             player={playerName}
             game={gameName}
-            piece={nextPiece}
+            // piece={nextPiece}
             // board={map}
           />
           {/* <MiniBoard /> */}
