@@ -45,8 +45,6 @@ const GridItem = styled.div`
 interface IProps {
   player: string;
   game: string;
-  piece: IPiece;
-  board?: number[][]; // tobe deleted
 }
 
 interface IBoard {
@@ -70,18 +68,9 @@ const Parent = styled.div`
 `;
 
 export const InfoGame = (props: IProps) => {
-  const nextPiece: number[][] =  Array.from({ length: 2 }, () =>
+  const nextPiece: number[][] = Array.from({ length: 2 }, () =>
     Array(10).fill(0)
   );
-
-  let next: number[][] = [];
-
-  for (let x = 0; x < 2; x++) {
-    next[x] = [];
-    for (let y = 0; y < 10; y++) {
-      next[x][y] = 0;
-    }
-  }
 
   const [shadows, setShadows] = useState<IShadow[]>([]);
   const [shades, setShades] = useState<JSX.Element[][][]>([]);
@@ -93,14 +82,20 @@ export const InfoGame = (props: IProps) => {
   const pc = useAppSelector((state) => state.piece);
   const border = useAppSelector((state) => state.board);
   const nextPieceState = useAppSelector((state) => state.nextPiece);
+  const playersBoard = useAppSelector((state) => state.shadows);
+
+  console.log(`got Shadows ${playersBoard} -- ${playersBoard.length}`);
+
+  playersBoard.forEach((player) => console.log(`--?> ${player.player}`));
 
   // console.log(`nextPieceState := ${nextPieceState.color}`);
   // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
-  
-  nextPieceState.pos.forEach((pos) => {
-    next[pos.y][pos.x] = nextPieceState.color;
-  });
 
+  nextPieceState.pos.forEach((pos) => {
+    if (pos.y < 2) {
+      nextPiece[pos.y][pos.x] = nextPieceState.color;
+    }
+  });
 
   // if (!nextPiece) {
   //   console.log('***************/|/*************');
@@ -112,7 +107,6 @@ export const InfoGame = (props: IProps) => {
   useEffect(() => {
     socket.on('shaddy', () => {
       socket.emit('getArrayOfPlayers', props.game, props.player);
-      // console.log(`HAVE ACCESS TO STORE HERE? ${state.}`);
     });
   }, []);
 
@@ -124,7 +118,7 @@ export const InfoGame = (props: IProps) => {
        * (anything deeper than the first level).
        */
       setShadows([...shadows]);
-      dispatch({ type: SHADOWS_UPDATED, shadows: shadows });
+      dispatch({ type: SHADOWS_UPDATED, shadows: [...shadows] });
     });
   }, []);
 
@@ -157,28 +151,58 @@ export const InfoGame = (props: IProps) => {
 
   useEffect(() => {
     let index = 0;
-
-    if (players) {
+    if (playersBoard.length > 0) {
       let board: JSX.Element[][][] = [];
 
-      players.forEach((player, i) => {
-        board[i] = Object.entries(player.board).map((row) => {
-          return row[1].map((cell) => (
-            <GridItem
-              style={{ background: BOARD_COLORS[cell] }}
-              key={`cell-${index++}-${player.player}`}
-            >
-              <span>{cell}</span>
-            </GridItem>
-          ));
-        });
+      playersBoard.forEach((player, i) => {
+        console.log(`${player.player}[${i}] ${player.board}`);
+        console.table(player.board);
+        board[i] = player?.board?.map((row) => {
+          return(
+            row.map(cell => {
+             return (
+               <GridItem
+                 style={{ background: BOARD_COLORS[cell] }}
+                 key={`cell-${index++}-${player.player}`}
+               >
+                 <span>{cell}</span>
+               </GridItem>
+             );
+            })
+          )
+        })
       });
       if (board.length < 1) {
         return;
       }
       setShades(board);
     }
-  }, [shadows]);
+  }, [playersBoard]);
+
+  // useEffect(() => {
+  //   let index = 0;
+
+  //   if (players) {
+  //     let board: JSX.Element[][][] = [];
+
+  //     players.forEach((player, i) => {
+  //       board[i] = Object.entries(player.board).map((row) => {
+  //         return row[1].map((cell) => (
+  //           <GridItem
+  //             style={{ background: BOARD_COLORS[cell] }}
+  //             key={`cell-${index++}-${player.player}`}
+  //           >
+  //             <span>{cell}</span>
+  //           </GridItem>
+  //         ));
+  //       });
+  //     });
+  //     if (board.length < 1) {
+  //       return;
+  //     }
+  //     setShades(board);
+  //   }
+  // }, [shadows]);
 
   return (
     <>
@@ -191,7 +215,7 @@ export const InfoGame = (props: IProps) => {
             </Row>
             {
               <Grid>
-                {next.map((row) =>
+                {nextPiece.map((row) =>
                   row.map((cell) => (
                     <GridItem
                       style={{ background: COLORS_WITH_WHITE[cell] }}
