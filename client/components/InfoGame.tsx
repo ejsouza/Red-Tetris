@@ -72,21 +72,19 @@ export const InfoGame = (props: IProps) => {
     Array(10).fill(0)
   );
 
-  const [shadows, setShadows] = useState<IShadow[]>([]);
+  // const [shadows, setShadows] = useState<IShadow[]>([]);
   const [shades, setShades] = useState<JSX.Element[][][]>([]);
-  const [players, setPlayers] = useState<IShadow[]>([]);
+  // const [players, setPlayers] = useState<IShadow[]>([]);
   // const [nextPiece, setNextPiece] = useState<JSX.Element[][]>([]);
   let key = 0;
   const dispatch = useAppDispatch();
 
-  const pc = useAppSelector((state) => state.piece);
-  const border = useAppSelector((state) => state.board);
   const nextPieceState = useAppSelector((state) => state.nextPiece);
   const playersBoard = useAppSelector((state) => state.shadows);
 
-  console.log(`got Shadows ${playersBoard} -- ${playersBoard.length}`);
+  // console.log(`got Shadows ${playersBoard} -- ${playersBoard.length}`);
 
-  playersBoard.forEach((player) => console.log(`--?> ${player.player}`));
+  // playersBoard.forEach((player) => console.log(`--?> ${player.player}`));
 
   // console.log(`nextPieceState := ${nextPieceState.color}`);
   // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
@@ -117,7 +115,8 @@ export const InfoGame = (props: IProps) => {
        * updating deeply-nested items within state
        * (anything deeper than the first level).
        */
-      setShadows([...shadows]);
+      // shadows.forEach(shadow => console.log(`?? ${shadow.player} => ${shadow.board}`))
+      // setShadows([...shadows]);
       dispatch({ type: SHADOWS_UPDATED, shadows: [...shadows] });
     });
   }, []);
@@ -131,22 +130,23 @@ export const InfoGame = (props: IProps) => {
      * For setPlayers() to work here I need to create a copy of the object
      * (Immutability)
      */
-    socket.on('player', (player: IShadow) => {
-      if (players.length === 0) {
-        players.push(player);
-      } else {
-        let playerFound = false;
-        players.forEach((p) => {
-          if (p.player === player.player) {
-            playerFound = true;
-            p.board = player.board;
-          }
-        });
-        if (!playerFound) {
-          players.push(player);
-        }
-      }
-    });
+    // socket.on('player', (player: IShadow) => {
+      // console.log(`got ${player.player} board => ${player.board}`)
+    //   if (players.length === 0) {
+    //     players.push(player);
+    //   } else {
+    //     let playerFound = false;
+    //     players.forEach((p) => {
+    //       if (p.player === player.player) {
+    //         playerFound = true;
+    //         p.board = player.board;
+    //       }
+    //     });
+    //     if (!playerFound) {
+    //       players.push(player);
+    //     }
+    //   }
+    // });
   }, []);
 
   useEffect(() => {
@@ -155,8 +155,8 @@ export const InfoGame = (props: IProps) => {
       let board: JSX.Element[][][] = [];
 
       playersBoard.forEach((player, i) => {
-        console.log(`${player.player}[${i}] ${player.board}`);
-        console.table(player.board);
+        // console.log(`${player.player}[${i}] ${player.board}`);
+        // console.table(player.board);
         board[i] = player?.board?.map((row) => {
           return(
             row.map(cell => {
@@ -230,12 +230,12 @@ export const InfoGame = (props: IProps) => {
           </Col>
         </Row>
         <Row>
-          {players.map((player) => (
+          {playersBoard?.map((player) => (
             <Col key={`player-${player.player}`}>{player.player}</Col>
           ))}
         </Row>
         <Row>
-          {shadows &&
+          {shades &&
             Object.values(shades).map((shade, index) => (
               <Col key={`shadow-board-${index}`}>
                 <Grid>{shade}</Grid>
