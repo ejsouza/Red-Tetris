@@ -81,10 +81,12 @@ const reducer = (state = initialState, action: ActionsType): State => {
         nextPiece: action.nextPiece,
       };
     case SHADOWS_UPDATED:
-      return {
-        ...state,
-        shadows: action.shadows,
-      };
+      {
+        return {
+          ...state,
+          shadows: [...action.shadows],
+        };
+        }
     default:
       return state;
   }
