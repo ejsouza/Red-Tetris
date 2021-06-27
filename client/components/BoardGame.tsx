@@ -63,15 +63,29 @@ const BoardGame = () => {
 
   // const b: number[][] = useSelector((state) => state.board);
   const boardState = useAppSelector((state) => state.board);
-  const board = Object.entries(boardState).map((row) => {
-    return row[1].map((cell) => (
-      <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
-        <span>{cell}</span>
-      </GridItem>
-    ));
-  });
+  // const board = Object.entries(boardState).map((row) => {
+  //   return row[1].map((cell) => (
+  //     <GridItem style={{ background: colors[cell] }} key={`cell-${index++}`}>
+  //       <span>{cell}</span>
+  //     </GridItem>
+  //   ));
+  // });
 
-  return <Grid>{board}</Grid>;
+  // return <Grid>{board}</Grid>;
+  return (
+    <Grid>
+      {boardState.map((row) => {
+        return row.map((cell) => (
+          <GridItem
+            style={{ background: colors[cell] }}
+            key={`cell-${index++}`}
+          >
+            <span>{cell}</span>
+          </GridItem>
+        ));
+      })}
+    </Grid>
+  );
 };
 
 export default BoardGame;
