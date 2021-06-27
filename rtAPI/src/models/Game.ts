@@ -102,10 +102,10 @@ export class Game {
         let p: IPlayer = {
           socketId: player.socketId,
           name: player.name,
-          board: this.board,
+          board: Object.create(this.board),
           isHost: r.name === player.name,
-          nextPiece: [this.nextPiece],
-          piece: this.piece,
+          nextPiece: [...Object.create(this.nextPiece)],
+          piece: Object.create(this.piece),
           score: 0,
         };
         this.players.push(p);
