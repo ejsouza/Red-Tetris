@@ -80,7 +80,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
 
   useInterval(() => {
     const copyPiece: IPiece = Object.create(pieceState);
-      
+
     if (isYPlusOneFree(boardState, copyPiece)) {
       /**
        * IMMUTABILITY
@@ -125,13 +125,13 @@ const Game = ({ gameName, playerName }: IGameProps) => {
         nextPieceState.pos.forEach((pos) => {
           boardState[pos.y][pos.x] = nextPieceState.color;
         });
-        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
         socket.emit('getNextPiece', {
           gameName,
           playerName,
           boardState,
           copyPiece,
         });
+        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
       }
     }
   }, delay);
@@ -145,17 +145,12 @@ const Game = ({ gameName, playerName }: IGameProps) => {
   useEffect(() => {
     socket.on('penalty', () => {
       setToggle(true);
-      // const board = useAppSelector((state) => state.board);
-      // if (map) {
       // TODO Check if player is still in game before applying penalty
-      // penalty(map);
       penalty(boardState);
-      // setMap([...map]);
-      // dispatch({ type: BOARD_UPDATED, board: map });
       dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-      // }
     });
   }, [toggle]);
+  // }, []);
 
   useEffect(() => {
     socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
@@ -219,10 +214,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
           <BoardGame />
         </Section>
         <Section>
-          <InfoGame
-            player={playerName}
-            game={gameName}
-          />
+          <InfoGame player={playerName} game={gameName} />
         </Section>
       </Container>
     </>
