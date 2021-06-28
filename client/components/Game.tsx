@@ -34,6 +34,10 @@ const Container = styled.div`
   padding: 16px;
 `;
 
+const Gap = styled.div<{ padding: string }>`
+  padding: ${(props) => props.padding};
+`;
+
 const Section = styled.div`
   // max-width: 360px;
 `;
@@ -146,8 +150,11 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     socket.on('penalty', () => {
       setToggle(true);
       // TODO Check if player is still in game before applying penalty
-      penalty(boardState);
-      dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+      const b = [...boardState];
+      // penalty(boardState);
+      penalty(b);
+      // dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+      dispatch({ type: BOARD_UPDATED, board: [...b] });
     });
   }, [toggle]);
   // }, []);
@@ -196,7 +203,7 @@ const Game = ({ gameName, playerName }: IGameProps) => {
     }
     // setMap([...map]);
     dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-    dispatch({ type: PIECE_UPDATED, piece: copyPiece });
+    // dispatch({ type: PIECE_UPDATED, piece: copyPiece });
   };
 
   useEffect(() => {
@@ -212,6 +219,9 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       <Container>
         <Section>
           <BoardGame />
+        </Section>
+        <Section>
+          <Gap padding=".3em" />
         </Section>
         <Section>
           <InfoGame player={playerName} game={gameName} />
