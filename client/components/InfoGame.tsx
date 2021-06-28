@@ -15,6 +15,7 @@ import {
   COLORS_WITH_WHITE,
   BOARD_COLORS,
   SHADOWS_UPDATED,
+  PLAYER_SHADOW_UPDATED,
 } from '../utils/const';
 
 const sizeOfGrid = 10;
@@ -41,6 +42,9 @@ const GridItem = styled.div`
   }
 `;
 
+const Gap = styled.div<{padding: string}>`
+  padding: ${props => props.padding};
+`;
 
 interface IProps {
   player: string;
@@ -130,23 +134,26 @@ export const InfoGame = (props: IProps) => {
      * For setPlayers() to work here I need to create a copy of the object
      * (Immutability)
      */
-    // socket.on('player', (player: IShadow) => {
+    socket.on('player', (player: IShadow) => {
       // console.log(`got ${player.player} board => ${player.board}`)
-    //   if (players.length === 0) {
-    //     players.push(player);
-    //   } else {
-    //     let playerFound = false;
-    //     players.forEach((p) => {
-    //       if (p.player === player.player) {
-    //         playerFound = true;
-    //         p.board = player.board;
-    //       }
-    //     });
-    //     if (!playerFound) {
-    //       players.push(player);
-    //     }
-    //   }
-    // });
+        //   if (players.length === 0) {
+        //     players.push(player);
+        //   } else {
+        //     let playerFound = false;
+        //     players.forEach((p) => {
+        //       if (p.player === player.player) {
+        //         playerFound = true;
+        //         p.board = player.board;
+        //       }
+        //     });
+        //     if (!playerFound) {
+        //       players.push(player);
+        //     }
+        //   }
+        dispatch({ type: PLAYER_SHADOW_UPDATED, player: player});
+        socket.emit('getArrayOfPlayers', props.game, props.player);
+        // console.log(`got state of player => ${player.player} := ${player.board}`);
+    });
   }, []);
 
   useEffect(() => {
@@ -206,6 +213,7 @@ export const InfoGame = (props: IProps) => {
 
   return (
     <>
+
       <Container>
         <Row>
           <Col>
@@ -234,13 +242,36 @@ export const InfoGame = (props: IProps) => {
             <Col key={`player-${player.player}`}>{player.player}</Col>
           ))}
         </Row>
-        <Row>
+        {/* <Row>
           {shades &&
             Object.values(shades).map((shade, index) => (
               <Col key={`shadow-board-${index}`}>
                 <Grid>{shade}</Grid>
               </Col>
             ))}
+        </Row> */}
+        <Row>
+          {playersBoard.map((player, y) => {
+            return (
+              <>
+                <Grid>
+                  {player.board.map((row, i) => {
+                    return row.map((cell, index) => {
+                      return (
+                        <GridItem
+                          style={{ background: BOARD_COLORS[cell] }}
+                          key={`cell-${index++}-${player.player}${i + index + y}`}
+                        >
+                          <span>{cell}</span>
+                        </GridItem>
+                      );
+                    });
+                  })}
+                </Grid>
+                <Gap padding=".3em" />
+              </>
+            );
+          })}
         </Row>
       </Container>
     </>
