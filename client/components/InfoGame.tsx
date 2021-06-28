@@ -86,25 +86,11 @@ export const InfoGame = (props: IProps) => {
   const nextPieceState = useAppSelector((state) => state.nextPiece);
   const playersBoard = useAppSelector((state) => state.shadows);
 
-  // console.log(`got Shadows ${playersBoard} -- ${playersBoard.length}`);
-
-  // playersBoard.forEach((player) => console.log(`--?> ${player.player}`));
-
-  // console.log(`nextPieceState := ${nextPieceState.color}`);
-  // console.log(`piece := ${pc.pos[0].y} ${pc.pos[0].x}`);
-
   nextPieceState.pos.forEach((pos) => {
     if (pos.y < 2) {
       nextPiece[pos.y][pos.x] = nextPieceState.color;
     }
   });
-
-  // if (!nextPiece) {
-  //   console.log('***************/|/*************');
-  // }
-  // nextPieceState.pos.forEach((pos) => {
-  //   nextPiece[pos.y][pos.x] = nextPieceState.color;
-  // });
 
   useEffect(() => {
     socket.on('shaddy', () => {
@@ -122,37 +108,6 @@ export const InfoGame = (props: IProps) => {
       // shadows.forEach(shadow => console.log(`?? ${shadow.player} => ${shadow.board}`))
       // setShadows([...shadows]);
       dispatch({ type: SHADOWS_UPDATED, shadows: [...shadows] });
-    });
-  }, []);
-
-  useEffect(() => {
-    /**
-     * Rethink this logic
-     * React components will re-render whenever their parent re-render
-     * or whenever you change their state with 'setState'
-     *
-     * For setPlayers() to work here I need to create a copy of the object
-     * (Immutability)
-     */
-    socket.on('player', (player: IShadow) => {
-      // console.log(`got ${player.player} board => ${player.board}`)
-        //   if (players.length === 0) {
-        //     players.push(player);
-        //   } else {
-        //     let playerFound = false;
-        //     players.forEach((p) => {
-        //       if (p.player === player.player) {
-        //         playerFound = true;
-        //         p.board = player.board;
-        //       }
-        //     });
-        //     if (!playerFound) {
-        //       players.push(player);
-        //     }
-        //   }
-        dispatch({ type: PLAYER_SHADOW_UPDATED, player: player});
-        socket.emit('getArrayOfPlayers', props.game, props.player);
-        // console.log(`got state of player => ${player.player} := ${player.board}`);
     });
   }, []);
 
@@ -186,34 +141,8 @@ export const InfoGame = (props: IProps) => {
     }
   }, [playersBoard]);
 
-  // useEffect(() => {
-  //   let index = 0;
-
-  //   if (players) {
-  //     let board: JSX.Element[][][] = [];
-
-  //     players.forEach((player, i) => {
-  //       board[i] = Object.entries(player.board).map((row) => {
-  //         return row[1].map((cell) => (
-  //           <GridItem
-  //             style={{ background: BOARD_COLORS[cell] }}
-  //             key={`cell-${index++}-${player.player}`}
-  //           >
-  //             <span>{cell}</span>
-  //           </GridItem>
-  //         ));
-  //       });
-  //     });
-  //     if (board.length < 1) {
-  //       return;
-  //     }
-  //     setShades(board);
-  //   }
-  // }, [shadows]);
-
   return (
     <>
-
       <Container>
         <Row>
           <Col>
@@ -238,37 +167,34 @@ export const InfoGame = (props: IProps) => {
           </Col>
         </Row>
         <Row>
-          {playersBoard?.map((player) => (
-            <Col key={`player-${player.player}`}>{player.player}</Col>
-          ))}
+          {playersBoard?.map((player, i) => {
+            return <Col key={`player-${player.player}`}>{player.player}</Col>;
+          })}
+          
         </Row>
-        {/* <Row>
-          {shades &&
-            Object.values(shades).map((shade, index) => (
-              <Col key={`shadow-board-${index}`}>
-                <Grid>{shade}</Grid>
-              </Col>
-            ))}
-        </Row> */}
         <Row>
           {playersBoard.map((player, y) => {
             return (
               <>
-                <Grid>
-                  {player.board.map((row, i) => {
-                    return row.map((cell, index) => {
-                      return (
-                        <GridItem
-                          style={{ background: BOARD_COLORS[cell] }}
-                          key={`cell-${index++}-${player.player}${i + index + y}`}
-                        >
-                          <span>{cell}</span>
-                        </GridItem>
-                      );
-                    });
-                  })}
-                </Grid>
-                <Gap padding=".3em" />
+                <Col key={`shadow-board-${y}-${player.player}`}>
+                  <Grid>
+                    {player.board.map((row, i) => {
+                      return row.map((cell, index) => {
+                        return (
+                          <GridItem
+                            style={{ background: BOARD_COLORS[cell] }}
+                            key={`cell-${index++}-${player.player}${
+                              i + index + y + cell
+                            }`}
+                          >
+                            <span>{cell}</span>
+                          </GridItem>
+                        );
+                      });
+                    })}
+                  </Grid>
+                </Col>
+                {/* <Gap padding=".3em" /> */}
               </>
             );
           })}
