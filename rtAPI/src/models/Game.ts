@@ -12,7 +12,6 @@ interface IBoard {
 
 interface IRoom {
   name: string;
-  // players: string[];
   players: [
     {
       name: string;
@@ -55,7 +54,7 @@ export class Game {
   constructor(
     socket: socketIO.Socket,
     io: socketIO.Server,
-    room: IRoom[],
+    room: IRoom,
     roomName: string
   ) {
     this.gameName = roomName;
@@ -69,7 +68,7 @@ export class Game {
     this.start(room, roomName);
   }
 
-  start = (room: IRoom[], roomName: string): void => {
+  start = (room: IRoom, roomName: string): void => {
     this.initializeBoard(roomName);
     this.initializePlayers(room);
   };
@@ -96,22 +95,20 @@ export class Game {
       .emit('nextPiece', player.nextPiece.shift());
   };
 
-  initializePlayers = (room: IRoom[]): void => {
-    room.forEach((r) => {
-      r.players.forEach((player) => {
+  initializePlayers = (room: IRoom): void => {
+    this.players = room.players.map((player) => {
         let p: IPlayer = {
           socketId: player.socketId,
           name: player.name,
           board: Object.create(this.board),
-          isHost: r.name === player.name,
-          nextPiece: [...Object.create(this.nextPiece)],
+          isHost: room.host === player.name,
           piece: Object.create(this.piece),
+          nextPiece: [...Object.create(this.nextPiece)],
           score: 0,
         };
-        this.players.push(p);
-      });
-    });
-  };
+        return(p);
+    })
+  }
 
   newPiece = (): void => {
     this.nextPiece = this.createPiece.randomPiece();
