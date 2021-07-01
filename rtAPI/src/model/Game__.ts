@@ -37,11 +37,16 @@ class Game__ {
   initializePieces() {
     const piece = this._piece.randomPiece();
     const nextPiece = this._piece.randomPiece();
+    /**
+     *  Add a second piece to nextPiece[] to make sure
+     *  all players have the same pieces
+     */
+    const thirdPiece = this._piece.randomPiece();
 
     this._players.forEach((player) => {
-      console.log(`this.player? ${player.name}`);
-      player.updatePiece = Object.create(piece);
-      player.updateNextPiece = Object.create(nextPiece);
+      player.updatePiece = piece;
+      player.updateNextPiece = nextPiece;
+      player.updateNextPiece = thirdPiece;
     });
   }
 
@@ -57,7 +62,8 @@ class Game__ {
         this._io,
         this._socket,
         this._players,
-        this._name
+        this._name,
+        this._piece
       );
     }, (700 * 60) / 100);
     this._intervalId = intervalId;
