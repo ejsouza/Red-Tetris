@@ -1,6 +1,7 @@
 import Room from '../model/Room';
 import Player from '../model/Player';
 import * as socketIO from 'socket.io';
+import { IShadow } from '../interfaces/';
 
 interface IRoom {
   name: string;
@@ -50,10 +51,31 @@ const emitUserNametaken = (socket: socketIO.Socket, userName: string): void => {
   });
 };
 
+const emitInfoSpectrum = (io: socketIO.Server, players: Player[]): void => {
+  players.forEach((player) => {
+    // Send first nextPiece to every player
+    io.to(player.socketId).emit('gameInfo', player.showNextPiece);
+    // ************************************
+    // Send enimies board shadow
+    const shadows: IShadow[] = [];
+    players.forEach((p) => {
+      if (player.name !== p.name) {
+        let shadow: IShadow = {
+          player: p.name,
+          board: p.board.shape,
+        };
+        shadows.push(shadow);
+      }
+    });
+    io.sockets.to(player.socketId).emit('arrayOfPlayers', shadows);
+  });
+};
+
 export {
   createRoom,
   addPlayerToRoom,
   emitSuccesfullyCreated,
   emitRoomIsFull,
   emitUserNametaken,
+  emitInfoSpectrum,
 };
