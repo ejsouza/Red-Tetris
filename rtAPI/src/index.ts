@@ -1,3 +1,3 @@
-import { Server } from '../src/models/Server';
+import { Server } from '../src/model/Server';
 
 new Server();
