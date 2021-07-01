@@ -3,6 +3,7 @@ import { Game } from './Game';
 import Game__ from './Game__';
 import Player from './Player';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const';
+import { emitInfoSpectrum } from '../controller/RoomController';
 
 interface IRoom {
   name: string;
@@ -16,6 +17,11 @@ interface IRoom {
   open: boolean;
   numberOfPlayers: number;
   host: string;
+}
+
+interface IShadow {
+  player: string;
+  board: number[][];
 }
 
 type IPlayer = [
@@ -40,6 +46,10 @@ class Room {
     this._numberOfPlayers = this.players.length;
     this._host = args.players[0].name;
     this._open = true;
+  }
+
+  get game() {
+    return this._game;
   }
 
   get name() {
@@ -80,11 +90,7 @@ class Room {
     this._game = new Game__(io, socket, this.players, this._name);
 
     const players = this._game.players;
-
-    players.forEach((player) => {
-      console.table(player.piece.pos);
-      console.table(player.nextPiece[0].pos);
-    });
+    emitInfoSpectrum(io, players);
   }
 
   gameOver() {
