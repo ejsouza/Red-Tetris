@@ -7,6 +7,7 @@ import Player from './Player';
 import { IPiece } from '../interfaces/piece.interface';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const';
 import * as roomController from '../controller/RoomController';
+import { handlePlayerKeyDown } from '../controller/GameController';
 
 dotenv.config();
 
@@ -24,14 +25,10 @@ interface IRoom {
   host: string;
 }
 
-interface IShadow {
-  player: string;
-  board: number[][];
-}
 
 interface IKeyDown {
-  board: number[][];
-  piece: IPiece;
+  // key: KeyboardEvent;
+  key: string;
   gameName: string;
   playerName: string;
 }
@@ -155,19 +152,9 @@ export class Server {
       });
 
       socket.on('keydown', (args: IKeyDown) => {
-        // const game = this.games.find((game) => game.gameName === args.gameName);
-        // const player = game.players.find((p) => p.name === args.playerName);
-        // player.board.shape = [...args.board];
-        // player.piece = {
-        //   color: args.piece.color,
-        //   height: args.piece.height,
-        //   width: args.piece.width,
-        //   still: args.piece.still,
-        //   pos: args.piece.pos,
-        // };
-        // this._io.sockets
-        //   .to(socket.id)
-        //   .emit('updateBoard', player.board.shape, player.piece);
+        const room = this._rooms.find((room) => room.name === args.gameName);
+        const player = room.players.find((p) => p.name === args.playerName);
+        handlePlayerKeyDown(this._io, player, args.key);
       });
       socket.on('applyPenalty', (gameName) => {
         // console.log(`applyPenalty called 🚨`);
