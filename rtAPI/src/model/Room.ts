@@ -85,12 +85,21 @@ class Room {
     }
   }
 
-  newGame(io: socketIO.Server, socket: socketIO.Socket) {
+  newGame(io: socketIO.Server, socket: socketIO.Socket, speed: number) {
     console.log(`staring new game << ${this._name} >>`);
-    this._game = new Game__(io, socket, this.players, this._name);
+    this._game = new Game__(
+      io,
+      socket,
+      this.players,
+      this._name,
+      speed,
+    );
 
     const players = this._game.players;
-    emitInfoSpectrum(io, players);
+    // send shadows only if more than one player in game
+    if (this._numberOfPlayers > 1) {
+      emitInfoSpectrum(io, players);
+    }
   }
 
   gameOver() {
