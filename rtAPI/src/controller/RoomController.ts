@@ -30,10 +30,14 @@ const addPlayerToRoom = (room: Room, name: string, socketId: string): void => {
   room.addPlayer(player);
 };
 
-const emitSuccesfullyCreated = (socket: socketIO.Socket): void => {
+const emitSuccesfullyCreated = (
+  socket: socketIO.Socket,
+  host: boolean
+): void => {
   socket.emit('room', {
     success: true,
     msg: `Please wait joining loby`,
+    host,
   });
 };
 
