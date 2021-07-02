@@ -8,6 +8,10 @@ import {
   KEY_ARROW_DOWN_PRESSED,
   KEY_ARROW_LEFT_PRESSED,
   KEY_ARROW_SPACE_PRESSED,
+  RECRUIT,
+  VETERAN,
+  HARDCORE,
+  INSANE,
 } from '../utils/const';
 
 const updatePlayers = (
@@ -19,19 +23,27 @@ const updatePlayers = (
 ): void => {
   players.forEach((player) => {
     if (player.pieceCanFall()) {
-      player.cleanPieceFromBoard();
+      // piece was already cleaned inside instance, just increment and draw() it here
       player.pieceIncrementY();
       player.draw();
     } else {
       if (player.isGameOver()) {
+        // set player to lost
+        player.hasLost = true;
         // stop game here
-        io.to(player.socketId).emit('youLost');
+        if (gameOver(players)) {
+          io.to(player.socketId).emit('youLost');
+        }
+        emitUpdatePlayerSpectrum(io, players, player);
       } else {
         // Push a new nextPiece to each user in game
         const nextPiece = newNextPiece.randomPiece();
-        const applyPenalty = player.scores();
+        const points = player.scores();
+        if (points) {
+          io.to(player.socketId).emit('score', player.score);
+        }
         players.forEach((p) => {
-          if (applyPenalty && p.name !== player.name) {
+          if (points && p.name !== player.name && !p.hasLost) {
             p.penalty();
           }
           p.updateNextPiece = nextPiece;
@@ -41,31 +53,8 @@ const updatePlayers = (
         player.getNextPiece();
         // Send current player nextPiece
         io.to(player.socketId).emit('gameInfo', player.showNextPiece);
-        // const shadows: IShadow[] = [];
-           const shadow: IShadow = {
-             player: player.name,
-             board: player.board.shape,
-           };
-          //  shadows.push(shadow);
-        players.forEach((p) => {
-          if (player.name !== p.name) {
-            // let shadow: IShadow = {
-            //   player: p.name,
-            //   board: p.board.shape,
-            // };
-            // shadows.push(shadow);
-            io.to(p.socketId).emit('arrayOfPlayer', shadow);
-          }
-        });
-
-
-        // sending to all clients in 'game' room(channel) except sender
-        // socket.broadcast.to(gameName).emit('arrayOfPlayers', shadows);
+        emitUpdatePlayerSpectrum(io, players, player);
       }
-      // check for game over
-      // *******************
-      // if not game over update pieces
-      // *******************
     }
     io.to(player.socketId).emit('updateBoard', player.board.shape, player.name);
   });
@@ -79,38 +68,22 @@ const handlePlayerKeyDown = (
   switch (key) {
     case KEY_ARROW_UP_PRESSED:
       if (player.rotatePiece()) {
-        io.to(player.socketId).emit(
-          'updateBoard',
-          player.board.shape,
-          player.name
-        );
+        emitUpdateBoard(io, player);
       }
       break;
     case KEY_ARROW_RIGHT_PRESSED:
       if (player.moveRight()) {
-        io.to(player.socketId).emit(
-          'updateBoard',
-          player.board.shape,
-          player.name
-        );
+        emitUpdateBoard(io, player);
       }
       break;
     case KEY_ARROW_DOWN_PRESSED:
       if (player.moveDown()) {
-        io.to(player.socketId).emit(
-          'updateBoard',
-          player.board.shape,
-          player.name
-        );
+        emitUpdateBoard(io, player);
       }
       break;
     case KEY_ARROW_LEFT_PRESSED:
       if (player.moveLeft()) {
-        io.to(player.socketId).emit(
-          'updateBoard',
-          player.board.shape,
-          player.name
-        );
+        emitUpdateBoard(io, player);
       }
       break;
     case KEY_ARROW_SPACE_PRESSED:
@@ -121,4 +94,48 @@ const handlePlayerKeyDown = (
   }
 };
 
-export { updatePlayers, handlePlayerKeyDown };
+const gameOver = (players: Player[]): boolean => {
+  let playerInGame = 0;
+  players.forEach((player) => {
+    if (!player.hasLost) {
+      playerInGame++;
+    }
+  });
+  return playerInGame < 2;
+};
+
+const emitUpdateBoard = (io: socketIO.Server, player: Player): void => {
+  io.to(player.socketId).emit('updateBoard', player.board.shape, player.name);
+};
+
+const emitUpdatePlayerSpectrum = (
+  io: socketIO.Server,
+  players: Player[],
+  player: Player
+): void => {
+  const shadow: IShadow = {
+    player: player.name,
+    board: player.board.shape,
+  };
+  // Send current player board shadow to all other players
+  players.forEach((p) => {
+    if (player.name !== p.name) {
+      io.to(p.socketId).emit('arrayOfPlayer', shadow);
+    }
+  });
+};
+
+const gameDifficulty = (difficulty: string): number => {
+  switch (difficulty) {
+    case 'veteran':
+      return VETERAN;
+    case 'hardcore':
+      return HARDCORE;
+    case 'insane':
+      return INSANE;
+    default:
+      return RECRUIT;
+  }
+};
+
+export { updatePlayers, handlePlayerKeyDown, gameDifficulty };
