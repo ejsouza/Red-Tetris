@@ -6,6 +6,10 @@ import {
   BOARD_WIDTH,
   EMPTY_PIECE,
   BLOCKED_ROW,
+  POINTS_FOR_ONE_LINE,
+  POINTS_FOR_TWO_LINES,
+  POINTS_FOR_THREE_LINES,
+  POINTS_FOR_FOUR_LINES,
 } from '../utils/const';
 import { posix } from 'node:path';
 
@@ -15,21 +19,27 @@ class Player {
   board: Board;
   piece: IPiece;
   nextPiece: IPiece[];
-  score: number;
+  private _score: number;
   isHost: boolean;
   lost: boolean;
+  private _level: number;
+  private _linesClered: number;
 
   constructor(name: string, socketId: string, isHost: boolean) {
     this.name = name;
     this.socketId = socketId;
     this.board = new Board();
-    this.score = 0;
+    this._score = 0;
     this.lost = false;
+    this._level = 0;
+    this._linesClered = 0;
     this.isHost = isHost;
     this.nextPiece = [];
-    // this.piece = EMPTY_PIECE[0];
-    // this.nextPiece = [EMPTY_PIECE[0]];
   }
+
+  /**
+   * GETTERS & SETTERS
+   */
 
   set updatePiece(piece: IPiece) {
     this.piece = JSON.parse(JSON.stringify(piece));
@@ -42,6 +52,23 @@ class Player {
   get showNextPiece() {
     return this.nextPiece[0];
   }
+
+  get hasLost() {
+    return this.lost;
+  }
+
+  set hasLost(lost: boolean) {
+    this.lost = lost;
+  }
+
+  get score() {
+    return this._score;
+  }
+  //*********************************************************
+
+  /**
+   *  METHODS
+   */
   cleanPieceFromBoard() {
     this.piece.pos.forEach((pos) => {
       this.board.shape[pos.y][pos.x] = 0;
@@ -62,11 +89,14 @@ class Player {
         pos.y + 1 === BOARD_HEIGHT ||
         this.board.shape[pos.y + 1][pos.x] !== 0
       ) {
+        // Draw piece here when false, otherwise it will be
+        // drawn on the controller
+        this.draw();
         fall = false;
         return false;
       }
     });
-    this.draw();
+    // Don't draw() piece here, it will be done on controller
     return fall;
   }
 
@@ -96,7 +126,7 @@ class Player {
     let canMove = true;
     this.cleanPieceFromBoard();
     this.piece.pos.forEach((pos) => {
-      if (pos.x - 1 < 0 || this.board.shape[pos.y][pos.x - 1] !== 0) {
+      if (pos.y < 2 || pos.x - 1 < 0 || this.board.shape[pos.y][pos.x - 1] !== 0) {
         // if cannot move left draw piece to the same position
         this.draw();
         canMove = false;
@@ -125,6 +155,7 @@ class Player {
     this.cleanPieceFromBoard();
     this.piece.pos.forEach((pos) => {
       if (
+        pos.y < 2 ||
         pos.x + 1 === BOARD_WIDTH ||
         this.board.shape[pos.y][pos.x + 1] !== 0
       ) {
@@ -209,7 +240,14 @@ class Player {
       if (
         pos.x < 0 ||
         pos.x >= BOARD_WIDTH ||
-        pos.y < 0 ||
+        // pos.y < 0 ||
+        /**
+         *  Board position 0 & 1 are not shown
+         *  rotate piece should be at least on postion 2
+         *  in the board otherwise it will look like the piece
+         *  rotates outside of the board
+         */
+        pos.y < 2 ||
         pos.y >= BOARD_HEIGHT ||
         this.board.shape[pos.y][pos.x] !== 0
       ) {
@@ -292,6 +330,7 @@ class Player {
         }
       }
       if (count === BOARD_WIDTH) {
+        this.incrementLinesCleared();
         for (let col = 0; col < BOARD_WIDTH; col++) {
           this.board.shape[height][col] = 0;
         }
@@ -306,7 +345,38 @@ class Player {
       }
     }
     // Return number fo rows scored for number of penalities for opponents
+    if (score) {
+      this.updateLevel();
+      this.calculateScore(score);
+    }
     return score;
+  }
+
+  private incrementLinesCleared(): void {
+    this._linesClered++;
+  }
+
+  private updateLevel(): void {
+    this._level = Math.floor(this._linesClered / 10);
+  }
+
+  // https://www.codewars.com/kata/5da9af1142d7910001815d32
+  private calculateScore(score: number): void {
+    let s = 0;
+    if (score === 1) {
+      s = (this._level + 1) * POINTS_FOR_ONE_LINE;
+    } else if (score === 2) {
+      s = (this._level + 1) * POINTS_FOR_TWO_LINES;
+    } else if (score === 3) {
+      s = (this._level + 1) * POINTS_FOR_THREE_LINES;
+    } else {
+      s = (this._level + 1) * POINTS_FOR_FOUR_LINES;
+    }
+    this.incrementScore(s);
+  }
+
+  private incrementScore (value: number): void {
+    this._score += value;
   }
 
   penalty(): void {
