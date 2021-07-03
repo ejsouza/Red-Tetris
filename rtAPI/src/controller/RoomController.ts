@@ -2,6 +2,7 @@ import Room from '../model/Room';
 import Player from '../model/Player';
 import * as socketIO from 'socket.io';
 import { IShadow } from '../interfaces/';
+import { SHADOWS } from '../utils/const';
 
 interface IRoom {
   name: string;
@@ -55,7 +56,7 @@ const emitUserNametaken = (socket: socketIO.Socket, userName: string): void => {
   });
 };
 
-const emitInfoSpectrum = (io: socketIO.Server, players: Player[]): void => {
+const emitInfoShadows = (io: socketIO.Server, players: Player[]): void => {
   players.forEach((player) => {
     // Send first nextPiece to every player
     io.to(player.socketId).emit('gameInfo', player.showNextPiece);
@@ -71,7 +72,7 @@ const emitInfoSpectrum = (io: socketIO.Server, players: Player[]): void => {
         shadows.push(shadow);
       }
     });
-    io.sockets.to(player.socketId).emit('arrayOfPlayers', shadows);
+    io.sockets.to(player.socketId).emit(SHADOWS, shadows);
   });
 };
 
@@ -81,5 +82,5 @@ export {
   emitSuccesfullyCreated,
   emitRoomIsFull,
   emitUserNametaken,
-  emitInfoSpectrum,
+  emitInfoShadows,
 };
