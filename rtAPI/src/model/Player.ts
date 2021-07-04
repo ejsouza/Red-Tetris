@@ -22,6 +22,7 @@ class Player {
   private _score: number;
   isHost: boolean;
   lost: boolean;
+  private _winner: boolean;
   private _level: number;
   private _linesClered: number;
 
@@ -31,6 +32,7 @@ class Player {
     this.board = new Board();
     this._score = 0;
     this.lost = false;
+    this._winner = false;
     this._level = 0;
     this._linesClered = 0;
     this.isHost = isHost;
@@ -59,6 +61,13 @@ class Player {
 
   set hasLost(lost: boolean) {
     this.lost = lost;
+  }
+
+  get hasWon() {
+    return this._winner;
+  }
+  set hasWon(win: boolean) {
+    this._winner = win;
   }
 
   get score() {
@@ -126,7 +135,11 @@ class Player {
     let canMove = true;
     this.cleanPieceFromBoard();
     this.piece.pos.forEach((pos) => {
-      if (pos.y < 2 || pos.x - 1 < 0 || this.board.shape[pos.y][pos.x - 1] !== 0) {
+      if (
+        pos.y < 2 ||
+        pos.x - 1 < 0 ||
+        this.board.shape[pos.y][pos.x - 1] !== 0
+      ) {
         // if cannot move left draw piece to the same position
         this.draw();
         canMove = false;
@@ -375,7 +388,7 @@ class Player {
     this.incrementScore(s);
   }
 
-  private incrementScore (value: number): void {
+  private incrementScore(value: number): void {
     this._score += value;
   }
 
