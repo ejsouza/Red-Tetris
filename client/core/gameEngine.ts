@@ -336,6 +336,12 @@ const penalty = (board: number[][]): void => {
   }
 };
 
+interface ICallback {
+  (): void;
+}
+
+
+
 export {
   cleanPieceFromBoard,
   isGameOver,
