@@ -1,8 +1,11 @@
 import Room from '../model/Room';
 import Player from '../model/Player';
+import _Room, { I_Room } from '../model/_Room';
+import _Player from '../model/_Player';
 import * as socketIO from 'socket.io';
 import { IShadow } from '../interfaces/';
 import { SHADOWS } from '../utils/const';
+
 
 interface IRoom {
   name: string;
@@ -21,6 +24,43 @@ const createRoom = (roomName: string, playerName: string, id: string): Room => {
     players: [new Player(playerName, id, true)],
   };
   return new Room(room);
+};
+
+
+const _createRoom = (
+  roomName: string,
+  playerName: string,
+  id: string
+): _Room => {
+  const room: I_Room = {
+    name: roomName,
+    isOpen: true,
+    numberOfPlayers: 1,
+    gameHost: playerName,
+    players: [
+      new _Player({
+        name: playerName,
+        id,
+        isHost: true,
+        roomName,
+      }),
+    ],
+  };
+  return new _Room(room);
+};
+
+const _addPlayerToRoom = (
+  room: _Room,
+  name: string,
+  socketId: string
+): void => {
+  const player = {
+    name,
+    id: socketId,
+    isHost: false,
+    roomName: room.name,
+  };
+  room.addPlayer(player);
 };
 
 const addPlayerToRoom = (room: Room, name: string, socketId: string): void => {
@@ -79,6 +119,8 @@ const emitInfoShadows = (io: socketIO.Server, players: Player[]): void => {
 export {
   createRoom,
   addPlayerToRoom,
+  _createRoom,
+  _addPlayerToRoom,
   emitSuccesfullyCreated,
   emitRoomIsFull,
   emitUserNametaken,
