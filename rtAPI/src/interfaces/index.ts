@@ -11,4 +11,9 @@ interface IRoom {
   host: string;
 }
 
-export { IRoom };
+interface IShadow {
+  player: string;
+  board: number[][];
+}
+
+export { IRoom, IShadow };
