@@ -76,6 +76,8 @@ export class Game {
   initializeBoard = (roomName: string): void => {
     this.board.drawPiece(this.piece);
 
+    console.log(`game is being initialized in 'Game' class also`);
+
     this.io.sockets
       .to(roomName)
       .emit('newMap', this.board.shape, this.piece, this.nextPiece);
