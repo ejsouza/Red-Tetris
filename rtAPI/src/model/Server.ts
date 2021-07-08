@@ -4,22 +4,24 @@ import * as dotenv from 'dotenv';
 import { Game } from './Game';
 import Room from './Room';
 import Player from './Player';
+
+import _Player from './_Player';
+import _Room from './_Room';
+import _Game from './_Game';
 import { IPiece } from '../interfaces/piece.interface';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const';
 import * as roomController from '../controller/RoomController';
-import { handlePlayerKeyDown } from '../controller/GameController';
+import {
+  handlePlayerKeyDown,
+  gameDifficulty,
+} from '../controller/GameController';
 
 dotenv.config();
 
 interface IRoom {
   name: string;
-  // players: [
-  //   {
-  //     name: string;
-  //     socketId: string;
-  //   }
-  // ];
-  players: Player[];
+  // players: Player[];
+  players: _Player[];
   open: boolean;
   numberOfPlayers: number;
   host: string;
@@ -33,6 +35,16 @@ interface IKeyDown {
   playerName: string;
 }
 
+export interface IFrontState {
+  playerName: string;
+  gameName: string;
+  board: number[][];
+  piece: IPiece;
+  next: number[];
+  score: number;
+  at: number,
+}
+
 export class Server {
   private _httpServer: htpp.Server;
   private _io: socketIO.Server;
@@ -41,6 +53,8 @@ export class Server {
   private _rooms: Room[];
   public games: Game[];
 
+  private __rooms: _Room[];
+
   constructor() {
     this._PORT = Number.parseInt(process.env.PORT, 10) || 5000;
     this._CLIENT_URL = process.env.CLIENT_URL;
@@ -48,6 +62,7 @@ export class Server {
     this.initializeSocketIO();
     this.listen();
     this._rooms = [];
+    this.__rooms = [];
     this.games = [];
   }
 
@@ -68,76 +83,104 @@ export class Server {
         // console.log(`got from client := ${arg.name} <--> ${arg.game}`);
       });
 
-      socket.on('start', (arg) => {
-        this._io.sockets.to(arg.name).emit('closeStartComponent');
-        this._io.sockets.to(arg.name).emit('setGame', { start: true });
-        const room = this._rooms.find((r) => r.name === arg.name);
-        room.open = false;
-        room.newGame(this._io, socket);
-        // const game = new Game(socket, this._io, room, arg.name);
-        // this.games.push(game);
-      });
+      // socket.on('start', (gameName: string, difficult: string) => {
+      //   this._io.sockets.to(gameName).emit('closeStartComponent');
+      //   this._io.sockets.to(gameName).emit('setGame', { start: true });
+      //   const room = this._rooms.find((r) => r.name === gameName);
+      //   room.open = false;
+      //   // define game speed here
+      //   const speed = gameDifficulty(difficult);
+      //   room.newGame(this._io, socket, speed);
+      // });
+
+        socket.on('start', (gameName: string, difficult: string) => {
+          this._io.sockets.to(gameName).emit('closeStartComponent');
+          this._io.sockets.to(gameName).emit('setGame', { start: true });
+          const room = this.__rooms.find((r) => r.name === gameName);
+          console.log(`found rooom ${room.name}`);
+
+          // room.startGame()
+          const game = new _Game({
+            io: this._io,
+            socket,
+            name: gameName,
+            players: room.players,
+            mode: 1,
+          })
+          game.start();
+          room.addGame = game;
+          room.isOpen  = false;
+        });
 
       socket.on('stopGame', (gameName: string) => {
         const room = this._rooms.find((r) => r.name === gameName);
         room.gameOver();
       });
 
-      socket.on('getNextPiece', (args) => {
-        // const game = this.games.find((game) => game.gameName === args.gameName);
-        // game.getNextPiece({
-        //   id: socket.id,
-        //   playerName: args.playerName,
-        //   board: args.boardState,
-        //   gameName: args.gameName,
-        // });
-        // const player = game.players.find((p) => p.name === args.playerName);
-        // player.board.shape = args.boardState;
-        // // sending to all clients in 'game' room(channel) except sender
-        // socket.broadcast.to(args.gameName).emit('shaddy');
+      socket.on('loser', (playerName, gameName) => {
+        const room = this._rooms.find((r) => r.name === gameName);
+        room.game.removePlayer(playerName);
+        console.log('lose with one player => ', room.game.players.length);
+        room.playersBackUp.forEach((player) =>
+          console.log(`players still in room ==> ${player.name}`)
+        );
       });
 
-      socket.on('getArrayOfPlayers', (gameName: string, playerName: string) => {
-        // const shadows: IShadow[] = [];
-        // const game = this.games.find((game) => game.gameName === gameName);
-        // game.players.forEach((player) => {
-        //   if (player.name !== playerName) {
-        //     let shade: IShadow = {
-        //       player: player.name,
-        //       board: player.board.shape,
-        //     };
-        //     shadows.push(shade);
-        //   }
-        // });
-        // this._io.sockets.to(socket.id).emit('arrayOfPlayers', shadows);
+      socket.on('winner', (playerName, gameName) => {
+        const room = this._rooms.find((r) => r.name === gameName);
+        room.game.removePlayer(playerName);
+        console.log(
+          'winner with multiple players ==> ',
+          room.game.players.length
+        );
+        room.playersBackUp.forEach((player) =>
+          console.log(`players still in room ==> ${player.name}`)
+        );
       });
 
-      socket.on('getLobby', (name) => {
-        const lobby = this._rooms.filter((r) => r.name === name)[0];
-        const r: IRoom = {
-          name: lobby.name,
-          players: lobby.players,
-          open: lobby.open,
-          numberOfPlayers: lobby.numberOfPlayers,
-          host: lobby.host,
-        };
-        socket.emit('lobby', r);
-      });
+           socket.on('getLobby', (name) => {
+             const lobby = this.__rooms.filter((r) => r.name === name)[0];
+             const r: IRoom = {
+               name: lobby.name,
+               open: lobby.isOpen,
+               host: lobby.gameHost,
+               numberOfPlayers: 1,
+               players: lobby.players,
+             };
+             console.log(`emitting lobby ${r.host} - [${name}]`);
+             socket.emit('lobby', r);
+           });
+
+      // socket.on('getLobby', (name) => {
+      //   const lobby = this._rooms.filter((r) => r.name === name)[0];
+      //   const r: IRoom = {
+      //     name: lobby.name,
+      //     players: lobby.players,
+      //     open: lobby.open,
+      //     numberOfPlayers: lobby.numberOfPlayers,
+      //     host: lobby.host,
+      //   };
+      //   console.log(`emitting lobby ${r.host} - [${name}]`);
+      //   socket.emit('lobby', r);
+      // });
 
       socket.on('createRoom', (roomName) => {
         socket.join(roomName);
+        socket.rooms.forEach((room) =>
+          console.log(`rooms  in game ${room} - len ${room.length}`)
+        );
       });
 
       socket.on('createOrJoinGame', (roomName: string, userName: string) => {
-        const room = this._rooms.find((room) => room.name === roomName);
+        console.log(`Asking to create game`);
 
-        if (room === undefined) {
-          this._rooms.push(
-            roomController.createRoom(roomName, userName, socket.id)
-          );
-          roomController.emitSuccesfullyCreated(socket);
+        const room = this.__rooms.find((room) => room.name === roomName);
+        if (!room) {
+          // Room doesn't exist yest, create it
+          this.__rooms.push(roomController._createRoom(roomName, userName, socket.id));
+          roomController.emitSuccesfullyCreated(socket, true);
         } else {
-          if (!room.open) {
+          if (!room.isOpen) {
             roomController.emitRoomIsFull(socket, roomName);
             return;
           }
@@ -146,37 +189,59 @@ export class Server {
             roomController.emitUserNametaken(socket, userName);
             return;
           }
-          roomController.addPlayerToRoom(room, userName, socket.id);
-          roomController.emitSuccesfullyCreated(socket);
+              roomController._addPlayerToRoom(room, userName, socket.id);
+              roomController.emitSuccesfullyCreated(socket, false);
         }
       });
 
-      socket.on('keydown', (args: IKeyDown) => {
-        const room = this._rooms.find((room) => room.name === args.gameName);
-        const player = room.players.find((p) => p.name === args.playerName);
-        handlePlayerKeyDown(this._io, player, args.key);
-      });
-      socket.on('applyPenalty', (gameName) => {
-        // console.log(`applyPenalty called 🚨`);
-        // socket.on('updateMove', () => console.log(`update this`));
-        // socket.broadcast.to(gameName).emit('penalty');
+      socket.on('front-state', (state: IFrontState) => {
+        const room = this.__rooms.find((r) => r.name === state.gameName);
+        room.game.queu(state); 
       });
 
-      socket.on('gameOver', (args) => {
-        // const game = this.games.find((game) => game.gameName === args.gameName);
-        // const player = game.players.find(
-        //   (player) => player.name === args.playerName
-        // );
-        // player.board.shape = args.boardState;
-        // // START Handle send last version of a map when game over
-        // const myBoardShadow: IShadow = {
-        //   player: args.playerName,
-        //   board: args.boardState,
-        // };
-        // // socket.broadcast.to(args.gameName).emit('player', myBoardShadow);
-        // socket.broadcast.to(args.gameName).emit('shaddy');
-        // END Handle send last version of a map when game over
+      socket.on('get-extra-pieces', (gameName: string) => {
+        const room = this.__rooms.find((r) => r.name === gameName);
+        room.game.createNewPieces();
       });
+
+      socket.on('apply-penalty', (gameName: string,) => {
+        socket.to(gameName).emit('got-penalty')
+      });
+
+      // socket.on('createOrJoinGame', (roomName: string, userName: string) => {
+
+      //   const room = this._rooms.find((room) => room.name === roomName);
+
+      //   if (room === undefined) {
+      //     this._rooms.push(
+      //       roomController.createRoom(roomName, userName, socket.id)
+      //     );
+      //     // Only the first to enter the room will be host at the beginning
+      //     roomController.emitSuccesfullyCreated(socket, true);
+      //   } else {
+      //     if (!room.open) {
+      //       roomController.emitRoomIsFull(socket, roomName);
+      //       return;
+      //     }
+      //     const players = room.players;
+      //     if (players.some((player) => player.name === userName)) {
+      //       roomController.emitUserNametaken(socket, userName);
+      //       return;
+      //     }
+      //     roomController.addPlayerToRoom(room, userName, socket.id);
+      //     roomController.emitSuccesfullyCreated(socket, false);
+      //   }
+      // });
+
+      socket.on('keydown', (args: IKeyDown) => {
+        const room = this._rooms.find((room) => room.name === args.gameName);
+        const game = room?.game;
+        const player = game?.players.find((p) => p.name === args.playerName);
+        if (player) {
+          handlePlayerKeyDown(this._io, player, args.key);
+        }
+      });
+
       return;
     });
   }
