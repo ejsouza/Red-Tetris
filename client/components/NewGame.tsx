@@ -35,28 +35,6 @@ const NewGame = () => {
     setRoomName('');
     setUserName('');
     setShow(false);
-    // let socket;
-
-    // getRoomByName(roomName).then((res) => {
-    //   console.log('RESPONSE =: ',  res.room);
-    //   const room = res as IRoom;
-    //   if (Object.entries(room)[1][1] === null) {
-    //     console.log(`Room is free preceede`);
-    //     router.push(`/`, `/#${roomName}[${userName}]`);
-    //   } else {
-    //     console.log(Object.entries(room)[1][1]);
-    //     console.log(`UserName -:${userName}`);
-    //   }
-    // });
-
-    // const res = await creatNewGame(roomName, userName);
-    // console.log(`Game created ? `, res);
-    // if (res.ok) {
-    //       router.push(`/`, `/#${roomName}[${userName}]`);
-    // } else {
-    //   console.log(`already in use := ${res.success}`);
-    //   router.push(`/`, `/#${roomName}[${userName}]`);
-    // }
 
     socket.emit('createOrJoinGame', roomName, userName);
     socket.on('room', (args: {success: boolean, msg: string}) => {
@@ -66,28 +44,18 @@ const NewGame = () => {
         setError(true);
         setTimeout(() => {
           setError(false);
-        }, 3000)
+        }, 2000);
       } else {
         socket.emit('createRoom', roomName);
         router.push(`/`, `/#${roomName}[${userName}]`);
       }
     });
 
-    // socket = io(RT_API);
-    // socket.emit('joinDetails', { name: userName, room: roomName });
-    // socket.on('joinDetails', (arg: { success: boolean }) => {
-    //   console.log(`FRONT IO := ${arg.success}`);
-    //   if (arg.success) {
-    //     router.push(`/`, `/#${roomName}[${userName}]`);
-    //   }
-    // });
-
-    // if all goes well redirect user to localhost:300/#<roomName>[<userName>]
   };
   return (
     <>
       {error && (
-        <Modal size="sm" show={error}>
+        <Modal size="sm" show={error} backdrop="static">
           <Modal.Header>
             <Modal.Title id="example-modal-sizes-title-sm">
               <h3 style={{ color: 'red' }}>
