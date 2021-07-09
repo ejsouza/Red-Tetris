@@ -1,28 +1,39 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { throttle } from 'throttle-debounce';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import BoardGame from './BoardGame';
 import { InfoGame } from './InfoGame';
+import LostGame from './LostGame';
+import GameWinner from './GameWinner';
 import styled from 'styled-components';
 import socket from '../utils/socket';
-import Loading from './Loading';
-import MiniBoard from './MiniBoard';
+import { emitFrontState, emitStatePieceUpdated } from '../utils/emiter';
+import { IPiece, IShadow } from '../interfaces';
 import {
-  updateBoard,
-  cleanPieceFromBoard,
-  isYPlusOneFree,
-  isGameOver,
-  updatePiece,
-  score,
+  update,
+  handleKeyDown,
+  playerScores,
+  isMoveDownAllowed,
+  gameOver,
+  calculateScore,
+  calculateLevel,
   penalty,
-  writeAsMuchAsPossibleToBoard,
+  resetBoard,
 } from '../core/gameEngine';
 import {
-  BOARD_UPDATED,
-  PIECE_UPDATED,
-  NEXT_PIECE_UPDATED,
-} from '../utils/const';
-import { IPiece } from '../interfaces';
+  pieceUpdated,
+  nextPieceUpdated,
+  boardUpdated,
+  scoreUpdated,
+  boardPlayerShadowUpdated,
+  nextUpdated,
+  levelUpdated,
+  resetStore,
+} from '../store/actions';
+import { PIECES } from '../../rtAPI/src/utils/const';
+import { IState } from '../utils/emiter';
+import { MIN_PIECES, EMPTY_BOARD } from '../utils/const';
 
 const Container = styled.div`
   display: flex;
@@ -43,7 +54,7 @@ const Section = styled.div`
 `;
 
 interface ICallback {
-  (): void
+  (): void;
 }
 
 interface IGameProps {
@@ -51,18 +62,38 @@ interface IGameProps {
   playerName: string;
 }
 
-const Game = ({ gameName, playerName }: IGameProps) => {
+interface IProps {
+  isHost: boolean;
+}
+
+interface IPlayerState {
+  at: number;
+  piece: IPiece;
+  score: number;
+  nextPiece: number[];
+}
+
+const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
+  const [youLost, setYouLost] = useState(false);
+  const [youWin, setYouWin] = useState(false);
+  const [isHost, setIsHost] = useState(false);
+  const [clearedLines, setClearedLines] = useState(0);
+  // const [gameOver, setGameOver] = useState(false);
   const [delay, setDelay] = useState((700 * 60) / 100);
-  const [toggle, setToggle] = useState(false);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
   const dispatch = useAppDispatch();
   const boardState = useAppSelector((state) => state.board);
   const pieceState = useAppSelector((state) => state.piece);
   const nextPieceState = useAppSelector((state) => state.nextPiece);
+  const score = useAppSelector((state) => state.score);
+  const piece = useAppSelector((state) => state.piece);
+  const board = useAppSelector((state) => state.board);
+  const next = useAppSelector((state) => state.next);
+  const level = useAppSelector((state) => state.level);
 
   const useInterval = (callback: ICallback, delay: number) => {
     // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
     const savedCallback = useRef<ICallback | null>();
-
     // Remember the latest callback.
     useEffect(() => {
       savedCallback.current = callback;
@@ -77,142 +108,164 @@ const Game = ({ gameName, playerName }: IGameProps) => {
       }
       if (delay !== 0) {
         let id = setInterval(tick, delay);
+        setIntervalId(id);
         return () => clearInterval(id);
       }
     }, [delay]);
   };
 
+  useEffect(() => {
+    socket.on('update-next-piece', (piece: number[]) => {
+      piece.forEach((n) => next.push(n));
+      dispatch(nextUpdated(next));
+    });
+    socket.on('extra-pieces', (piece: number[]) => {
+      piece.forEach((n) => next.push(n));
+      dispatch(nextUpdated(next));
+    });
+    socket.on('got-penalty', () => {
+      dispatch(boardUpdated(penalty([...board])));
+    });
+
+  }, []);
+
   useInterval(() => {
-    const copyPiece: IPiece = Object.create(pieceState);
-
-    if (isYPlusOneFree(boardState, copyPiece)) {
-      /**
-       * IMMUTABILITY
-       * Maybe instead of mutating the map every time
-       * could be better have a blanc map (i.e) a map set to zero
-       * and instead of calling cleanPieceFromBoard()
-       * setMap([mapZeroed])
-       * so in another places I can just call
-       * ...mapZeroed to create a copy
-       */
-      copyPiece.pos.forEach((pos) => {
-        pos.y++;
-        boardState[pos.y][pos.x] = copyPiece.color;
-      });
-
-      dispatch({ type: PIECE_UPDATED, piece: copyPiece });
-      dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+  if (
+      isMoveDownAllowed([...board], JSON.parse(JSON.stringify(piece)))
+    ) {
+      const [b, p] = update([...board], JSON.parse(JSON.stringify(piece)));
+      // timestamp and send front state to server
+      dispatch(pieceUpdated(p));
+      dispatch(boardUpdated(b));
+      return;
     } else {
-      if (isGameOver(boardState, nextPieceState)) {
-        // if (isGameOver(map, nextPiece)) {
-        const copyPiece: IPiece = Object.create(pieceState);
-        copyPiece.still = true;
-        writeAsMuchAsPossibleToBoard(boardState, nextPieceState);
+      if (gameOver(board)) {
         setDelay(0);
-        // Be careful
-        // socket.emit('gameOver', { gameName, playerName, map, piece });
-        socket.emit('gameOver', {
-          gameName,
-          playerName,
-          boardState,
-          copyPiece,
-        });
-        dispatch({ type: PIECE_UPDATED, piece: copyPiece });
-        // dispatch({ type: BOARD_UPDATED, board: map });
-        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-      } else {
-        if (score(boardState, copyPiece)) {
-          socket.emit('applyPenalty', gameName);
+        if (intervalId) {
+          clearInterval(intervalId);
         }
-        dispatch({ type: PIECE_UPDATED, piece: nextPieceState });
-        // Update board here, otherwise piece will appear on second row
-        nextPieceState.pos.forEach((pos) => {
-          boardState[pos.y][pos.x] = nextPieceState.color;
-        });
-        socket.emit('getNextPiece', {
-          gameName,
+        socket.emit('player-lost', playerName);
+      } 
+      const points = playerScores(board, piece);
+      if (points) {
+        socket.emit('apply-penalty', gameName);
+        setClearedLines(prev => prev + points);
+        dispatch(scoreUpdated(score + calculateScore(level, points)));
+        dispatch(levelUpdated(calculateLevel(clearedLines)));
+      }
+      const index = next.shift();
+      if (next.length === MIN_PIECES) {
+        socket.emit('get-extra-pieces', gameName);
+      }
+      if (index !== undefined) {
+        const piece = PIECES[index];
+
+        dispatch(nextUpdated(next));
+        dispatch(pieceUpdated(piece));
+        const currentState = {
           playerName,
-          boardState,
-          copyPiece,
-        });
-        dispatch({ type: BOARD_UPDATED, board: [...boardState] });
+          gameName,
+          board,
+          piece,
+          next,
+          score,
+          at: Date.now(),
+        };
+        emitFrontState(currentState);
       }
     }
   }, delay);
 
+
+  // ************************* Start Game V1 ***********************
+  // listen for game start
+
+  // ************************* End Game V1 ***********************
+
   useEffect(() => {
-    socket.on('nextPiece', (nextPiece: IPiece) => {
-      dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
+    // socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
+    //   dispatch(boardUpdated(map));
+    //   dispatch(pieceUpdated(piece));
+    //   dispatch(nextPieceUpdated(nextPiece));
+    //   console.log(`GOT NEW MAP >>>>`);
+    // });
+
+    socket.on('score', (score: number) => {
+      dispatch(scoreUpdated(score));
+    });
+
+    socket.on('youLost', (playerHost: boolean) => {
+      console.log(`on youLost >> ${isHost}`);
+      // socket.emit('loser', playerName, gameName);
+      setIsHost(playerHost);
+      setYouLost(true);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      setDelay(0);
+    });
+
+    socket.on('youWin', (playerHost: boolean) => {
+      // socket.emit('winner', playerName, gameName);
+      setIsHost(playerHost);
+      setYouWin(true);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      setDelay(0);
+    });
+
+    socket.on('gameOver', () => {
+      socket.emit('stopGame', gameName);
+    });
+
+    socket.on('updateBoard', (board: number[][]) => {
+      dispatch(boardUpdated([...board]));
+    });
+    socket.on('startLoop', (piece: IPiece) => {
+      console.log('Starting Game... ', piece.color);
+      dispatch(pieceUpdated(piece));
     });
   }, []);
 
-  useEffect(() => {
-    socket.on('penalty', () => {
-      setToggle(true);
-      // TODO Check if player is still in game before applying penalty
-      const b = [...boardState];
-      // penalty(boardState);
-      penalty(b);
-      // dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-      dispatch({ type: BOARD_UPDATED, board: [...b] });
-    });
-  }, [toggle]);
+  // useEffect(() => {
+  //   socket.on('gameUpdate', (msg: string) => {
+  //     console.log(`FROM GAME ${msg}...`);
+  //   });
+  // }, []);
+
+  // const throttleHandleKeyDown = throttle(400, (e: KeyboardEvent) => {
+  // const k = e.key;
+  // socket.emit('keydown', {
+  //   key: k,
+  //   gameName,
+  //   playerName,
+  // });
+  const keyDown = (e: KeyboardEvent) => {
+    const [b, p] = handleKeyDown(
+      [...board],
+      JSON.parse(JSON.stringify(piece)),
+      e.key
+    );
+    if (b && p) {
+      dispatch(pieceUpdated(p));
+      dispatch(boardUpdated(b));
+    }
+  };
+
+  // useEffect(() => {
+  //   socket.on('updateBoard', (board: number[][]) => {
+  //     dispatch(boardUpdated([...board]));
+  //   });
   // }, []);
 
   useEffect(() => {
-    socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
-      dispatch({ type: BOARD_UPDATED, board: map });
-      dispatch({ type: PIECE_UPDATED, piece: piece });
-      dispatch({ type: NEXT_PIECE_UPDATED, nextPiece: nextPiece });
-      /**
-       * setToggle() is called here because otherwise map will be undefined
-       * in the first penalty
-       */
-      setToggle(!toggle);
-    });
-  }, []);
-
-  const handleKeyDown = (e: any) => {
-    // if (!piece || !map) {
-    //   return;
-    // }
-    // const boardState = useAppSelector((state) => state.board);
-    // if (!piece) {
-    //   return;
-    // }
-    const copyPiece: IPiece = Object.create(pieceState);
-    if (e.key === 'ArrowLeft') {
-      // updateBoard(map, piece, e.keyCode);
-      // updateBoard(boardState, piece, e.keyCode);
-      updateBoard(boardState, copyPiece, e.keyCode);
-    }
-    if (e.key === 'ArrowRight') {
-      // updateBoard(map, piece, e.keyCode);
-      // updateBoard(boardState, piece, e.keyCode);
-      updateBoard(boardState, copyPiece, e.keyCode);
-    }
-    if (e.key === 'ArrowDown') {
-      // updateBoard(map, piece, e.keyCode);
-      // updateBoard(boardState, piece, e.keyCode);
-      updateBoard(boardState, copyPiece, e.keyCode);
-    }
-    if (e.key === 'ArrowUp') {
-      // updateBoard(map, piece, e.keyCode);
-      // updateBoard(boardState, piece, e.keyCode);
-      updateBoard(boardState, copyPiece, e.keyCode);
-    }
-    // setMap([...map]);
-    dispatch({ type: BOARD_UPDATED, board: [...boardState] });
-    // dispatch({ type: PIECE_UPDATED, piece: copyPiece });
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', keyDown);
     //clean event
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', keyDown);
     };
-  }, [pieceState]);
+  }, [piece]);
 
   return (
     <>
@@ -221,15 +274,13 @@ const Game = ({ gameName, playerName }: IGameProps) => {
           <BoardGame />
         </Section>
         <Section>
-          <Gap padding=".3em" />
-        </Section>
-        <Section>
           <InfoGame player={playerName} game={gameName} />
         </Section>
       </Container>
+      {youLost && <LostGame player={playerName} game={gameName}  isHost={isHost} />}
+      {youWin && <GameWinner  player={playerName} game={gameName}  isHost={isHost} />}
     </>
   );
 };
 
-// export default Game;
 export default connect()(Game);
