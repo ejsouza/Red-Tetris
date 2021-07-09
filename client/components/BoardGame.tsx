@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import styled, { createGlobalStyle, css } from 'styled-components';
@@ -41,7 +41,6 @@ const GridItem = styled.div`
   }
 `;
 
-
 interface IProps {
   b: number[][];
 }
@@ -72,9 +71,10 @@ const BoardGame = () => {
   // });
 
   // return <Grid>{board}</Grid>;
+  // slice(1) to remove the first row
   return (
     <Grid>
-      {boardState.map((row) => {
+      {boardState.slice(2).map((row) => {
         return row.map((cell) => (
           <GridItem
             style={{ background: colors[cell] }}
