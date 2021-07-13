@@ -19,11 +19,49 @@ const Grid = styled.div`
   // grid-template-columns: repeat(10, auto-fill, minmax(360px, 1fr));
   // grid-template-row: repeat(10, auto-fill, minmax(360px, 1fr));
 
-  background-color: #2196f3;
-  border-bottom: 1px solid rgba(255, 255, 255, 1);
-  border-left: 1px solid rgba(255, 255, 255, 1);
+  background-image: url('/tetris-background.png');
+  // background-color: #2196f3;
+  // border-bottom: 1px solid rgba(255, 255, 255, 1);
+  // border-left: 1px solid rgba(255, 255, 255, 1);
   // gap 1px 1px;
   line-height: 1;
+
+	height: 100%;
+	/* max-height: 600px; */
+	width: 360px;
+	background-color: hsla(200,40%,30%,.4);
+	background-image:		
+		url('/dark-forest.png'), 
+		url('/forest.png'),
+		url('/space.jpeg'),
+		url('/space.jpeg'),
+		url('/space.jpeg');
+	background-repeat: repeat-x;
+	background-position: 
+		0 20%,
+		0 100%,
+		0 50%,
+		0 100%,
+		0 0;
+	background-size: 
+		2500px,
+		800px,
+		500px 200px,
+		1000px,
+		400px 260px;
+	animation: 50s para infinite linear;
+
+  @keyframes para {
+    100% {
+      background-position: 
+        -1000px 20%,
+        -800px 95%,
+        500px 50%,
+        1000px 100%,
+        400px 0;
+      }
+    }
+
 `;
 
 const GridItem = styled.div`
