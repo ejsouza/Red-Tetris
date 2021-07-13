@@ -33,7 +33,7 @@ import {
 } from '../store/actions';
 import { PIECES } from '../../rtAPI/src/utils/const';
 import { IState } from '../utils/emiter';
-import { MIN_PIECES, EMPTY_BOARD } from '../utils/const';
+import { MIN_PIECES, EMPTY_BOARD, RECRUIT } from '../utils/const';
 
 const Container = styled.div`
   display: flex;
@@ -60,6 +60,7 @@ interface ICallback {
 interface IGameProps {
   gameName: string;
   playerName: string;
+  hardness: number;
 }
 
 interface IProps {
@@ -73,18 +74,14 @@ interface IPlayerState {
   nextPiece: number[];
 }
 
-const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
+const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
   const [youLost, setYouLost] = useState(false);
   const [youWin, setYouWin] = useState(false);
-  const [isHost, setIsHost] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [clearedLines, setClearedLines] = useState(0);
-  // const [gameOver, setGameOver] = useState(false);
-  const [delay, setDelay] = useState((700 * 60) / 100);
+  const [delay, setDelay] = useState(RECRUIT);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
   const dispatch = useAppDispatch();
-  const boardState = useAppSelector((state) => state.board);
-  const pieceState = useAppSelector((state) => state.piece);
-  const nextPieceState = useAppSelector((state) => state.nextPiece);
   const score = useAppSelector((state) => state.score);
   const piece = useAppSelector((state) => state.piece);
   const board = useAppSelector((state) => state.board);
@@ -114,27 +111,9 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
     }, [delay]);
   };
 
-  useEffect(() => {
-    socket.on('update-next-piece', (piece: number[]) => {
-      piece.forEach((n) => next.push(n));
-      dispatch(nextUpdated(next));
-    });
-    socket.on('extra-pieces', (piece: number[]) => {
-      piece.forEach((n) => next.push(n));
-      dispatch(nextUpdated(next));
-    });
-    socket.on('got-penalty', () => {
-      dispatch(boardUpdated(penalty([...board])));
-    });
-
-  }, []);
-
   useInterval(() => {
-  if (
-      isMoveDownAllowed([...board], JSON.parse(JSON.stringify(piece)))
-    ) {
+    if (isMoveDownAllowed([...board], JSON.parse(JSON.stringify(piece)))) {
       const [b, p] = update([...board], JSON.parse(JSON.stringify(piece)));
-      // timestamp and send front state to server
       dispatch(pieceUpdated(p));
       dispatch(boardUpdated(b));
       return;
@@ -145,11 +124,11 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
           clearInterval(intervalId);
         }
         socket.emit('player-lost', playerName);
-      } 
+      }
       const points = playerScores(board, piece);
       if (points) {
-        socket.emit('apply-penalty', gameName);
-        setClearedLines(prev => prev + points);
+        socket.emit('apply-penalty', gameName, playerName);
+        setClearedLines((prev) => prev + points);
         dispatch(scoreUpdated(score + calculateScore(level, points)));
         dispatch(levelUpdated(calculateLevel(clearedLines)));
       }
@@ -176,43 +155,37 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
     }
   }, delay);
 
-
   // ************************* Start Game V1 ***********************
   // listen for game start
 
   // ************************* End Game V1 ***********************
 
   useEffect(() => {
-    // socket.on('newMap', (map: number[][], piece: IPiece, nextPiece: IPiece) => {
-    //   dispatch(boardUpdated(map));
-    //   dispatch(pieceUpdated(piece));
-    //   dispatch(nextPieceUpdated(nextPiece));
-    //   console.log(`GOT NEW MAP >>>>`);
-    // });
+    let isCancelled = false;
 
     socket.on('score', (score: number) => {
       dispatch(scoreUpdated(score));
     });
 
-    socket.on('youLost', (playerHost: boolean) => {
-      console.log(`on youLost >> ${isHost}`);
-      // socket.emit('loser', playerName, gameName);
-      setIsHost(playerHost);
-      setYouLost(true);
-      if (intervalId) {
-        clearInterval(intervalId);
+    socket.on('youLost', (player: { gameOver: boolean }) => {
+      if (!isCancelled) {
+        setIsGameOver(player.gameOver);
+        setYouLost(true);
+        setDelay(0);
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
       }
-      setDelay(0);
     });
 
-    socket.on('youWin', (playerHost: boolean) => {
-      // socket.emit('winner', playerName, gameName);
-      setIsHost(playerHost);
-      setYouWin(true);
-      if (intervalId) {
-        clearInterval(intervalId);
+    socket.on('youWin', () => {
+      if (!isCancelled) {
+        setDelay(0);
+        setYouWin(true);
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
       }
-      setDelay(0);
     });
 
     socket.on('gameOver', () => {
@@ -223,24 +196,30 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
       dispatch(boardUpdated([...board]));
     });
     socket.on('startLoop', (piece: IPiece) => {
-      console.log('Starting Game... ', piece.color);
       dispatch(pieceUpdated(piece));
     });
+
+    socket.on('update-next-piece', (piece: number[]) => {
+      piece.forEach((n) => next.push(n));
+      dispatch(nextUpdated(next));
+    });
+    socket.on('extra-pieces', (piece: number[]) => {
+      piece.forEach((n) => next.push(n));
+      dispatch(nextUpdated(next));
+    });
+    socket.on('got-penalty', () => {
+      dispatch(boardUpdated(penalty([...board])));
+    });
+
+    if (hardness) {
+      setDelay(hardness);
+    }
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
-  // useEffect(() => {
-  //   socket.on('gameUpdate', (msg: string) => {
-  //     console.log(`FROM GAME ${msg}...`);
-  //   });
-  // }, []);
-
-  // const throttleHandleKeyDown = throttle(400, (e: KeyboardEvent) => {
-  // const k = e.key;
-  // socket.emit('keydown', {
-  //   key: k,
-  //   gameName,
-  //   playerName,
-  // });
   const keyDown = (e: KeyboardEvent) => {
     const [b, p] = handleKeyDown(
       [...board],
@@ -252,12 +231,6 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
       dispatch(boardUpdated(b));
     }
   };
-
-  // useEffect(() => {
-  //   socket.on('updateBoard', (board: number[][]) => {
-  //     dispatch(boardUpdated([...board]));
-  //   });
-  // }, []);
 
   useEffect(() => {
     window.addEventListener('keydown', keyDown);
@@ -277,8 +250,12 @@ const Game = ({ gameName, playerName }: IGameProps): JSX.Element => {
           <InfoGame player={playerName} game={gameName} />
         </Section>
       </Container>
-      {youLost && <LostGame player={playerName} game={gameName}  isHost={isHost} />}
-      {youWin && <GameWinner  player={playerName} game={gameName}  isHost={isHost} />}
+      {youLost && (
+        <LostGame player={playerName} game={gameName} gameOver={isGameOver} />
+      )}
+      {youWin && (
+        <GameWinner player={playerName} game={gameName} gameOver={isGameOver} />
+      )}
     </>
   );
 };
