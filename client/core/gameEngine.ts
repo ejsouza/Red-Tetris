@@ -1,8 +1,18 @@
+import { posix } from 'node:path';
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
   EMPTY_PIECE,
   BLOCKED_ROW,
+  KEY_ARROW_UP_PRESSED,
+  KEY_ARROW_RIGHT_PRESSED,
+  KEY_ARROW_DOWN_PRESSED,
+  KEY_ARROW_LEFT_PRESSED,
+  KEY_ARROW_SPACE_PRESSED,
+  POINTS_FOR_ONE_LINE,
+  POINTS_FOR_TWO_LINES,
+  POINTS_FOR_THREE_LINES,
+  POINTS_FOR_FOUR_LINES,
 } from '../utils/const';
 
 interface IPiece {
@@ -12,6 +22,10 @@ interface IPiece {
   color: number;
   still: boolean;
 }
+
+type TUpdate = [board: number[][], piece: IPiece];
+
+type IKeyDown = [board: number[][] | null, piece: IPiece | null];
 
 const cleanPieceFromBoard = (board: number[][], piece: IPiece): void => {
   piece.pos.forEach((pos) => {
@@ -59,7 +73,6 @@ const writeNewPieceToBoard = (board: number[][], piece: IPiece): void => {
   });
 };
 
-
 const firstRowFree = (board: number[][]): boolean => {
   let isFree = true;
   for (let col = 0; col < BOARD_WIDTH; col++) {
@@ -106,7 +119,7 @@ const rightCellIsFree = (board: number[][], piece: IPiece): boolean => {
 
   cleanPieceFromBoard(board, piece);
   piece.pos.forEach((pos) => {
-    if (pos.x + 1 > BOARD_WIDTH || board[pos.y][pos.x + 1] !== 0) {
+    if (pos.x + 1 === BOARD_WIDTH || board[pos.y][pos.x + 1] !== 0) {
       isFree = false;
       writeNewPieceToBoard(board, piece);
       return;
@@ -120,7 +133,7 @@ export const isYPlusOneFree = (board: number[][], piece: IPiece): boolean => {
 
   cleanPieceFromBoard(board, piece);
   piece.pos.forEach((pos) => {
-    if (pos.y + 1 >= BOARD_HEIGHT || board[pos.y + 1][pos.x] !== 0) {
+    if (pos.y + 1 === BOARD_HEIGHT || board[pos.y + 1][pos.x] !== 0) {
       isFree = false;
       writeNewPieceToBoard(board, piece);
       return;
@@ -134,9 +147,9 @@ const isGameOver = (board: number[][], nextPiece: IPiece): boolean => {
   nextPiece.pos.forEach((pos) => {
     if (board[pos.y][pos.x] !== 0) {
       gameOver = true;
-      return ;
+      return;
     }
-  })
+  });
 
   return gameOver;
   // let gameOver = BOARD_HEIGHT;
@@ -151,7 +164,7 @@ const isGameOver = (board: number[][], nextPiece: IPiece): boolean => {
    * Check gameOver < 3 because at the begining every piece has height = 2
    * and with this logic we can have a gameOver at position 3 if the last
    * piece set was the I in vertical so we still have 3 rows and another
-   * piece is still possible to be set 
+   * piece is still possible to be set
    */
   // return ((gameOver < piece.height) && (gameOver < 3));
 };
@@ -173,7 +186,9 @@ const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
   return fits;
 };
 
-const rotate = (board: number[][], piece: IPiece): void => {
+const rotate = (board: number[][], piece: IPiece): boolean => {
+  let rotated = false;
+  
   cleanPieceFromBoard(board, piece);
 
   const rotatedPiece: IPiece = EMPTY_PIECE[0];
@@ -185,9 +200,6 @@ const rotate = (board: number[][], piece: IPiece): void => {
   const baseX = piece.pos[pos].x;
   const baseY = piece.pos[pos].y;
 
-  rotatedPiece.pos.forEach((pos) => {
-    pos.x = pos.y = 0;
-  });
   /**
    * BASE ALGORITHM TO ROTATE PIECE
    *   clockwise         counter clockwise
@@ -209,12 +221,10 @@ const rotate = (board: number[][], piece: IPiece): void => {
   rotatedPiece.height = xLen.length;
   rotatedPiece.width = yLen.length;
 
-  console.log(
-    `after rotating heigh := ${rotatedPiece.height} - width := ${rotatedPiece.width}`
-  );
 
   /** Check if after rotating pieces fits on board */
   if (newPieceFitsInBoard(board, rotatedPiece)) {
+    rotated = true;
     rotatedPiece.pos.forEach((pos, index) => {
       piece.pos[index].x = pos.x;
       piece.pos[index].y = pos.y;
@@ -223,6 +233,7 @@ const rotate = (board: number[][], piece: IPiece): void => {
     piece.width = rotatedPiece.width;
   }
   writeNewPieceToBoard(board, piece);
+  return rotated;
 };
 
 export const updateBoard = (
@@ -231,7 +242,7 @@ export const updateBoard = (
   key: number
 ): void => {
   if (piece.still) {
-    return ;
+    return;
   }
   switch (key) {
     case 37: {
@@ -285,7 +296,7 @@ const updatePiece = (
   piece.color = nextPiece.color;
 };
 
-const score = (board: number[][], piece: IPiece): number => {
+const playerScores = (board: number[][], piece: IPiece): number => {
   let min = BOARD_HEIGHT;
   let height = 0;
   let score = 0;
@@ -324,7 +335,7 @@ const score = (board: number[][], piece: IPiece): number => {
   return score;
 };
 
-const penalty = (board: number[][]): void => {
+const penalty = (board: number[][]) => {
   let row = BOARD_HEIGHT - 1;
 
   while (row > 0 && board[row][0] === BLOCKED_ROW) {
@@ -334,19 +345,194 @@ const penalty = (board: number[][]): void => {
   for (let col = 0; col < BOARD_WIDTH; col++) {
     board[row][col] = BLOCKED_ROW;
   }
+  return board;
 };
 
-interface ICallback {
-  (): void;
+/*********************** V1 ******************** */
+
+const draw = (board: number[][], piece: IPiece) => {
+  piece.pos.forEach((pos) => (board[pos.y][pos.x] = piece.color));
+};
+
+const incrementY = (piece: IPiece) => {
+  piece.pos.forEach((pos) => pos.y++);
+};
+
+const incrementX = (piece: IPiece) => {
+  piece.pos.forEach((pos) => pos.x++);
+};
+
+const decrementX = (piece: IPiece) => {
+  piece.pos.forEach((pos) => pos.x--);
+};
+
+const update = (board: number[][], piece: IPiece): TUpdate => {
+  // cleanPieceFromBoard(board, piece);
+  incrementY(piece);
+  draw(board, piece);
+  return [[...board], piece];
+};
+
+const isMoveRightAllowed = (board: number[][], piece: IPiece): boolean => {
+  let canMove = true;
+  cleanPieceFromBoard(board, piece);
+  piece.pos.forEach((pos) => {
+    if (
+      pos.y < 2 ||
+      pos.x + 1 === BOARD_WIDTH ||
+      board[pos.y][pos.x + 1] !== 0
+    ) {
+      // if cannot move right draw piece to the same position
+      // draw();
+      canMove = false;
+      return false;
+    }
+  });
+  // if canMove piece will be draw in moveRight
+  return canMove;
+};
+
+const isMoveLeftAllowed = (board: number[][], piece: IPiece): boolean => {
+  let canMove = true;
+  cleanPieceFromBoard(board, piece);
+  piece.pos.forEach((pos) => {
+    if (pos.y < 2 || pos.x - 1 < 0 || board[pos.y][pos.x - 1] !== 0) {
+      // if cannot move left draw piece to the same position
+      // draw();
+      canMove = false;
+      return false;
+    }
+  });
+  // if canMove piece will be draw in moveLeft
+  return canMove;
+};
+
+const isMoveDownAllowed = (board: number[][], piece: IPiece): boolean => {
+  let canMove = true;
+  cleanPieceFromBoard(board, piece);
+  piece.pos.forEach((pos) => {
+    if (pos.y + 1 === BOARD_HEIGHT || board[pos.y + 1][pos.x] !== 0) {
+      // if cannot move down draw piece to the same position
+      draw(board, piece);
+      canMove = false;
+      return false;
+    }
+  });
+  // if canMove piece will be draw in moveDown
+  return canMove;
+};
+
+const fall = (board: number[][], piece: IPiece) => {
+  cleanPieceFromBoard(board, piece);
+  let allowed = true;
+  while (allowed) {
+    let increment = true;
+    piece.pos.forEach((pos) => {
+      if (pos.y + 1 === BOARD_HEIGHT || board[pos.y + 1][pos.x] !== 0) {
+        allowed = false;
+        increment = false;
+      }
+    });
+    if (increment) {
+      incrementY(piece);
+    }
+  }
+  draw(board, piece);
+};
+
+const handleKeyDown = (
+  board: number[][],
+
+  piece: IPiece,
+
+  key: string
+): IKeyDown => {
+  switch (key) {
+    case KEY_ARROW_UP_PRESSED:
+      if (rotate(board, piece)) {
+        return [[...board], piece];
+      }
+      break;
+    case KEY_ARROW_RIGHT_PRESSED:
+      if (isMoveRightAllowed(board, piece)) {
+        incrementX(piece);
+        draw(board, piece);
+        return [[...board], piece];
+      }
+      break;
+    case KEY_ARROW_DOWN_PRESSED:
+      if (isMoveDownAllowed(board, piece)) {
+        incrementY(piece);
+        draw(board, piece);
+        return [[...board], piece];
+      }
+      break;
+    case KEY_ARROW_LEFT_PRESSED:
+      if (isMoveLeftAllowed(board, piece)) {
+        decrementX(piece);
+        draw(board, piece);
+        return [[...board], piece];
+      }
+      break;
+    case KEY_ARROW_SPACE_PRESSED:
+      fall(board, piece);
+      return [board, piece];
+    default:
+      return [null, null];
+  }
+  return [null, null];
+};
+
+const calculateScore = (level: number, score: number) => {
+  let s = 0;
+  if (score === 1) {
+    s = (level + 1) * POINTS_FOR_ONE_LINE;
+  } else if (score === 2) {
+    s = (level + 1) * POINTS_FOR_TWO_LINES;
+  } else if (score === 3) {
+    s = (level + 1) * POINTS_FOR_THREE_LINES;
+  } else {
+    s = (level + 1) * POINTS_FOR_FOUR_LINES;
+  }
+  return s;
 }
 
+const calculateLevel = (lines: number) => {
+  return Math.floor(lines / 10);
+} 
 
+const gameOver = (board: number[][]) => {
+  let over = false;
+  for (let col = 0; col < BOARD_WIDTH; col++) {
+    if (board[2][col] !== 0) {
+      over = true;
+      break;
+    }
+  }
+  return over;
+}
+
+const resetBoard = (board: number[][]) => {
+  for (let row = 0; row < BOARD_HEIGHT; row++) {
+    for (let col = 0; col < BOARD_WIDTH; col++) {
+      board[row][col] = 0;
+    }
+  }
+  return board;
+}
 
 export {
   cleanPieceFromBoard,
   isGameOver,
   updatePiece,
-  score,
+  playerScores,
   penalty,
   writeAsMuchAsPossibleToBoard,
+  update,
+  handleKeyDown,
+  isMoveDownAllowed,
+  gameOver,
+  calculateScore,
+  calculateLevel,
+  resetBoard,
 };
