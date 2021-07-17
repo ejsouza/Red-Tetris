@@ -69,17 +69,14 @@ const authHeader = () => {
 
 const getUserById = async () => {
   const user = getCurrentUser();
-  return fetch(`${BaseURL}/${user.id}`, {
+  console.log(`getUserById(${user.id})`);
+  return fetch(`${BaseURL}/users/${user.id}`, {
     method: 'GET',
     mode: 'cors',
     headers: {
       Authorization: `Bearer ${user.token}`,
     },
-  })
-    .then((response) => response)
-    .catch((err) => {
-      console.log(`CATCH ${err}`);
-    });
+  }).then((response) => response);
 };
 
 export {
