@@ -136,7 +136,7 @@ export class AuthController {
             }
             /* If we get here send token and user id */
             const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
-              expiresIn: 500,
+              expiresIn: 1000,
             });
             res.setHeader(
               'Access-Control-Allow-Headers',
@@ -144,7 +144,7 @@ export class AuthController {
             );
             return res.status(200).json({
               success: true,
-              userid: user?._id,
+              id: user?._id,
               token,
             });
           })
