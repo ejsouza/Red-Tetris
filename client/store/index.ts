@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import redux, { createStore, applyMiddleware, combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
-import thunkMiddleware from 'redux-thunk';
+import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import {
   BOARD_HEIGHT,
@@ -11,13 +11,26 @@ import {
   BOARD_UPDATED,
   PIECE_UPDATED,
   NEXT_PIECE_UPDATED,
+  NEXT_UPDATED,
   SHADOWS_UPDATED,
+  PLAYER_SHADOW_UPDATED,
+  PLAYER_SCORE_UPDATED,
+  PLAYER_LEVEL_UPDATED,
+  PLAYER_IS_GAME_HOST,
+  STORE_RESET,
+  USER_LOGGED_UPDATED,
 } from '../utils/const';
-import { IPiece, IBoard, IShadow } from '../interfaces/';
+import { IPiece, IBoard, IShadow, IUser } from '../interfaces/';
 
 let store: redux.Store | undefined;
 
 const intialShadows: IShadow[] = [];
+const initialNext: number[] = [];
+const initialUser: IUser = {
+  success: false,
+  userid: '',
+  token: '',
+}
 
 const initialState = {
   board: <number[][]>(
@@ -25,9 +38,19 @@ const initialState = {
   ),
   piece: EMPTY_PIECE[0],
   nextPiece: EMPTY_PIECE[0],
+  next: initialNext,
   shadows: intialShadows,
+  score: 0,
+  level: 0,
+  isHost: false,
+  user: initialUser,
 };
 
+const resetStore = () => {
+  return <const> {
+    type: STORE_RESET
+  }
+}
 const updateBoard = (board: number[][]) => {
   return <const>{
     type: BOARD_UPDATED,
@@ -49,6 +72,13 @@ const updateNextPiece = (nextPiece: IPiece) => {
   };
 };
 
+const updateNext = (next: number[]) => {
+  return <const>{
+    type: NEXT_UPDATED,
+    next,
+  };
+};
+
 const updateShadows = (shadows: IShadow[]) => {
   return <const>{
     type: SHADOWS_UPDATED,
@@ -56,11 +86,53 @@ const updateShadows = (shadows: IShadow[]) => {
   };
 };
 
+const updatePlayerShadow = (player: IShadow) => {
+  return <const>{
+    type: PLAYER_SHADOW_UPDATED,
+    player,
+  };
+};
+
+const updateScore = (score: number) => {
+  return <const>{
+    type: PLAYER_SCORE_UPDATED,
+    score,
+  };
+};
+
+const updateLevel = (level: number) => {
+  return <const>{
+    type: PLAYER_LEVEL_UPDATED,
+    level,
+  };
+};
+
+const updateIsHost = (isHost: boolean) => {
+  return <const> {
+    type: PLAYER_IS_GAME_HOST,
+    isHost,
+  }
+}
+
+const updateUserLogged = (user: IUser) => {
+  return <const> {
+    type: USER_LOGGED_UPDATED,
+    user,
+  }
+}
+
 type ActionsType = ReturnType<
   | typeof updateBoard
   | typeof updatePiece
   | typeof updateNextPiece
+  | typeof updateNext
   | typeof updateShadows
+  | typeof updatePlayerShadow
+  | typeof updateScore
+  | typeof updateLevel
+  | typeof updateIsHost
+  | typeof resetStore
+  | typeof updateUserLogged
 >;
 type State = typeof initialState;
 const reducer = (state = initialState, action: ActionsType): State => {
@@ -80,13 +152,54 @@ const reducer = (state = initialState, action: ActionsType): State => {
         ...state,
         nextPiece: action.nextPiece,
       };
-    case SHADOWS_UPDATED:
-      {
-        return {
-          ...state,
-          shadows: [...action.shadows],
-        };
-        }
+      case NEXT_UPDATED:
+      return {
+        ...state,
+        next: [...action.next]
+      };  
+    case PLAYER_SHADOW_UPDATED:
+      return {
+        ...state,
+        shadows: state.shadows.map((player) =>
+          player.player === action.player.player
+            ? { ...player, board: [...action.player.board] }
+            : player
+        ),
+      };
+    case SHADOWS_UPDATED: {
+      return {
+        ...state,
+        shadows: [...action.shadows],
+      };
+    }
+    case PLAYER_SCORE_UPDATED: {
+      return {
+        ...state,
+        score: action.score,
+      };
+    }
+    case PLAYER_LEVEL_UPDATED: {
+      return {
+        ...state,
+        level: action.level,
+      };
+    }
+    case PLAYER_IS_GAME_HOST: {
+      return {
+        ...state,
+        isHost: action.isHost,
+      };
+    }
+    case USER_LOGGED_UPDATED: {
+      return {
+        ...state,
+        user: action.user,
+      };
+    }
+    case STORE_RESET: {
+      return (initialState);
+    }
+
     default:
       return state;
   }
@@ -104,7 +217,7 @@ const initStore = (preloadedState = initialState) => {
   return createStore(
     reducer,
     preloadedState,
-    composeWithDevTools(applyMiddleware())
+    composeWithDevTools(applyMiddleware(thunk))
   );
 };
 
