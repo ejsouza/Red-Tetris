@@ -2,9 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../../models/user';
-import { auth } from '../../middleware/auth';
 import { sendMail } from '../../core/email';
-import { SALT_ROUNDS, SECRET_TOKEN } from '../../config/const';
+import { SALT_ROUNDS, SECRET_TOKEN, emailCheck } from '../../config/const';
 
 interface IUser {
   email: string;
@@ -24,8 +23,6 @@ export class AuthController {
     this.router.post(`${this.path}/signin`, this.signin);
     this.router.post(`${this.path}/logout`, this.logout);
     this.router.delete(`${this.path}/delete`, this.delete);
-    // how to use the middle ware to check logged in users
-    // this.router.post(`${this.path}/logout`, auth, this.logout);
   }
 
   signup = async (req: Request, res: Response): Promise<void> => {
@@ -39,10 +36,7 @@ export class AuthController {
      * 500 server error
      */
 
-    const emailCheck =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    const { password, email } = <IUser>req.body;
+    const { email, password } = <IUser>req.body;
 
     if (!emailCheck.test(email)) {
       res.status(400).json({
@@ -122,6 +116,12 @@ export class AuthController {
           return res.status(401).json({
             success: false,
             err: 'User not found',
+          });
+        }
+        if (user.status === 'pending') {
+          return res.status(403).json({
+            success: false,
+            err: 'Please confirm your account first before login, we sent you an email confirmation, check your inbox!',
           });
         }
         /* If we get here user was found, check passworkd */
