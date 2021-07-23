@@ -1,99 +1,85 @@
-import * as socketIO from 'socket.io';
-import { Game } from './Game';
-import Game__ from './Game__';
-import Player from './Player';
+import Game from './Game';
+import Player, { IPlayer } from './Player';
 import { MAX_NUMBER_OF_PLAYERS } from '../utils/const';
-import { emitInfoShadows } from '../controller/RoomController';
 
-interface IRoom {
+export interface IRoom {
   name: string;
+  isOpen: boolean;
+  gameHost: string;
   players: Player[];
-  open: boolean;
   numberOfPlayers: number;
-  host: string;
 }
 
 class Room {
   private _name: string;
-  private _players: Player[];
-  private _playersBackUp: Player[];
-  private _numberOfPlayers: number;
-  private _host: string;
-  private _open: boolean;
-  private _game: Game__;
+  players: Player[];
+  game: Game;
+  private _isOpen: boolean;
+  private _gameHost: string;
+  numberOfPlayers: number;
 
-  constructor(args: IRoom) {
-    this._name = args.name;
-    this._players = args.players;
-    this._playersBackUp = [];
-    this._numberOfPlayers = this.players.length;
-    this._host = args.players[0].name;
-    this._open = true;
-  }
-
-  get game() {
-    return this._game;
+  constructor(props: IRoom) {
+    this._name = props.name;
+    this.players = props.players;
+    this._isOpen = props.isOpen;
+    this._gameHost = props.gameHost;
+    this.numberOfPlayers = props.numberOfPlayers;
   }
 
   get name() {
     return this._name;
   }
 
-  get players() {
-    return this._players;
+  get isOpen() {
+    return this._isOpen;
   }
 
-  get playersBackUp() {
-    return this._playersBackUp;
+  set isOpen(open) {
+    this._isOpen = open;
   }
 
-  get numberOfPlayers() {
-    return this._numberOfPlayers;
+  get gameHost() {
+    return this._gameHost;
   }
 
-  get host() {
-    return this._host;
+  set gameHost(gameHost) {
+    this._gameHost = gameHost;
   }
 
-  get open() {
-    return this._open;
+  set addGame(game: Game) {
+    this.game = game;
   }
 
-  set open(state: boolean) {
-    this._open = state;
-  }
-
-  get gameMode() {
-    return this._game.mode;
-  }
-
-  addPlayer(player: { name: string; socketId: string }) {
-    const p = new Player(player.name, player.socketId, false);
-    this._players.push(p);
-    this._numberOfPlayers++;
-    if (this._numberOfPlayers === MAX_NUMBER_OF_PLAYERS) {
-      this.open = false;
+  addPlayer(player: IPlayer) {
+    this.players.push(new Player(player));
+    this.numberOfPlayers++;
+    if (this.numberOfPlayers === MAX_NUMBER_OF_PLAYERS) {
+      this.isOpen = false;
     }
   }
 
-  newGame(io: socketIO.Server, socket: socketIO.Socket, speed: number) {
-    console.log(`staring new game << ${this._name} >>`);
-    this._game = new Game__(io, socket, this.players, this._name, speed);
-    const players = this._game.players;
-    // Clean backUp array before adding players to it
-    this._playersBackUp.splice(0, this._playersBackUp.length);
-    // Make a deep copy of players
-    this._playersBackUp = players.map((player) =>
-      JSON.parse(JSON.stringify(player))
-    );
-    // send shadows only if more than one player in game
-    if (this._numberOfPlayers > 1) {
-      emitInfoShadows(io, players);
+  removePlayer(playerName: string) {
+    const isHost = this.players.filter((player) => player.name === playerName);
+    if (isHost.length && isHost[0].isHost) {
+      const newHost = this.players.filter(
+        (player) => player.name !== playerName
+      );
+      /* Change host if any player left */
+      if (newHost.length) {
+        newHost[0].isHost = true;
+        this._gameHost = newHost[0].name;
+      }
     }
-  }
 
-  gameOver() {
-    this._game.stopGame();
+    /* Remove player that quited from array */
+    const index = this.players.map((player) => player.name).indexOf(playerName);
+    /**
+     * (If negative, it will begin that many elements from the end of the array.)
+     */
+    if (index < 0) {
+      return;
+    }
+    this.players.splice(index, 1);
   }
 }
 
