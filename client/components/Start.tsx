@@ -44,27 +44,15 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
   const [difficulty, setDifficulty] = useState<string | null>('recruit');
   const dispatch = useAppDispatch();
   const isHost = useAppSelector((state) => state.isHost);
+
   const startGame = () => {
     socket.emit('start', gameName, difficulty);
   };
-
-  // useEffect(() => {
-
-  // }, []);
 
   useEffect(() => {
     let isCancelled = false;
     socket.emit('getLobby', gameName);
     socket.on('lobby', (lobby: IRoom) => {
-      const player = lobby.players.find((p) => p.name === playerName);
-      console.log(
-        `am I host ? ${player?.isHost} -- ${player?.name} - ${player?.socketId}`
-      );
-      if (player) {
-        console.log(`setting isHOst after getLobby ==> ${player.isHost}`);
-        console.log(`Name[${player.name}]`);
-        // setHost(player.isHost);
-      }
       if (!isCancelled) {
         setGame(lobby);
       }
@@ -74,8 +62,9 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
       console.log('Starting Game...');
     });
 
-    socket.on('game-host', () => {
-      dispatch(isHostUpdated(true));
+    socket.on('game-host', (isHost: boolean) => {
+      console.log(`${playerName} is game-host ? ${isHost}`);
+      dispatch(isHostUpdated(isHost));
     });
     return () => {
       isCancelled = true;
@@ -87,15 +76,15 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
   ) : (
     <>
       <Container>
-        <Row>
+        <Row className="lobby">
           <Col>GAME</Col>
           <Col>{game.name}</Col>
         </Row>
-        <Row>
+        <Row className="lobby">
           <Col>PLAYERS</Col>
           {game.players.map((player) => (
             <Col
-              style={{ color: player.name === playerName ? 'pink' : '' }}
+              style={{ color: player.name === playerName ? '#CF0ED2' : '' }}
               key={player.name}
             >
               {player.name}
@@ -150,17 +139,6 @@ const Start = ({ gameName, playerName }: IStartProps): JSX.Element => {
           </div>
         </Container>
       ) : (
-        // <Container>
-        //     <Button
-        //       variant="secondary"
-        //       size="lg"
-        //       block
-        //       onClick={() => startGame()}
-        //     >
-        //       Start Game
-        //     </Button>
-        //   </Container>
-
         <Lobby />
       )}
     </>
