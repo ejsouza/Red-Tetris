@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import redux, { createStore } from 'redux';
-import { connect, Provider } from 'react-redux';
 import { useRouter } from 'next/router';
-import io from 'socket.io-client';
 import Layout from '../components/Layout';
 import Start from '../components/Start';
 import HeadLanding from '../components/HeadLanding';
 import Menu from '../components/Menu';
 import Game from '../components/Game';
-import { getRooms, createGame } from '../core/rooms';
 import parseUrlWithHash from '../utils/parseUrlWithHash';
 import socket from '../utils/socket';
+import { useAppDispatch } from '../store/hooks';
+import {
+  boardUpdated,
+  isHostUpdated,
+  levelUpdated,
+  scoreUpdated,
+  nextUpdated,
+  boardShadowsUpdated,
+} from '../store/actions';
+import { RECRUIT } from '../utils/const';
+import { IShadow } from '../interfaces';
 
 interface IRoom {
   id: string;
@@ -21,18 +28,12 @@ interface IRoom {
   players: Array<string>;
 }
 
-interface IActions {
-  type: string;
-  playload: string;
+interface IResetPlayer {
+  board: number[][];
+  isHost: boolean;
+  level: number;
+  score: 0;
 }
-
-/**
- * REDUX
- */
-
-// const initialState = {
-//   count: 0,
-// };
 
 // /**
 //  * REDUCER FUNCTION LOGIC STEPS (reducers must make immutable updates)
@@ -41,32 +42,16 @@ interface IActions {
 //  * ● Otherwise, return the existing state unchanged
 //  */
 
-// const reducer = (state = initialState, action: IActions) => {
-//   // Check to see if the reducer cares about this action
-//   if (action.type === 'INCREMENT') {
-//     // If so, make a copy of `state`
-//     return {
-//       ...state,
-//       // and update the copy with the new value
-//       count: state.count + 1,
-//     };
-//   }
-//   // otherwise return the existing state unchanged
-//   return state;
-// };
-
-// const store = createStore(reducer);
-
 const Index = () => {
-
   const [startGame, setStartGame] = useState(false);
   const [hideMenu, setHideMenu] = useState(false);
   const [hideStart, setHideStart] = useState(true);
+  const [hardness, setHardness] = useState(RECRUIT);
   const [gameName, setGameName] = useState('');
   const [playerName, setPlayerName] = useState('');
   const router = useRouter();
   const url = router.asPath;
-  const reg = /^#+[a-z]+[a-z0-9]{3,}\[[a-z]+[a-z0-9]{4,}\]/gi;
+  const dispatch = useAppDispatch();
 
   const infoGame = (socket: SocketIOClient.Socket) => {
     if (gameName && playerName) {
@@ -74,49 +59,60 @@ const Index = () => {
     }
   };
 
+  const resetStore = (player: IResetPlayer) => {
+    const intialShadows: IShadow[] = [];
+    const initialNext: number[] = [];
+    dispatch(boardUpdated(player.board));
+    dispatch(isHostUpdated(player.isHost));
+    dispatch(levelUpdated(player.level));
+    dispatch(scoreUpdated(player.score));
+    dispatch(nextUpdated(initialNext));
+    dispatch(boardShadowsUpdated(intialShadows));
+  };
+
   socket.on('closeStartComponent', () => {
     setHideStart(true);
-  })
+  });
 
   socket.on('setGame', () => {
     setStartGame(true);
-  })
+  });
+
   useEffect(() => {
-    infoGame(socket);   
+    infoGame(socket);
   }, [gameName, playerName]);
+
+  useEffect(() => {
+    socket.on('reset', (player: IResetPlayer) => {
+      setHideStart(true);
+      setStartGame(false);
+      setHideMenu(false);
+      resetStore(player);
+      router.push('/');
+      window.location = window.location;
+    });
+
+    socket.on('prepare-for-next-game', (player: IResetPlayer) => {
+      setStartGame(false);
+      setHideStart(false);
+      resetStore(player);
+    });
+
+    socket.on('set-difficulty', (hardness: number) => {
+      setHardness(hardness);
+    });
+  }, []);
+
   useEffect(() => {
     if (url?.includes('#')) {
       const [game, player] = parseUrlWithHash(url);
       if (game && player) {
-        console.log(`Toggle`);
         setGameName(game);
         setPlayerName(player);
-        setHideStart(false);;
+        setHideStart(false);
       }
-
-      /**
-       * Check if room is available
-       *    YES -: preceed to hide menu
-       *    NO  -: show message to user and tell s/he to choose another room
-       *
-       * */
-
-      /**
-       * Use reg.test(url) here to check if it is right formated
-       * before preceding.
-       */
-
-      // remove leading '/' from url before testing
-      if (reg.test(url.slice(1))) {
-        console.log(`URL FORMAT RIGHT ${url}`);
-      } else {
-        console.log(`URL WRONG FORMAT  ${url}`);
-      }
-      const [roomName, userName] = parseUrlWithHash(url);
 
       setHideMenu(true);
-      // /#roomName[userName]
-      console.log(`url.includes(#)`);
     }
     // Detect hash entered on url bar
     window.onhashchange = () => {
@@ -132,20 +128,8 @@ const Index = () => {
         setPlayerName(player);
         setHideStart(false);
       }
-
-      console.log(`GOT IT ? ${game} - ${player}`);
-      if (reg.test(urlEnteredManually)) {
-        alert(`YOU MAY PASS \n ${urlEnteredManually}`);
-      }
-      console.log(`TESTING REGEX =: ${reg.test(urlEnteredManually)}`);
-      console.log(`hash ? ${urlEnteredManually}`);
-
-      console.log(
-        `urlEnteredManually: ${parseUrlWithHash(urlEnteredManually)}`
-      );
       setHideMenu(true);
     };
-    console.log(`url =: ${url}`);
   }, [url]);
 
   return (
@@ -154,7 +138,9 @@ const Index = () => {
       {/* Here the idea is to have a menu with some animated tetris */}
       {!hideMenu && <Menu />}
       {!hideStart && <Start gameName={gameName} playerName={playerName} />}
-      {startGame && <Game gameName={gameName} playerName={playerName} />}
+      {startGame && (
+        <Game gameName={gameName} playerName={playerName} hardness={hardness} />
+      )}
     </Layout>
   );
 };
