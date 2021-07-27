@@ -8,8 +8,8 @@ const signup = async (email: string, password: string) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      password,
       email,
+      password,
     }),
   }).then((response) => response);
 };
@@ -69,13 +69,81 @@ const authHeader = () => {
 
 const getUserById = async () => {
   const user = getCurrentUser();
-  console.log(`getUserById(${user.id})`);
-  return fetch(`${BaseURL}/users/${user.id}`, {
+  console.log(`getUserById(${user?.id})`);
+  return fetch(`${BaseURL}/users/${user?.id}`, {
     method: 'GET',
     mode: 'cors',
     headers: {
-      Authorization: `Bearer ${user.token}`,
+      Authorization: `Bearer ${user?.token}`,
     },
+  }).then((response) => response);
+};
+
+const updateProfile = async (firstName: string, lastName: string) => {
+  const user = getCurrentUser();
+  return fetch(`${BaseURL}/users/${user?.id}`, {
+    method: 'PATCH',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${user?.token}`,
+    },
+    body: JSON.stringify({
+      firstName,
+      lastName,
+    }),
+  }).then((response) => response);
+};
+
+const updateScore = async (
+  score: number,
+  level: number,
+  multiplayer: number,
+  victory: boolean,
+  defeat: boolean
+) => {
+  const user = getCurrentUser();
+  if (!user) {
+    /**
+     * If user is undefined do nothing
+     * no account to update,
+     */
+    return;
+  }
+  fetch(`${BaseURL}/users/${user?.id}`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${user?.token}`,
+    },
+    body: JSON.stringify({
+      level,
+      score,
+      defeat: defeat && multiplayer > 1 ? 1 : 0,
+      victory: victory && multiplayer > 1 ? 1 : 0,
+      playedGames: 1,
+    }),
+  }).then((response) => {
+    response.json().then((res) => {
+      if (response.status === 200) {
+        console.log(res.msg);
+      }
+    });
+  });
+};
+
+const changePassword = async (email: string, password: string) => {
+  return fetch(`${BaseURL}/password/reset`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
   }).then((response) => response);
 };
 
@@ -87,4 +155,7 @@ export {
   getCurrentUser,
   authHeader,
   getUserById,
+  updateProfile,
+  updateScore,
+  changePassword,
 };
