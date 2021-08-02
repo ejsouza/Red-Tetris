@@ -32,28 +32,6 @@ describe('Server Model', () => {
     board = new Board();
     piece = new Piece(0);
     server = new RootServer();
-    // httpServer.listen(() => {
-    //   const port = httpServer.address().port;
-    //   clientSocket = new Client(`http://localhost:${port}`);
-    //   io.on('connection', (socket) => {
-    //     serverSocket = socket;
-
-    //     // player = new Player({
-    //     //   name: 'player42',
-    //     //   id: '424242',
-    //     //   isHost: true,
-    //     //   roomName: 'room42',
-    //     // });
-    //     // game = new Game({
-    //     //   name: 'room42',
-    //     //   players: [player],
-    //     //   mode: 1,
-    //     //   io,
-    //     //   socket,
-    //     // });
-    //   });
-    //   clientSocket.on('connect', done);
-    // });
   });
 
   beforeEach((done) => {
@@ -95,34 +73,31 @@ describe('Server Model', () => {
       done();
     }, 100);
   });
-  // it('should not join game (same username)', () => {
-  //   clientSocket.on('room', (arg) => {
-  //     assert.equal(arg.msg, "This username 'useEffect' is already taken");
-  //   });
-  //   serverSocket.emit('createOrJoinGame', {
-  //     roomName: 'react',
-  //     userName: 'useEffect',
-  //     join: true,
-  //   });
-  // });
 
-  // it('should join game', () => {
-  //   clientSocket.on('join-room', (arg) => {
-  //     assert.equal(arg.msg, 'Please wait joining loby');
-  //   });
-  //   serverSocket.emit('createOrJoinGame', {
-  //     roomName: 'react',
-  //     userName: 'helloWorld',
-  //     join: true,
-  //   });
-  // });
+  it('should join game', (done) => {
+    clientSocket.on('join-room', (arg) => {
+      chaI.expect(arg.msg).to.be.equal(arg.msg, 'Please wait joining loby');
+    });
+    clientSocket.emit('createOrJoinGame', {
+      roomName: 'react',
+      userName: 'useEffect',
+      join: true,
+    });
+    setTimeout(() => {
+      done();
+    }, 100);
+  });
 
-  // it('should serach games', () => {
-  //   clientSocket.on('games-open', (arg) => {
-  //     chaI.expect(arg.length).to.be.greaterThan(0);
-  //   });
-  //   serverSocket.emit('search-games');
-  // });
+  it('should join room socket', () => {
+    clientSocket.emit('createRoom', 'react');
+  });
+
+  it('should serach games', () => {
+    clientSocket.on('games-open', (arg) => {
+      chaI.expect(arg.length).to.be.greaterThan(0);
+    });
+    clientSocket.emit('search-games');
+  });
 
   it('should emit join', (done) => {
     clientSocket.emit('join');
@@ -131,7 +106,47 @@ describe('Server Model', () => {
     }, 100);
   });
 
-  // it('should start game', () => {
-  //   serverSocket.emit('start', { gameName: 'react', difficult: 'recruit' });
+  it('should start game', (done) => {
+    clientSocket.emit('createOrJoinGame', {
+      roomName: 'react',
+      userName: 'useEffect',
+      join: true,
+    });
+    clientSocket.emit('start', { gameName: 'react', difficult: 'recruit' });
+
+    setTimeout(() => {
+      done();
+    }, 100);
+  });
+
+  // it('should disconnect', (done) => {
+  //   clientSocket.on('connect', () => {
+  //     clientSocket.io.engine.onPacket = () => {};
+  //   });
+  //   setTimeout(() => {
+  //     done();
+  //   }, 100);
   // });
+
+  it('should get lobby', (done) => {
+    clientSocket.emit('createOrJoinGame', {
+      roomName: 'react',
+      userName: 'useEffect',
+      join: true,
+    });
+
+    clientSocket.on('game-host', () => {
+      console.log('getLobby game-host');
+    });
+
+    clientSocket.on('lobby', () => {
+      console.log('getLobby lobby');
+    });
+
+    setTimeout(() => {
+      clientSocket.emit('getLobby', 'react');
+
+      done();
+    }, 100);
+  });
 });
