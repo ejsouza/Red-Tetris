@@ -119,14 +119,14 @@ describe('Server Model', () => {
     }, 100);
   });
 
-  // it('should disconnect', (done) => {
-  //   clientSocket.on('connect', () => {
-  //     clientSocket.io.engine.onPacket = () => {};
-  //   });
-  //   setTimeout(() => {
-  //     done();
-  //   }, 100);
-  // });
+  it('should disconnect', (done) => {
+    clientSocket.on('connect', () => {
+      clientSocket.io.engine.onPacket = () => {};
+    });
+    setTimeout(() => {
+      done();
+    }, 100);
+  });
 
   it('should get lobby', (done) => {
     clientSocket.emit('createOrJoinGame', {
