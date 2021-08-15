@@ -1,15 +1,9 @@
 import User from '../../models/user';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import { SALT_ROUNDS, SECRET_TOKEN } from '../../config/const';
-import { after } from 'mocha';
+import { TEST_BASE_URL, SALT_ROUNDS } from '../../config/const';
 import chai, { expect } from 'chai';
-import sinon from 'sinon';
 import chaiHttp from 'chai-http';
-import { TEST_BASE_URL } from '../../config/const';
-import { AuthController } from '.';
 
 dotenv.config();
 chai.use(chaiHttp);
@@ -17,11 +11,19 @@ chai.use(chaiHttp);
 process.env.NODE_ENV = 'test';
 
 describe('Auth', () => {
-  beforeEach(async () => {
-    await User.deleteMany({});
+  const user = new User({
+    email: 'verified42@test.com',
+    password: '123456Aa',
+    status: 'verified',
   });
 
-  afterEach(async () => {});
+  before(async () => {
+    await User.deleteMany({});
+    const hash = await bcrypt.hash('123456Aa', SALT_ROUNDS);
+    user.password = hash;
+    await user.save();
+  });
+
   it('signup should create new user', (done) => {
     const user = {
       email: 'testin2g@test.com',
@@ -120,6 +122,25 @@ describe('Auth', () => {
       });
   });
 
+  it('should not login (wrong password)', (done) => {
+    const user = {
+      email: 'verified42@test.com',
+      password: '123456aA',
+    };
+    chai
+      .request(TEST_BASE_URL)
+      .post('/auth/signin')
+      .send(user)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.status).to.equal(401);
+        expect(res.body.err).to.equal('Incorrect password');
+        done();
+      });
+  });
+
   it('signin user not found', (done) => {
     const user = {
       email: 'testg@test.com',
@@ -139,22 +160,21 @@ describe('Auth', () => {
       });
   });
 
-  // it('should return 500 when an error is encountered', (done) => {
-  //   const user = {
-  //     email: 'testin2g@test.com',
-  //     password: '123456Aa',
-  //   };
-  //   sinon.stub(() => {}, 'signin').throws(Error('login failed'));
-  //   chai
-  //     .request(TEST_BASE_URL)
-  //     .post('/auth/signin')
-  //     .send(user)
-  //     .end((err, res) => {
-  //       if (err) {
-  //         done(err);
-  //       }
-  //       expect(res.status).to.equal(500);
-  //       done();
-  //     });
-  // });
+  it('should login', (done) => {
+    const user = {
+      email: 'verified42@test.com',
+      password: '123456Aa',
+    };
+    chai
+      .request(TEST_BASE_URL)
+      .post('/auth/signin')
+      .send(user)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.status).to.equal(200);
+        done();
+      });
+  });
 });
