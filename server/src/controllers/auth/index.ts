@@ -21,8 +21,7 @@ export class AuthController {
   initializeRoutes() {
     this.router.post(`${this.path}/signup`, this.signup);
     this.router.post(`${this.path}/signin`, this.signin);
-    this.router.post(`${this.path}/logout`, this.logout);
-    this.router.delete(`${this.path}/delete`, this.delete);
+    // this.router.delete(`${this.path}/delete`, this.delete);
   }
 
   signup = async (req: Request, res: Response): Promise<void> => {
@@ -37,7 +36,6 @@ export class AuthController {
      */
 
     const { email, password } = <IUser>req.body;
-
     if (!emailCheck.test(email)) {
       res.status(400).json({
         success: false,
@@ -70,25 +68,18 @@ export class AuthController {
               password: hash,
             });
             /* Save new user to db */
-            user
-              .save()
-              .then(() => {
-                // send email
-                const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
-                  expiresIn: '24h',
-                });
-                sendMail(email, token);
-                res
-                  .status(201)
-                  .json({ success: true, msg: 'User created successfully' });
-              })
-              .catch((err) => {
-                console.log(err);
-                res.status(500).json({ success: false, err });
+            user.save().then(() => {
+              // send email
+              const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
+                expiresIn: '24h',
               });
+              sendMail(email, token);
+              res
+                .status(201)
+                .json({ success: true, msg: 'User created successfully' });
+            });
           })
           .catch((err) => {
-            console.log(err);
             res.status(500).json({ success: false, err });
           });
       }
@@ -125,63 +116,26 @@ export class AuthController {
           });
         }
         /* If we get here user was found, check passworkd */
-        bcrypt
-          .compare(password, user.password)
-          .then((valid) => {
-            if (!valid) {
-              return res.status(401).json({
-                success: false,
-                err: `Incorrect password`,
-              });
-            }
-            /* If we get here send token and user id */
-            const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
-              expiresIn: 1000,
-            });
-            res.setHeader(
-              'Access-Control-Allow-Headers',
-              'x-access-token, Origin, Content-Type, Accept'
-            );
-            return res.status(200).json({
-              success: true,
-              id: user?._id,
-              token,
-            });
-          })
-          .catch((err) => {
-            res.status(500).json({
+        bcrypt.compare(password, user.password).then((valid) => {
+          if (!valid) {
+            return res.status(401).json({
               success: false,
-              err,
+              err: `Incorrect password`,
             });
+          }
+          /* If we get here send token and user id */
+          const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
+            expiresIn: 1000,
           });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          success: false,
-          err,
-        });
-      });
-  };
-  logout = async (req: Request, res: Response): Promise<void> => {
-    res.status(200).json({ success: true, msg: 'logout' });
-  };
-
-  delete = async (req: Request, res: Response): Promise<void> => {
-    const email: string = req.body.email;
-    console.log(`deleting... ${email}`);
-    User.findOneAndDelete({ email })
-      .then((deleted) => {
-        if (!deleted) {
-          res.status(401).json({
-            success: false,
-            err: new Error('User not found'),
+          res.setHeader(
+            'Access-Control-Allow-Headers',
+            'x-access-token, Origin, Content-Type, Accept'
+          );
+          return res.status(200).json({
+            success: true,
+            id: user?._id,
+            token,
           });
-          return;
-        }
-
-        res.status(200).json({
-          success: true,
-          userid: deleted._id,
         });
       })
       .catch((err) => {
@@ -191,4 +145,30 @@ export class AuthController {
         });
       });
   };
+
+  // delete = async (req: Request, res: Response): Promise<void> => {
+  //   const email: string = req.body.email;
+  //   console.log(`deleting... ${email}`);
+  //   User.findOneAndDelete({ email })
+  //     .then((deleted) => {
+  //       if (!deleted) {
+  //         res.status(401).json({
+  //           success: false,
+  //           err: new Error('User not found'),
+  //         });
+  //         return;
+  //       }
+
+  //       res.status(200).json({
+  //         success: true,
+  //         userid: deleted._id,
+  //       });
+  //     })
+  //     .catch((err) => {
+  //       res.status(500).json({
+  //         success: false,
+  //         err,
+  //       });
+  //     });
+  // };
 }
