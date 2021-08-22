@@ -1,0 +1,79 @@
+{
+  "name": "rt_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn  --transpile-only src/*.ts",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'src/**/*.spec.ts' --timeout 10000",
+    "coverage": "nyc npm run test"
+  },
+  "keywords": [],
+  "author": "Eder Junior DE SOUZA",
+  "license": "MIT",
+  "dependencies": {
+    "@types/cors": "^2.8.10",
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^15.0.1",
+    "@types/socket.io": "^2.1.13",
+    "dotenv": "^8.2.0",
+    "socket.io": "^4.0.1",
+    "socket.io-client": "^4.1.3",
+    "ts-node": "^9.1.1",
+    "ts-node-dev": "^1.1.6"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/chai-http": "^4.2.0",
+    "@types/mocha": "^9.0.0",
+    "@types/sinon": "^10.0.2",
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
+    "mocha": "^9.0.3",
+    "nyc": "^15.1.0",
+    "sinon": "^11.1.2"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "all": true,
+    "cache": false,
+    "watermarks": {
+      "lines": [
+        70,
+        90
+      ],
+      "functions": [
+        70,
+        90
+      ],
+      "branches": [
+        50,
+        90
+      ],
+      "statements": [
+        70,
+        90
+      ]
+    },
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "src/**/*.spec.ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text",
+      "html"
+    ],
+    "useSpawnWrap": true,
+    "sourceMap": true,
+    "instrument": true
+  }
+}
