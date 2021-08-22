@@ -33,7 +33,7 @@ export class TokenController {
     if (tokenBase64 === undefined) {
       return res.status(401).json({ success: false, err: 'Unauthorized' });
     } else {
-      const token: any = jwt.decode(tokenBase64?.toString());
+      const token: any = jwt.decode(tokenBase64.toString());
 
       const id = token.userId as string;
 
@@ -41,39 +41,29 @@ export class TokenController {
         .then((user) => {
           if (!user) {
             return res
-              .json(404)
+              .status(404)
               .json({ success: false, err: 'User not found' });
           }
           jwt.verify(tokenBase64.toString(), SECRET_TOKEN, (err, decoded) => {
             if (err) {
               if (err.name === 'TokenExpiredError') {
-                res.sendFile(
-                  path.join(__dirname, '../../views/tokenExpired.html')
-                );
-              } else {
                 return res
                   .status(401)
-                  .json({ success: false, err: 'Unauthorized' });
+                  .sendFile(
+                    path.join(__dirname, '../../views/tokenExpired.html')
+                  );
               }
             } else if (decoded) {
               user.status = 'verified';
-              user
-                .save()
-                .then((updated) => {
-                  if (!updated) {
-                    console.log(`something went wrong ${updated}`);
-                  } else {
-                    res.sendFile(
+              user.save().then((updated) => {
+                if (updated) {
+                  return res
+                    .status(200)
+                    .sendFile(
                       path.join(__dirname, '../../views/tokenVerified.html')
                     );
-                    return;
-                  }
-                })
-                .catch((err) => {
-                  return res
-                    .status(401)
-                    .json({ success: false, err: 'Unauthorized' });
-                });
+                }
+              });
             }
           });
         })
