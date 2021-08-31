@@ -2,7 +2,6 @@
 server/dist/
 server/.nyc_output
 server/coverage
-api/.env
 api/node_modules
 api/.nyc_output
 api/coverage

@@ -2,8 +2,6 @@
 
 FROM node:15-alpine3.10
 
-# ENV NODE_ENV=production
-
 WORKDIR /app
 
 COPY ["package.json", "package-lock.json*", "./"]
@@ -16,10 +14,6 @@ RUN npm install -g ts-node
 
 COPY . .
 
-EXPOSE 8000
-
-# CMD [ "ts-node", "./src/index.ts" ]
-# For production
-# CMD [ "npm", "start" ]
+EXPOSE 5000
 
 CMD [ "npm", "run", "dev" ]

@@ -50,7 +50,7 @@ export class DB {
   }
 
   private async connectToDB(): Promise<void> {
-    mongoose.connect(this.urlLocal, this.options).then((conn) => {
+    mongoose.connect(this.urlDocker, this.options).then((conn) => {
       if (process.env.NODE_ENV !== 'test') {
         console.log(` 🏠 MongoDB connected on ${conn.connection.host}`);
         console.log(
