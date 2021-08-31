@@ -1,6 +1,12 @@
 .vscode/
 server/dist/
-rtAPI/.env
-rtAPI/node_modules
+server/.nyc_output
+server/coverage
+api/.env
+api/node_modules
+api/.nyc_output
+api/coverage
+client/coverage
+client/node_modules
 data/
 front/
