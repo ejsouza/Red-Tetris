@@ -1,18 +1,22 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import User from '../../models/user';
 import { auth } from '../../middleware/auth';
-import { sendMail } from '../../core/email';
-import { SALT_ROUNDS, SECRET_TOKEN } from '../../config/const';
+import User from '../../models/user';
 
-interface IUser {
-  email: string;
-  password: string;
+interface IUserInfo {
+  firstName: string;
+  lastName: string;
+}
+
+interface IScore {
+  level: number;
+  score: number;
+  defeat: number;
+  playedGames: number;
+  victory: number;
 }
 
 export class UserController {
-  public path = '/auth';
+  public path = '/users';
   public router = Router();
 
   constructor() {
@@ -20,166 +24,123 @@ export class UserController {
   }
 
   initializeRoutes() {
-    this.router.post(`${this.path}/signup`, this.signup);
-    this.router.post(`${this.path}/login`, this.login);
-    this.router.post(`${this.path}/logout`, this.logout);
-    this.router.delete(`${this.path}/delete`, this.delete);
-    // how to use the middle ware to check logged in users
-    // this.router.post(`${this.path}/logout`, auth, this.logout);
+    this.router.get(`${this.path}/:id`, auth, this.profile);
+    this.router.patch(`${this.path}/:id`, auth, this.update);
+    this.router.post(`${this.path}/:id`, auth, this.score);
   }
 
-  signup = async (req: Request, res: Response): Promise<void> => {
-    /**
-     * @param
-     * email: string
-     * password: string
-     * @return
-     * 201 created
-     * 400 bad request
-     * 500 server error
-     */
-
-    const emailCheck =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    const { password, email } = <IUser>req.body;
-
-    console.log(`called with email: ${email} and password ${password}`);
-    if (!emailCheck.test(email)) {
-      res.status(400).json({
-        success: false,
-        msg: 'Invalid email format',
-      });
-      return;
+  /**
+   * @param
+   * email: string
+   * password: string
+   * @return
+   * 201 created
+   * 400 bad request
+   * 500 server error
+   */
+  profile = async (req: Request, res: Response) => {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(404).json({ success: false, msg: 'User not found' });
     }
-    if (password.trim().length < 8) {
-      res.status(400).json({
-        success: false,
-        msg: 'Password should be at least six characters long',
-      });
-      return;
-    }
-
-    /* Hash password before saving to db */
-    bcrypt
-      .hash(password.toString(), SALT_ROUNDS)
-      .then((hash) => {
-        /* Create user after hashing  password */
-        const user = new User({
-          email,
-          password: hash,
+    User.findById({ _id: id })
+      .then((user) => {
+        return res.status(200).json({
+          success: true,
+          user: {
+            firstName: user?.firstName,
+            lastName: user?.lastName,
+            bestScore: user?.bestScore,
+            bestLevel: user?.bestLevel,
+            playedGames: user?.playedGames,
+            victory: user?.victory,
+            defeat: user?.defeat,
+            createdAt: user?.createdAt,
+            updatedAt: user?.updatedAt,
+          },
         });
-        /* Save new user to db */
-        user
-          .save()
-          .then(() => {
-            // send email
-            const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
-              expiresIn: '24h',
-            });
-            sendMail(email, token);
-            res
-              .status(201)
-              .json({ success: true, msg: 'User created successfully' });
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ success: false, err });
-          });
       })
       .catch((err) => {
-        console.log(err);
-        res.status(500).json({ success: false, err });
+        return res.status(404).json({ success: false, msg: 'User not found' });
       });
   };
 
-  login = async (req: Request, res: Response): Promise<void> => {
-    /**
-     * @param
-     * email: string
-     * password: string
-     * @return
-     * 200 authentication successfully
-     * 	{
-     * 		userId,
-     * 		token
-     * 	}
-     * 401 authentication failed
-     */
-    const { password, email } = <IUser>req.body;
+  update = async (req: Request, res: Response) => {
+    const id = req.params.id;
 
-    User.findOne({ email })
+    const { firstName, lastName } = <IUserInfo>req.body;
+
+    if (firstName.length < 3 || lastName.length < 3) {
+      return res.status(400).json({
+        success: false,
+        msg: `Your first and last name should be at least four characters long!`,
+      });
+    }
+    const filter = { _id: id };
+    const update = {
+      firstName,
+      lastName,
+    };
+    User.findOneAndUpdate(filter, update, { new: true }).then((updated) => {
+      if (!updated) {
+        return res.status(500).json({
+          success: false,
+          msg: 'Something went wrong!',
+        });
+      }
+      return res.status(201).json({
+        success: true,
+        msg: 'User Updated successfull',
+        user: {
+          firstName: updated?.firstName,
+          lastName: updated?.lastName,
+          bestScore: updated?.bestScore,
+          bestLevel: updated?.bestLevel,
+          playedGames: updated?.playedGames,
+          createdAt: updated?.createdAt,
+          updatedAt: updated?.updatedAt,
+        },
+      });
+    });
+  };
+
+  score = async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const { level, score, defeat, playedGames, victory } = req.body as IScore;
+
+    User.findById({ _id: id })
       .then((user) => {
         if (!user) {
-          res.status(401).json({
-            success: false,
-            err: new Error('User not found'),
-          });
-          return;
+          return res
+            .status(404)
+            .json({ success: false, msg: 'User not found' });
         }
-        /* If we get here user was found, check passworkd */
-        bcrypt
-          .compare(password, user.password)
-          .then((valid) => {
-            if (!valid) {
-              res.status(401).json({
+        const filter = { _id: id };
+        const update = {
+          playedGames: user.playedGames + 1,
+          victory: user.victory + victory,
+          defeat: user.defeat + defeat,
+          bestScore: user.bestScore > score ? user.bestScore : score,
+          bestLevel: user.bestLevel > level ? user.bestLevel : level,
+        };
+        User.findByIdAndUpdate(filter, update, { new: true }).then(
+          (updated) => {
+            if (!updated) {
+              return res.status(500).json({
                 success: false,
-                /* To access the error on the front use err.message */
-                err: new Error(`Incorrect password`),
+                msg: 'An error occured when updating score',
               });
-              return;
             }
-            /* If we get here send token and user id */
-            const token = jwt.sign({ userId: user._id }, SECRET_TOKEN, {
-              expiresIn: 500,
-            });
-            res.status(200).json({
+            return res.status(200).json({
               success: true,
-              userid: user?._id,
-              token,
+              msg: 'Score updated successfully',
+              updated,
             });
-          })
-          .catch((err) => {
-            res.status(500).json({
-              success: false,
-              err,
-            });
-          });
+          }
+        );
       })
       .catch((err) => {
-        res.status(500).json({
-          success: false,
-          err,
-        });
-      });
-  };
-  logout = async (req: Request, res: Response): Promise<void> => {
-    res.status(200).json({ success: true, msg: 'logout' });
-  };
-
-  delete = async (req: Request, res: Response): Promise<void> => {
-    const email: string = req.body.email;
-    console.log(`deleting... ${email}`);
-    User.findOneAndDelete({ email })
-      .then((deleted) => {
-        if (!deleted) {
-          res.status(401).json({
-            success: false,
-            err: new Error('User not found'),
-          });
-          return;
-        }
-
-        res.status(200).json({
-          success: true,
-          userid: deleted._id,
-        });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          success: false,
-          err,
-        });
+        return res.status(404).json({ success: false, msg: 'User not found' });
       });
   };
 }

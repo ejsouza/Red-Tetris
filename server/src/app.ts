@@ -1,11 +1,8 @@
 import * as express from 'express';
-import * as http from 'http';
+import morgan from 'morgan';
 import * as dotenv from 'dotenv';
-import * as socketio from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
-import bodyParser from 'body-parser';
 import { BaseURL } from './config/const';
 import { DB } from './db';
 
@@ -14,21 +11,23 @@ interface IController {
   router: express.Router;
 }
 
+dotenv.config();
+
 export class App {
-  private app: express.Application;
-	private server: http.Server;
+  public app: express.Application;
 
   constructor(controllers: IController[]) {
     this.app = express.default();
-		this.server = http.createServer(this.app);
 
     this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
   }
 
-	
   private initializeMiddlewares() {
+    if (process.env.NODE_ENV !== 'test') {
+      this.app.use(morgan('combined'));
+    }
     this.app.use(express.json());
     this.app.use(cors());
     this.app.use(helmet());
@@ -47,8 +46,11 @@ export class App {
 
   public listen() {
     this.app.listen(process.env.PORT, () => {
-      console.log(`\n ⚡️ [server]: App listening on port ${process.env.PORT}`);
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(
+          `\n ⚡️ [server]: App listening on port ${process.env.PORT}`
+        );
+      }
     });
-
   }
 }

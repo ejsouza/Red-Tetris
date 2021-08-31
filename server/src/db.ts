@@ -51,9 +51,13 @@ export class DB {
 
   private async connectToDB(): Promise<void> {
     mongoose.connect(this.urlLocal, this.options).then((conn) => {
-      console.log(` 🏠 MongoDB connected on ${conn.connection.host}`);
-      console.log(` 💾 Connection to database successfull`);
-      console.log(' 🛑 [stop] Press CTRL-C\n');
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(` 🏠 MongoDB connected on ${conn.connection.host}`);
+        console.log(
+          ` 💾 Connection to ${process.env.NODE_ENV} database successfull`
+        );
+        console.log(' 🛑 [stop] Press CTRL-C\n');
+      }
     });
   }
 }
