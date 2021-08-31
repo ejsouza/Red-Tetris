@@ -5,7 +5,7 @@ import Jumbotron from 'react-bootstrap/Jumbotron';
 import Container from 'react-bootstrap/Container';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import { createNewToken } from '../../core/user';
+import { createNewToken } from '../../src/core/user';
 
 const Index = () => {
   const [email, setEmail] = useState('');
@@ -17,11 +17,10 @@ const Index = () => {
 
   const handleClose = () => setShow(false);
   const redirect = () => {
-    router.push('/');
+    router?.push('/');
   };
 
   const handlesubmit = () => {
-    console.log(`submit email ${email}`);
     createNewToken(email).then((res) => {
       const status = res.status;
       res.json().then((data) => {

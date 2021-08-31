@@ -9,7 +9,6 @@ import configureStore from 'redux-mock-store';
 import SignIn from '../components/SignIn';
 import { BOARD_HEIGHT, BOARD_WIDTH, EMPTY_PIECE } from '../utils/const';
 import { IShadow, IUser } from '../interfaces';
-import { Mouse } from 'react-bootstrap-icons';
 
 const initialUser: IUser = {
   success: false,

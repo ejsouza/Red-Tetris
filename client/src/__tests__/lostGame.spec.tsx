@@ -16,16 +16,6 @@ const initialNext: number[] = [];
 let mockStore = configureStore([]);
 
 describe('Component LostGame()', () => {
-  // it('test event emiting', () => {
-  //   let socket = new SocketMock();
-
-  //   socket.on('message', (message: string) => {
-  //     expect(message).toBe('Hello World!');
-  //   });
-
-  //   socket.socketClient.emit('message', 'Helo World!');
-  // });
-
   let store = mockStore({
     board: Array.from({ length: BOARD_HEIGHT }, () =>
       Array(BOARD_WIDTH).fill(0)

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../components/Layout';
-import Start from '../components/Start';
-import HeadLanding from '../components/HeadLanding';
-import Menu from '../components/Menu';
-import Game from '../components/Game';
-import parseUrlWithHash from '../utils/parseUrlWithHash';
-import socket from '../utils/socket';
-import { useAppDispatch } from '../store/hooks';
+import Layout from '../src/components/Layout';
+import Start from '../src/components/Start';
+import HeadLanding from '../src/components/HeadLanding';
+import Menu from '../src/components/Menu';
+import Game from '../src/components/Game';
+import parseUrlWithHash from '../src/utils/parseUrlWithHash';
+import socket from '../src/utils/socket';
+import { useAppDispatch } from '../src/store/hooks';
 import {
   boardUpdated,
   isHostUpdated,
@@ -15,18 +15,9 @@ import {
   scoreUpdated,
   nextUpdated,
   boardShadowsUpdated,
-} from '../store/actions';
-import { RECRUIT } from '../utils/const';
-import { IShadow } from '../interfaces';
-
-interface IRoom {
-  id: string;
-  name: string;
-  open: boolean;
-  close: boolean;
-  numberPeopleInRoom: number;
-  players: Array<string>;
-}
+} from '../src/store/actions';
+import { RECRUIT } from '../src/utils/const';
+import { IShadow } from '../src/interfaces';
 
 interface IResetPlayer {
   board: number[][];
@@ -50,7 +41,7 @@ const Index = () => {
   const [gameName, setGameName] = useState('');
   const [playerName, setPlayerName] = useState('');
   const router = useRouter();
-  const url = router.asPath;
+  const url = router?.asPath;
   const dispatch = useAppDispatch();
 
   const infoGame = (socket: SocketIOClient.Socket) => {
@@ -133,9 +124,8 @@ const Index = () => {
   }, [url]);
 
   return (
-    <Layout title="Home | RedTetris" showNavBar={hideMenu}>
+    <Layout title="RedTetris" showNavBar={hideMenu}>
       {!hideMenu && <HeadLanding />}
-      {/* Here the idea is to have a menu with some animated tetris */}
       {!hideMenu && <Menu />}
       {!hideStart && <Start gameName={gameName} playerName={playerName} />}
       {startGame && (

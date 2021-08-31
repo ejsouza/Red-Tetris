@@ -6,11 +6,11 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
 import ListGroup from 'react-bootstrap/ListGroup';
-import Loading from '../components/Loading';
+import Loading from '../src/components/Loading';
 import { Gear } from 'react-bootstrap-icons';
 import Form from 'react-bootstrap/Form';
-import NavigationBar from '../components/NavigationBar';
-import { getUserById, updateProfile, getCurrentUser } from '../core/user';
+import NavigationBar from '../src/components/NavigationBar';
+import { getUserById, updateProfile, getCurrentUser } from '../src/core/user';
 
 const CenterProfilePicture = styled.div``;
 
@@ -61,15 +61,14 @@ const Profile = () => {
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (!currentUser) {
-      router.push('/');
+      router?.push('/');
     }
     getUserById().then((res) => {
       const status = res.status;
       if (status === 404) {
-        router.push('/');
+        router?.push('/');
       } else {
         res.json().then((data) => {
-          console.log(data);
           setUser(data.user);
         });
       }

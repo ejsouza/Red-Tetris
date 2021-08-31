@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.game {
+  background-image: url('../public/spaceOne.jpeg');
+}
+
+.home-page {
+  background-image: url('../public/backgroundpets.jpeg');
+  min-height: 100vh;
+}
+
+.dashboard {
+  font-family: 'Press Start 2P', cursive;
+  color: white;
+}
+
+.lobby {
+  font-family: 'Press Start 2P', cursive;
+  color: rgb(4, 219, 94);
+}
+
+footer {
+  text-align: end;
+  padding-top: 3%;
+}
+
+hr {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: inset;
+  border-width: 0.5px;
+  color: #e0e5ec;
+}
+
+.footer {
+  padding: 16px;
+}

@@ -3,7 +3,6 @@
  */
 
 import * as React from 'react';
-// import SocketMock from 'socket.io-mock';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
 import { InfoGame } from '../components/InfoGame';
@@ -16,16 +15,6 @@ const initialNext: number[] = [];
 let mockStore = configureStore([]);
 
 describe('Component InfoGame()', () => {
-  // it('test event emiting', () => {
-  //   let socket = new SocketMock();
-
-  //   socket.on('message', (message: string) => {
-  //     expect(message).toBe('Hello World!');
-  //   });
-
-  //   socket.socketClient.emit('message', 'Helo World!');
-  // });
-
   let store = mockStore({
     board: Array.from({ length: BOARD_HEIGHT }, () =>
       Array(BOARD_WIDTH).fill(0)

@@ -157,11 +157,4 @@ describe('should test all store functions (nosense)', () => {
     const store = initStore(initialState);
     expect(store).toBeTruthy();
   });
-
-  // it('should call useStore()', () => {
-  //   const store = useStore(initialState);
-
-  //   console.log(`store := ${store}`);
-  //   expect(store).toBeTruthy();
-  // });
 });

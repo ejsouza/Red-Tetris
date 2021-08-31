@@ -1,0 +1,28 @@
+<svg width="36" height="24" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="logo">
+<path id="Vector" d="M12 12H0V24H12V12Z" fill="#F6AB27"/>
+<g id="Group">
+<path id="Vector_2" d="M3.15787 15.1579V20.8421L0 24V12L3.15787 15.1579Z" fill="#EC9130"/>
+<path id="Vector_3" d="M12 12V24L8.84208 20.8421V15.1579L12 12Z" fill="#EC9130"/>
+</g>
+<path id="Vector_4" d="M8.84207 15.1579H3.15787V20.8421H8.84207V15.1579Z" fill="#FCCC88"/>
+<path id="Vector_5" d="M24.0001 12H12V24H24.0001V12Z" fill="#5496CE"/>
+<g id="Group_2">
+<path id="Vector_6" d="M15.1579 15.1579V20.8421L12 24V12L15.1579 15.1579Z" fill="#336A93"/>
+<path id="Vector_7" d="M24 12V24L20.8421 20.8421V15.1579L24 12Z" fill="#336A93"/>
+</g>
+<path id="Vector_8" d="M20.8421 15.1579H15.1579V20.8421H20.8421V15.1579Z" fill="#36B6D6"/>
+<path id="Vector_9" d="M36 12H24V24H36V12Z" fill="#FF6C77"/>
+<g id="Group_3">
+<path id="Vector_10" d="M36 12V24L32.8421 20.8421V15.1579L36 12Z" fill="#ED634C"/>
+<path id="Vector_11" d="M27.1579 15.1579V20.8421L24 24V12L27.1579 15.1579Z" fill="#ED634C"/>
+</g>
+<path id="Vector_12" d="M32.8421 15.1579H27.1579V20.8421H32.8421V15.1579Z" fill="#FE9189"/>
+<path id="Vector_13" d="M24 0H12V12H24V0Z" fill="#5DC382"/>
+<g id="Group_4">
+<path id="Vector_14" d="M15.1579 3.15794V8.84213L12 12V0L15.1579 3.15794Z" fill="#23B972"/>
+<path id="Vector_15" d="M24 0V12L20.8421 8.84213V3.15794L24 0Z" fill="#23B972"/>
+</g>
+<path id="Vector_16" d="M20.8421 3.15794H15.1579V8.84214H20.8421V3.15794Z" fill="#8ED7AE"/>
+</g>
+</svg>
