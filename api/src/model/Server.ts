@@ -58,7 +58,8 @@ export class Server {
   private initializeSocketIO(): void {
     this._io = new socketIO.Server(this._httpServer, {
       cors: {
-        origin: this._CLIENT_URL,
+        // origin: this._CLIENT_URL,
+        origin: 'http://localhost:3000',
         methods: ['GET', 'POST'],
       },
     });
