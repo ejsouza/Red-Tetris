@@ -1,6 +1,4 @@
---compilers ts-node/register
---require ts-node/register
+--require ts-node/register/transpile-only
 --require source-map-support/register
---full-trace
---bail
-src/**/*.spec.ts
+--recursive
+test/**/*.ts
