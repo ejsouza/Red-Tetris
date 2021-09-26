@@ -11,6 +11,8 @@ const app = new App([
   new PasswordController(),
 ]);
 
-app.listen();
+if (require.main === module) {
+  app.listen();
+}
 
 export { app };

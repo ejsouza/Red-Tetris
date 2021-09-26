@@ -15,15 +15,28 @@ export class DB {
     this.connectToDB();
   }
 
-  private async connectToDB(): Promise<void> {
-    mongoose.connect(this.urlDocker, this.options).then((conn) => {
-      if (process.env.NODE_ENV !== 'test') {
-        console.log(` 🏠 [database] connected to ${conn.connection.host}`);
-        console.log(
-          ` 💾 [connection] connected to ${process.env.NODE_ENV} database`
-        );
-        console.log(' 🛑 [stop] Press CTRL-C\n');
-      }
-    });
+  async connectToDB(): Promise<void> {
+    mongoose
+      .connect(this.urlDocker, this.options)
+      .then((conn) => {
+        if (process.env.NODE_ENV !== 'test') {
+          console.log(` 🏠 [database] connected to ${conn.connection.host}`);
+          console.log(
+            ` 💾 [connection] connected to ${process.env.NODE_ENV} database`
+          );
+          console.log(' 🛑 [stop] Press CTRL-C\n');
+        }
+      })
+      .catch((err) => {
+        console.log(`🚨 DB failure 🚨 ${err}`);
+      });
+  }
+
+  close(): Promise<void> {
+    return mongoose.disconnect();
+  }
+
+  getMongoose() {
+    return mongoose;
   }
 }

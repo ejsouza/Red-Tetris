@@ -3,6 +3,7 @@ import { IUser } from '../interfaces/';
 
 const userSchema = new mongoose.Schema(
   {
+   
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -52,5 +53,5 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
+// userSchema.loadClass(User)
 export default mongoose.model<IUser>('User', userSchema);

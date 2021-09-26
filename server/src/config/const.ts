@@ -1,5 +1,5 @@
 const BaseURL = '/api/v1';
-const TEST_BASE_URL = 'http://localhost:8000/api/v1';
+const TEST_BASE_URL = 'http://server_tests:8000/api/v1';
 export const FRONT_URL: string = 'http://localhost:3000';
 
 const MAX_NUMBER_OF_PLAYERS = 4;

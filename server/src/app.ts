@@ -41,16 +41,16 @@ export class App {
   }
 
   private connectToDatabase() {
-    new DB();
+    new DB().connectToDB();
   }
 
   public listen() {
     this.app.listen(process.env.PORT, () => {
-      if (process.env.NODE_ENV !== 'test') {
+      // if (process.env.NODE_ENV !== 'test') {
         console.log(
-          `\n ⚡️ [server]: App listening on port ${process.env.PORT}`
+          `\n ⚡️ [server]: App listening on port ${process.env.PORT} on  ${process.env.NODE_ENV} mode.\n`
         );
-      }
+      // }
     });
   }
 }
