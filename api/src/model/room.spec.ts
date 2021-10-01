@@ -52,30 +52,35 @@ describe('Room Model', () => {
     });
   });
 
-  after(() => {
+  after((done) => {
     io.close();
     clientSocket.close();
+    done();
   });
 
-  it('should set room to close', () => {
+  it('should set room to close', (done) => {
     room.isOpen = false;
     chaI.expect(room.isOpen).to.be.equal(false);
+    done();
   });
 
-  it('should return game host', () => {
+  it('should return game host', (done) => {
     chaI.expect(room.gameHost).to.be.equal('nightmare');
+    done();
   });
 
-  it('should set game host', () => {
+  it('should set game host', (done) => {
     room.gameHost = 'Godsmack';
     chaI.expect(room.gameHost).to.be.equal('Godsmack');
+    done();
   });
 
-  it('shoule set game', () => {
+  it('should set game', (done) => {
     room.addGame = game;
+    done();
   });
 
-  it('should add the 4th player', () => {
+  it('should add the 4th player', (done) => {
     const player = new Player({
       name: 'Sail',
       id: '414141',
@@ -84,11 +89,13 @@ describe('Room Model', () => {
     });
     room.addPlayer(player);
     chaI.expect(room.isOpen).to.be.equal(false);
+    done();
   });
 
-  it('should remove host', () => {
+  it('should remove host', (done) => {
     room.gameHost = 'nightmare';
     room.removePlayer('nightmare');
     chaI.expect(room.gameHost).to.be.equal('Sail');
+    done();
   });
 });
