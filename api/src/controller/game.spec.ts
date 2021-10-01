@@ -1,9 +1,9 @@
-let chaI = require('chai');
-let chaiHttp = require('chai-http');
+import chai from 'chai';
+import chaiHttp from 'chai-http';
 let assert = require('assert');
 import { gameDifficulty } from './GameController';
 
-chaI.use(chaiHttp);
+chai.use(chaiHttp);
 
 describe('Game Controller', () => {
   it('should return 420 (recruit)', () => {
