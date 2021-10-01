@@ -59,13 +59,12 @@ export class Server {
     this._io = new socketIO.Server(this._httpServer, {
       cors: {
         // origin: this._CLIENT_URL,
-        origin: 'http://localhost:3000',
+        // origin: 'http://localhost:3000',
+        origin: '*',
         methods: ['GET', 'POST'],
       },
     });
-
     this._io.on('connection', (socket: socketIO.Socket) => {
-      socket.on('join', (arg) => {});
 
       socket.on('disconnect', () => {
         this.rooms.forEach((room) => {
@@ -128,6 +127,7 @@ export class Server {
       socket.on(
         'createOrJoinGame',
         (roomName: string, userName: string, join: boolean) => {
+
           const room = this.rooms.find((room) => room.name === roomName);
           if (!room) {
             // Room doesn't exist yest, create it
@@ -247,6 +247,8 @@ export class Server {
   }
 
   listen(): void {
-    this._httpServer.listen(this._PORT);
+      this._httpServer.listen(this._PORT, () => {
+        console.log(`Server running on port ${this._PORT}`);
+      });
   }
 }
