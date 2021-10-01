@@ -1,57 +1,43 @@
 let chaI = require('chai');
 let chaiHttp = require('chai-http');
-import Game, { IGame } from './Game';
-import Player from './Player';
 import Board from './Board';
 import Piece from './Piece';
-import { Server as RootServer, IFrontState } from './Server';
-let { createServer } = require('http');
-let { Server } = require('socket.io');
+import { IFrontState } from './Server';
 let Client = require('socket.io-client');
-let assert = require('assert');
 
 chaI.use(chaiHttp);
 
 /***********************************************
  *                                             *
  *  WARNING Server should not be running!      *
- *  The test server should be running!         *
+ *  Run it directly if supported by OS         *
  *                                             *
+ *  $ npm run test                             *
+ *                                             *
+ *  Otherwise built image for test             *
+ *  (make sure to be in the /api directory)    *
+ *                                             *
+ * $ docker build --tag api-test .             *
+ * $ docker run api-test npm run test          *
  ***********************************************/
 
+process.env.NODE_ENV = 'test';
+
 describe('Server Model', () => {
-  let game: Game;
-  let player: Player;
   let board: Board;
   let piece: Piece;
-  let server: RootServer;
-  let io, serverSocket, clientSocket, httpServer;
-  before((done) => {
-    httpServer = createServer();
-    io = new Server(httpServer);
+  let clientSocket;
+  before(function (done) {
     board = new Board();
     piece = new Piece(0);
-    server = new RootServer();
-
-    httpServer.listen(() => {
-      const port = httpServer.address().port;
-      clientSocket = new Client(`http://localhost:${5000}`);
-      io.on('connection', (socket) => {
-        serverSocket = socket;
-      });
-      clientSocket.on('connect', done);
-    });
+    done();
   });
 
-  after((done) => {
-    if (clientSocket.connected) {
-      clientSocket.disconnect();
-    }
-    clientSocket.close();
-    httpServer.close();
-    io.close();
-    clientSocket.close();
-    done();
+  beforeEach(function (done) {
+    clientSocket = new Client(`http://localhost:${5000}`);
+    clientSocket.on('connect', function () {
+      done();
+    });
   });
 
   it('should create game', (done) => {
