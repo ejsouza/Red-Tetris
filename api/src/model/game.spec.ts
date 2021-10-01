@@ -17,24 +17,26 @@ describe('Game Model', () => {
   let player: Player;
   let board: Board;
   let piece: Piece;
-  let io, serverSocket, clientSocket;
+  let io, serverSocket, clientSocket, port;
   before((done) => {
-    const httpServer = createServer();
-    io = new Server(httpServer);
     board = new Board();
     piece = new Piece(0);
+    player = new Player({
+      name: 'player42',
+      id: '424242',
+      isHost: true,
+      roomName: 'room42',
+    });
+
+    const httpServer = createServer();
+    io = new Server(httpServer);
+
     httpServer.listen(() => {
-      const port = httpServer.address().port;
+      port = httpServer.address().port;
       clientSocket = new Client(`http://localhost:${port}`);
       io.on('connection', (socket) => {
         serverSocket = socket;
 
-        player = new Player({
-          name: 'player42',
-          id: '424242',
-          isHost: true,
-          roomName: 'room42',
-        });
         game = new Game({
           name: 'room42',
           players: [player],
@@ -47,19 +49,22 @@ describe('Game Model', () => {
     });
   });
 
-  after(() => {
-    io.close();
-    clientSocket.close();
+  beforeEach(function (done) {
+    clientSocket = new Client(`http://localhost:${port}`);
+    clientSocket.on('connect', function () {
+      done();
+    });
   });
 
-  it('should create new game', () => {
+  it('should create new game', (done) => {
     game.start();
     clientSocket.on('startLoop', (arg) => {
       assert.equal(arg, 'startLoop');
     });
+    done();
   });
 
-  it('should add player', () => {
+  it('should add player', (done) => {
     const player2 = new Player({
       name: 'player2',
       id: '222222',
@@ -68,19 +73,22 @@ describe('Game Model', () => {
     });
     game.addPlayer(player2);
     chaI.expect(game.players.length).to.be.equal(2);
+    done();
   });
 
-  it('should remove player', () => {
+  it('should remove player', (done) => {
     game.removePlayer('player2');
     chaI.expect(game.players.length).to.be.equal(1);
+    done();
   });
 
-  it('should not remove player', () => {
+  it('should not remove player', (done) => {
     game.removePlayer('player2');
     chaI.expect(false);
+    done();
   });
 
-  it('should update queue', () => {
+  it('should update queue', (done) => {
     let state: IFrontState = {
       playerName: 'Godsmack',
       gameName: 'room42',
@@ -92,46 +100,54 @@ describe('Game Model', () => {
     };
     game.queue(state);
     chaI.expect(game.getQueueLen()).to.be.equal(1);
+    done();
   });
 
-  it('should erase queue', () => {
+  it('should erase queue', (done) => {
     game.eraseQueue();
     chaI.expect(game.getQueueLen()).to.be.equal(0);
+    done();
   });
 
-  it('should create new piece', () => {
+  it('should create new piece', (done) => {
     game.createNewPieces();
     clientSocket.on('extra-pieces', (arg) => {
       chaI.expect(arg.newPieces.shape.length).to.be.equal(4);
     });
+    done();
   });
 
-  it('should update', () => {
+  it('should update', (done) => {
     game.update();
+    done();
   });
 
-  it('should send shadows', () => {
+  it('should send shadows', (done) => {
     clientSocket.on('arrayOfPlayer', (arg) => {
       chaI.expect(arg.palyer).to.be.equal('player42');
     });
+    done();
   });
 
-  it('should youLost', () => {
+  it('should youLost', (done) => {
     clientSocket.on('youLost', (arg) => {
       chaI.expect(arg.gameOver).to.be.equal(true);
     });
+    done();
   });
 
-  it('should youWin', () => {
+  it('should youWin', (done) => {
     clientSocket.on('youWin', (arg) => {
       chaI.expect(arg.gameOver).to.be.equal(true);
     });
+    done();
   });
 
-  it('should game over', () => {
+  it('should game over', (done) => {
     game.gameOver();
     clientSocket.on('game-is-over', (arg) => {
       assert.equal(arg, 'game-is-over');
     });
+    done();
   });
 });

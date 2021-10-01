@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node ./dist/server.js",
     "dev": "ts-node-dev --respawn  --transpile-only src/*.ts",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'src/**/*.spec.ts' --timeout 10000",
-    "coverage": "nyc npm run test"
+    "test": "nyc mocha -r ts-node/register 'src/**/*.ts' --exit",
+    "build": "tsc --project ."
   },
   "keywords": [],
   "author": "Eder Junior DE SOUZA",
   "license": "MIT",
   "dependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/cors": "^2.8.10",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^15.0.1",
