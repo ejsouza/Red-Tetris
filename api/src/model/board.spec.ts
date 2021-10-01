@@ -1,6 +1,5 @@
 let chaI = require('chai');
 let chaiHttp = require('chai-http');
-let assert = require('assert');
 import Board from './Board';
 import Piece from './Piece';
 
