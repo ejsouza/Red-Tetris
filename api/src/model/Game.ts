@@ -110,6 +110,10 @@ class Game {
     return this._actionQueu.length;
   }
 
+  setSinglePlayer() {
+    this._mode = Mode.Solo;
+  }
+
   /**
    * 	CLIENT SIDE PREDICTION AND SERVER RECONCILIATION
    * 	https://www.gabrielgambetta.com/

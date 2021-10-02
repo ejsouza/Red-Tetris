@@ -20,10 +20,8 @@ export class DB {
       .connect(this.urlDocker, this.options)
       .then((conn) => {
         if (process.env.NODE_ENV !== 'test') {
-          console.log(` 🏠 [database] connected to ${conn.connection.host}`);
-          console.log(
-            ` 💾 [connection] connected to ${process.env.NODE_ENV} database`
-          );
+          console.log(` 🏠 [database] up and running...`);
+          console.log(` 💾 [connection] connected to database...`);
           console.log(' 🛑 [stop] Press CTRL-C\n');
         }
       })

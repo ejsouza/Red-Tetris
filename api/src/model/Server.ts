@@ -189,6 +189,9 @@ export class Server {
       socket.on('restart-game', (gameName: string, playerName: string) => {
         const room = this.rooms.find((r) => r.name === gameName);
         room.isOpen = room?.game?.players.length < MAX_NUMBER_OF_PLAYERS;
+        if (room?.game?.players.length === 1) {
+          room?.game?.setSinglePlayer();
+        }
         room.players.forEach((player) => {
           /* Reset player store */
           player.resetBoard();
