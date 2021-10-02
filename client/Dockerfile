@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD [ "yarn", "test" ]
+CMD [ "yarn", "dev" ]
