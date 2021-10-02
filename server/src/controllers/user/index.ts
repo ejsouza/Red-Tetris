@@ -1,6 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { auth } from '../../middleware/auth';
-import User from '../../models/user';
 import UserRepository from '../../repositories/userRepository';
 import UserService from '../../services/userService';
 
@@ -60,33 +59,6 @@ export class UserController {
       user: response.user,
       msg: response.msg,
     });
-
-    // User.findById({ _id: id })
-    //   .then((user) => {
-    //     console.log(`gets here bitch ? ${user}`);
-    //     res.status(200).json({
-    //       success: true,
-    //       user: {
-    //         firstName: user?.firstName,
-    //         lastName: user?.lastName,
-    //         bestScore: user?.bestScore,
-    //         bestLevel: user?.bestLevel,
-    //         playedGames: user?.playedGames,
-    //         victory: user?.victory,
-    //         defeat: user?.defeat,
-    //         createdAt: user?.createdAt,
-    //         updatedAt: user?.updatedAt,
-    //       },
-    //     });
-    //     return;
-    //     console.log(`NEVER  gets here bitch ? ${user}`);
-    //   })
-    //   .catch((err) => {
-    //     console.log(`profile() catch(err)`);
-
-    //     res.status(404).json({ success: false, msg: 'User not found' });
-    //     return;
-    //   });
   };
 
   update = async (req: Request, res: Response): Promise<void> => {
@@ -114,28 +86,6 @@ export class UserController {
       user: response.user,
       msg: response.msg,
     });
-
-    // User.findOneAndUpdate(filter, update, { new: true }).then((updated) => {
-    //   if (!updated) {
-    //     return res.status(500).json({
-    //       success: false,
-    //       msg: 'Something went wrong!',
-    //     });
-    //   }
-    //   return res.status(201).json({
-    //     success: true,
-    //     msg: 'User Updated successfull',
-    //     user: {
-    //       firstName: updated?.firstName,
-    //       lastName: updated?.lastName,
-    //       bestScore: updated?.bestScore,
-    //       bestLevel: updated?.bestLevel,
-    //       playedGames: updated?.playedGames,
-    //       createdAt: updated?.createdAt,
-    //       updatedAt: updated?.updatedAt,
-    //     },
-    //   });
-    // });
   };
 
   score = async (req: Request, res: Response) => {
@@ -168,40 +118,5 @@ export class UserController {
       updated: response.updated,
       msg: response.msg,
     });
-
-    // User.findById({ _id: id })
-    //   .then((user) => {
-    //     if (!user) {
-    //       return res
-    //         .status(404)
-    //         .json({ success: false, msg: 'User not found' });
-    //     }
-    //     const filter = { _id: id };
-    //     const update = {
-    //       playedGames: user.playedGames + 1,
-    //       victory: user.victory + victory,
-    //       defeat: user.defeat + defeat,
-    //       bestScore: user.bestScore > score ? user.bestScore : score,
-    //       bestLevel: user.bestLevel > level ? user.bestLevel : level,
-    //     };
-    //     User.findByIdAndUpdate(filter, update, { new: true }).then(
-    //       (updated) => {
-    //         if (!updated) {
-    //           return res.status(500).json({
-    //             success: false,
-    //             msg: 'An error occured when updating score',
-    //           });
-    //         }
-    //         return res.status(200).json({
-    //           success: true,
-    //           msg: 'Score updated successfully',
-    //           updated,
-    //         });
-    //       }
-    //     );
-    //   })
-    //   .catch((err) => {
-    //     return res.status(404).json({ success: false, msg: 'User not found' });
-    //   });
   };
 }

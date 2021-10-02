@@ -44,6 +44,8 @@ export default class UserService {
       bestScore: data?.bestScore,
       bestLevel: data?.bestLevel,
       playedGames: data?.playedGames,
+      victory: data?.victory,
+      defeat: data?.defeat,
       createdAt: data?.createdAt,
       updatedAt: data?.updatedAt,
     };

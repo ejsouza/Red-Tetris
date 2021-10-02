@@ -46,11 +46,9 @@ export class App {
 
   public listen() {
     this.app.listen(process.env.PORT, () => {
-      // if (process.env.NODE_ENV !== 'test') {
-        console.log(
-          `\n ⚡️ [server]: App listening on port ${process.env.PORT} on  ${process.env.NODE_ENV} mode.\n`
-        );
-      // }
+      console.log(
+        `\n ⚡️ [server]: App listening on port ${process.env.PORT} on  ${process.env.NODE_ENV} mode.\n`
+      );
     });
   }
 }
