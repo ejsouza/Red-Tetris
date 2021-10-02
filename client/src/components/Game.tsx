@@ -53,6 +53,7 @@ const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
   const [youLost, setYouLost] = useState(false);
   const [youWin, setYouWin] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isMultiplayer, setIsMultiplayer] = useState(0);
   const [clearedLines, setClearedLines] = useState(0);
   const [delay, setDelay] = useState(RECRUIT);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>();
@@ -134,7 +135,7 @@ const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
     socket.on(
       'youLost',
       (player: { gameOver: boolean; multiplayer: number }) => {
-        updateScore(score, level, player.multiplayer, false, true);
+        setIsMultiplayer(player.multiplayer);
         if (!isCancelled) {
           setIsGameOver(player.gameOver);
           setYouLost(true);
@@ -145,7 +146,16 @@ const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
         }
       }
     );
-  }, [score, level]);
+  }, []);
+
+  useEffect(() => {
+    if (youLost || youWin) {
+      updateScore(score, level, isMultiplayer, youWin, youLost);
+      console.log(
+        `IS GAME OVER - score  := ${score} is multiplayer  := ${isMultiplayer}`
+      );
+    }
+  }, [youLost, youWin]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -155,7 +165,7 @@ const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
     });
 
     socket.on('youWin', (player: { multiplayer: number }) => {
-      updateScore(score, level, player.multiplayer, true, false);
+      setIsMultiplayer(player.multiplayer);
       if (!isCancelled) {
         setDelay(0);
         setYouWin(true);
@@ -224,7 +234,8 @@ const Game = ({ gameName, playerName, hardness }: IGameProps): JSX.Element => {
           <BoardGame />
         </Section>
         <Section>
-          <InfoGame player={playerName} game={gameName} />
+          {/* <InfoGame player={playerName} game={gameName} /> */}
+          <InfoGame />
         </Section>
       </Container>
       {youLost && (

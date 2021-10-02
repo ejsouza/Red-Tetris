@@ -13,6 +13,9 @@ import NavigationBar from '../src/components/NavigationBar';
 import { getUserById, updateProfile, getCurrentUser } from '../src/core/user';
 
 const CenterProfilePicture = styled.div``;
+const GearWrapper = styled(Gear)`
+  cursor: pointer;
+`;
 
 interface IUser {
   firstName: string;
@@ -36,19 +39,21 @@ const Profile = () => {
   const router = useRouter();
 
   const handleSubmit = () => {
-    updateProfile(firstName, lastName).then((res) => {
-      const status = res.status;
+    updateProfile(firstName, lastName)
+      .then((res) => {
+        const status = res.status;
 
-      res.json().then((data) => {
-        if (status === 201) {
-          setUser(data.user);
-          handleClose();
-        } else {
-          setTitle(data.msg);
-          setDangerClass('text-danger');
-        }
-      });
-    });
+        res.json().then((data: any) => {
+          if (status === 201) {
+            setUser(data.user);
+            handleClose();
+          } else {
+            setTitle(data.msg);
+            setDangerClass('text-danger');
+          }
+        });
+      })
+      .catch((_err) => {});
   };
 
   const handleClose = () => {
@@ -63,16 +68,18 @@ const Profile = () => {
     if (!currentUser) {
       router?.push('/');
     }
-    getUserById().then((res) => {
-      const status = res.status;
-      if (status === 404) {
-        router?.push('/');
-      } else {
-        res.json().then((data) => {
-          setUser(data.user);
-        });
-      }
-    });
+    getUserById()
+      .then((res) => {
+        const status = res.status;
+        if (status === 404) {
+          router?.push('/');
+        } else {
+          res.json().then((data: any) => {
+            setUser(data.user);
+          });
+        }
+      })
+      .catch((_err) => {});
   }, []);
   return !user ? (
     <Loading />
@@ -147,7 +154,11 @@ const Profile = () => {
             {user.firstName}&nbsp;{user.lastName}
             {!user.firstName && <span className="lead">Update your name</span>}
             &nbsp;
-            <Gear size="18px" onClick={() => setShow(true)} color="#0dcaf0" />
+            <GearWrapper
+              size="18px"
+              onClick={() => setShow(true)}
+              color="#0dcaf0"
+            />
           </Card.Title>
           <Card.Text>
             Hello<b>&nbsp;{user?.firstName}&nbsp;</b>

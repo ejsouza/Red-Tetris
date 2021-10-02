@@ -1,4 +1,14 @@
-import { BaseURL } from '../utils/const';
+import * as dotenv from 'dotenv';
+// import { BaseURL } from '../utils/const';
+
+dotenv.config();
+
+const test = process.env.NODE_ENV === 'test';
+const BaseURL = test
+  ? 'http://server_tests:8000/api/v1'
+  : 'http://localhost:8000/api/v1';
+
+// const apiURL = 'http://localhost:8000/api/v1';
 
 const signup = async (email: string, password: string) => {
   return fetch(`${BaseURL}/auth/signup`, {
@@ -75,7 +85,9 @@ const getUserById = async () => {
     headers: {
       Authorization: `Bearer ${user?.token}`,
     },
-  }).then((response) => response);
+  })
+    .then((response) => response)
+    .catch((err) => err);
 };
 
 const updateProfile = async (firstName: string, lastName: string) => {
@@ -91,7 +103,9 @@ const updateProfile = async (firstName: string, lastName: string) => {
       firstName,
       lastName,
     }),
-  }).then((response) => response);
+  })
+    .then((response) => response)
+    .catch((err) => err);
 };
 
 const updateScore = async (

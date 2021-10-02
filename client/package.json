@@ -7,17 +7,19 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
+    "test": "env NODE_ENV=test jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage --no-cache"
+    "coverage": "env NODE_ENV=test jest --coverage --no-cache"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.1",
+    "@types/dotenv": "^8.2.0",
     "@types/redux-mock-store": "^1.0.3",
     "@types/socket.io": "^3.0.2",
     "@types/styled-components": "^5.1.12",
     "bootstrap": "4.6.0",
     "bootstrap-next": "^1.0.5",
+    "dotenv": "^10.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jwt-decode": "^3.1.2",
     "next": "11.0.1",

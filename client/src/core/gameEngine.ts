@@ -56,7 +56,7 @@ const newPieceFitsInBoard = (board: number[][], piece: IPiece): boolean => {
     if (
       pos.x < 0 ||
       pos.x >= BOARD_WIDTH ||
-      pos.y < 0 ||
+      pos.y < 2 ||
       pos.y >= BOARD_HEIGHT ||
       board[pos.y][pos.x] !== 0
     ) {

@@ -31,11 +31,16 @@ services:
 
   client:
     container_name: client
+    env_file: ./client/.env
     build:
       context: ./client/
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    networks:
+      - rt-network
+    volumes:
+      - ./:/client
   
   mongo:
     container_name: db-rt

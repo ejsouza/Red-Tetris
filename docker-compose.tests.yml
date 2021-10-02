@@ -15,25 +15,24 @@ services:
     depends_on:
       - "mongo"
     networks:
-      - rt-network
+      - rt-network-test
     volumes:
       - ./:/server
 
-  # api:
-  #   container_name: api_tests
-  #   restart: unless-stopped
-  #   env_file: ./api/.env
-  #   build:
-  #     context: ./api/
-  #     dockerfile: test.Dockerfile
-  #   logging:
-  #     driver: none
-  #   ports:
-  #     - '5000:5000'
-  #   networks:
-  #     - rt-network
-  #   volumes:
-  #     - ./:/api
+  client:
+    container_name: client_tests
+    env_file: ./client/.env
+    depends_on:
+      - "server"
+    build:
+      context: ./client/
+      dockerfile: test.Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - rt-network-test
+    volumes:
+      - ./:/client
 
   mongo:
     container_name: mongodb
@@ -46,8 +45,8 @@ services:
     ports:
       - '27017:27017'
     networks:
-      - rt-network
+      - rt-network-test
 
 networks:
-  rt-network:
+  rt-network-test:
     driver: bridge
