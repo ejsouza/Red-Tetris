@@ -8,8 +8,6 @@ const BaseURL = test
   ? 'http://server_tests:8000/api/v1'
   : 'http://localhost:8000/api/v1';
 
-// const apiURL = 'http://localhost:8000/api/v1';
-
 const signup = async (email: string, password: string) => {
   return fetch(`${BaseURL}/auth/signup`, {
     method: 'POST',
